@@ -1,0 +1,417 @@
+Timer::start                                    compute_traj_do : 99.7%        3 calls 1.075E+01,1.050E+01 sec    0.000 Gflops (0.000E+00 flops)
+compute_traj_do: job_tag='free-4nt8' ; traj=1000
+Timer::start                              set_sparse_parameters :  0.2%        3 calls 1.638E-02,2.590E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                mk_field_selection(n_per_tslice,rs) :  0.1%        3 calls 9.794E-03,1.414E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                            mk_grid_field_selection :  0.1%        3 calls 9.376E-03,1.385E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             mk_grid_field_selection :  0.1%        3 calls 2.182E-04,9.308E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                 mk_field_selection(n_per_tslice,rs) :  0.1%        3 calls 3.488E-04,9.542E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                set_field_selection :  0.0%        7 calls 7.915E-05,3.345E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 set_field_selection :  0.0%        7 calls 1.159E-04,3.033E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              write_field_selection :  0.0%        3 calls 1.962E-03,2.366E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                     write_field_64 :  0.0%        3 calls 1.916E-03,2.274E-03 sec    0.002 Gflops (4.096E+03 flops)
+Timer::start                                        write_field :  0.1%        5 calls 1.254E-02,5.509E-03 sec    0.047 Gflops (5.898E+05 flops)
+write_field: fn='results/free-4nt8/results=1000/f-rank.field'.
+Timer::start                                field_crc32_shuffle :  0.0%        7 calls 8.469E-04,6.620E-04 sec    0.696 Gflops (5.898E+05 flops)
+Timer::stop                                 field_crc32_shuffle :  0.0%        7 calls 1.969E-04,5.956E-04 sec    0.021 Gflops (4.096E+03 flops)
+Timer::start                                 serial_write_field :  0.1%        5 calls 1.087E-02,3.500E-03 sec    0.054 Gflops (5.898E+05 flops)
+Timer::stop                                  serial_write_field :  0.1%        5 calls 1.121E-04,2.822E-03 sec    0.037 Gflops (4.096E+03 flops)
+Timer::stop                                         write_field :  0.1%        5 calls 6.490E-04,4.537E-03 sec    0.006 Gflops (4.096E+03 flops)
+Timer::stop                                      write_field_64 :  0.0%        3 calls 7.579E-04,1.769E-03 sec    0.005 Gflops (4.096E+03 flops)
+Timer::stop                               write_field_selection :  0.0%        3 calls 8.619E-04,1.865E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                               read_field_selection :  0.1%        3 calls 3.285E-03,7.318E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                      read_field_64 :  0.1%        3 calls 2.369E-03,6.596E-03 sec    0.002 Gflops (4.096E+03 flops)
+Timer::start                                         read_field :  0.1%        3 calls 2.319E-03,6.476E-03 sec    0.002 Gflops (4.096E+03 flops)
+read_field: fn='results/free-4nt8/results=1000/f-rank.field'.
+Timer::start                                      read_geo_info :  0.0%        3 calls 5.603E-05,7.260E-05 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                       read_geo_info :  0.0%        3 calls 8.178E-05,7.566E-05 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              serial_read_field_par :  0.1%        3 calls 1.548E-03,5.458E-03 sec    0.003 Gflops (4.096E+03 flops)
+Timer::start                                         qread_data :  0.0%        3 calls 4.053E-06,4.530E-06 sec    0.505 Gflops (2.048E+03 flops)
+Timer::stop                                          qread_data :  0.0%        3 calls 3.099E-06,4.053E-06 sec    0.661 Gflops (2.048E+03 flops)
+Timer::stop                               serial_read_field_par :  0.1%        3 calls 3.231E-04,3.747E-03 sec    0.013 Gflops (4.096E+03 flops)
+Timer::start                                field_crc32_shuffle :  0.0%        8 calls 1.969E-04,5.956E-04 sec    0.021 Gflops (4.096E+03 flops)
+Timer::stop                                 field_crc32_shuffle :  0.0%        8 calls 3.622E-04,5.664E-04 sec    0.011 Gflops (4.096E+03 flops)
+Timer::stop                                          read_field :  0.1%        3 calls 1.107E-03,4.686E-03 sec    0.004 Gflops (4.096E+03 flops)
+Timer::stop                                       read_field_64 :  0.1%        3 calls 1.205E-03,4.799E-03 sec    0.003 Gflops (4.096E+03 flops)
+Timer::start                                set_field_selection :  0.0%        8 calls 1.159E-04,3.033E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 set_field_selection :  0.0%        8 calls 6.819E-05,2.739E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                read_field_selection :  0.1%        3 calls 1.456E-03,5.364E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                               set_sparse_parameters :  0.3%        3 calls 7.816E-03,1.987E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                 load_configuration :  0.4%        3 calls 5.693E-02,4.524E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                  load_configuration :  0.4%        3 calls 6.700E-05,3.018E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                       gf_show_info :  0.0%        3 calls 3.818E-03,4.127E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                        gf_avg_plaq :  0.0%        3 calls 1.525E-03,1.998E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                gf_avg_plaq_no_comm :  0.0%        3 calls 5.679E-04,4.735E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 gf_avg_plaq_no_comm :  0.0%        3 calls 5.090E-04,4.853E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                         gf_avg_plaq :  0.0%        3 calls 1.126E-03,1.708E-03 sec    0.000 Gflops (0.000E+00 flops)
+plaq :  1.00000000000000000E+00
+Timer::start                                gf_avg_spatial_plaq :  0.0%        3 calls 9.940E-04,1.132E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                        gf_avg_spatial_plaq_no_comm :  0.0%        3 calls 4.210E-04,3.386E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                         gf_avg_spatial_plaq_no_comm :  0.0%        3 calls 3.369E-04,3.380E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 gf_avg_spatial_plaq :  0.0%        3 calls 7.901E-04,1.018E-03 sec    0.000 Gflops (0.000E+00 flops)
+spatial plaq :  1.00000000000000000E+00
+Timer::start                                  gf_avg_link_trace :  0.0%        3 calls 1.098E-03,6.192E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                   gf_avg_link_trace :  0.0%        3 calls 1.938E-04,4.774E-04 sec    0.000 Gflops (0.000E+00 flops)
+trace:  1.00000000000000000E+00
+Timer::stop                                        gf_show_info :  0.1%        3 calls 2.555E-03,3.603E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                               Inv::setup(gf,fa,lm) :  0.0%        3 calls 1.479E-03,1.241E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      set_left_expanded_gauge_field :  0.0%        3 calls 1.441E-03,1.161E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                       set_left_expanded_gauge_field :  0.0%        3 calls 4.361E-04,9.190E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                Inv::setup(gf,fa,lm) :  0.0%        3 calls 5.500E-04,1.011E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                           set_point_src_propagator : 98.3%        3 calls 1.062E+01,1.036E+01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.3%       25 calls 9.456E-01,8.632E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.2%       25 calls 9.450E-01,8.623E-01 sec    0.679 Gflops (6.420E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  1.9%       25 calls 2.014E-02,1.701E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.0%       25 calls 1.484E-02,1.692E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.4%       25 calls 9.034E-01,8.211E-01 sec    0.711 Gflops (6.420E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.5%       25 calls 4.890E-01,8.078E-01 sec    0.875 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.4%       25 calls 3.731E-03,3.876E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.4%       25 calls 4.043E-03,3.883E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.2%       25 calls 5.368E-01,8.493E-01 sec    0.797 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.3%       25 calls 5.378E-01,8.502E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.3%       26 calls 5.378E-01,8.502E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.2%       26 calls 5.368E-01,8.493E-01 sec    0.797 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.0%       26 calls 1.484E-02,1.692E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.0%       26 calls 1.797E-02,1.696E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.3%       26 calls 4.890E-01,8.078E-01 sec    0.875 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.5%       26 calls 5.027E-01,7.961E-01 sec    0.851 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.4%       26 calls 4.043E-03,3.883E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       26 calls 3.609E-03,3.872E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.3%       26 calls 5.413E-01,8.374E-01 sec    0.791 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.4%       26 calls 5.421E-01,8.383E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.4%       27 calls 5.421E-01,8.383E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.3%       27 calls 5.413E-01,8.374E-01 sec    0.791 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.0%       27 calls 1.797E-02,1.696E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.1%       27 calls 1.513E-02,1.689E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.3%       27 calls 5.027E-01,7.961E-01 sec    0.851 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.5%       27 calls 4.890E-01,7.847E-01 sec    0.875 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.4%       27 calls 3.609E-03,3.872E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       27 calls 3.636E-03,3.864E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.3%       27 calls 5.258E-01,8.259E-01 sec    0.814 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.4%       27 calls 5.265E-01,8.268E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.4%       28 calls 5.265E-01,8.268E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.3%       28 calls 5.258E-01,8.259E-01 sec    0.814 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.0%       28 calls 1.513E-02,1.689E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.1%       28 calls 1.809E-02,1.694E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.3%       28 calls 4.890E-01,7.847E-01 sec    0.875 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.4%       28 calls 5.077E-01,7.748E-01 sec    0.843 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.4%       28 calls 3.636E-03,3.864E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       28 calls 3.601E-03,3.854E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759165E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.3%       28 calls 5.468E-01,8.159E-01 sec    0.783 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.4%       28 calls 5.476E-01,8.168E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.4%       29 calls 5.476E-01,8.168E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.3%       29 calls 5.468E-01,8.159E-01 sec    0.783 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.0%       29 calls 1.809E-02,1.694E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.1%       29 calls 1.835E-02,1.699E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.3%       29 calls 5.077E-01,7.748E-01 sec    0.843 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.4%       29 calls 5.026E-01,7.654E-01 sec    0.852 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       29 calls 3.601E-03,3.854E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       29 calls 3.827E-03,3.853E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759165E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.4%       29 calls 5.425E-01,8.065E-01 sec    0.789 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.5%       29 calls 5.433E-01,8.074E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.5%       30 calls 5.433E-01,8.074E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.4%       30 calls 5.425E-01,8.065E-01 sec    0.789 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.1%       30 calls 1.835E-02,1.699E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.1%       30 calls 1.628E-02,1.696E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.3%       30 calls 5.026E-01,7.654E-01 sec    0.852 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.4%       30 calls 5.152E-01,7.571E-01 sec    0.831 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       30 calls 3.827E-03,3.853E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       30 calls 3.807E-03,3.852E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759165E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.4%       30 calls 5.574E-01,7.982E-01 sec    0.768 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.5%       30 calls 5.583E-01,7.991E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.5%       31 calls 5.583E-01,7.991E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.4%       31 calls 5.574E-01,7.982E-01 sec    0.768 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.1%       31 calls 1.628E-02,1.696E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.2%       31 calls 1.949E-02,1.704E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       31 calls 5.152E-01,7.571E-01 sec    0.831 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.4%       31 calls 5.101E-01,7.491E-01 sec    0.839 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       31 calls 3.807E-03,3.852E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       31 calls 3.756E-03,3.849E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.4%       31 calls 5.515E-01,7.902E-01 sec    0.776 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.5%       31 calls 5.524E-01,7.911E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.5%       32 calls 5.524E-01,7.911E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.4%       32 calls 5.515E-01,7.902E-01 sec    0.776 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.1%       32 calls 1.949E-02,1.704E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.2%       32 calls 1.851E-02,1.709E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       32 calls 5.101E-01,7.491E-01 sec    0.839 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.3%       32 calls 4.868E-01,7.409E-01 sec    0.879 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       32 calls 3.756E-03,3.849E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       32 calls 3.831E-03,3.848E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.5%       32 calls 5.274E-01,7.820E-01 sec    0.812 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.6%       32 calls 5.283E-01,7.829E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.6%       33 calls 5.283E-01,7.829E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.5%       33 calls 5.274E-01,7.820E-01 sec    0.812 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.2%       33 calls 1.851E-02,1.709E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.2%       33 calls 1.916E-02,1.715E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       33 calls 4.868E-01,7.409E-01 sec    0.879 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.3%       33 calls 5.308E-01,7.346E-01 sec    0.806 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       33 calls 3.831E-03,3.848E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       33 calls 3.469E-03,3.837E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.5%       33 calls 5.712E-01,7.756E-01 sec    0.749 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.6%       33 calls 5.720E-01,7.765E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.6%       34 calls 5.720E-01,7.765E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.5%       34 calls 5.712E-01,7.756E-01 sec    0.749 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.2%       34 calls 1.916E-02,1.715E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.2%       34 calls 1.543E-02,1.710E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       34 calls 5.308E-01,7.346E-01 sec    0.806 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.3%       34 calls 5.025E-01,7.277E-01 sec    0.852 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       34 calls 3.469E-03,3.837E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       34 calls 3.830E-03,3.837E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.5%       34 calls 5.407E-01,7.687E-01 sec    0.792 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.6%       34 calls 5.414E-01,7.696E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.6%       35 calls 5.414E-01,7.696E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.5%       35 calls 5.407E-01,7.687E-01 sec    0.792 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.2%       35 calls 1.543E-02,1.710E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.3%       35 calls 1.923E-02,1.716E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       35 calls 5.025E-01,7.277E-01 sec    0.852 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.3%       35 calls 5.007E-01,7.212E-01 sec    0.855 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       35 calls 3.830E-03,3.837E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       35 calls 3.662E-03,3.832E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.5%       35 calls 5.413E-01,7.622E-01 sec    0.791 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.7%       35 calls 5.422E-01,7.631E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                              invert_dwf(4d,4d,inv) : 98.7%       36 calls 5.422E-01,7.631E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                       invert_with_cg(5d,5d,inv,cg) : 98.5%       36 calls 5.413E-01,7.622E-01 sec    0.791 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): dm_in sqrt(qnorm) = 1.000000E+00
+Timer::start                            set_odd_prec_field_sym2 :  2.2%       36 calls 1.923E-02,1.716E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             set_odd_prec_field_sym2 :  2.3%       36 calls 1.546E-02,1.712E-02 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      cg_with_herm_sym_2(5d,5d,inv) : 93.2%       36 calls 5.007E-01,7.212E-01 sec    0.855 Gflops (4.280E+08 flops)
+cg_with_f: start max_num_iter= 200        sqrt(qnorm_in)=5.145E-01 stop_rsd=1.000E-08 
+cg_with_f: final iter=  38 sqrt(qnorm_r/qnorm_in)=5.845E-09 stop_rsd=1.000E-08
+Timer::stop                       cg_with_herm_sym_2(5d,5d,inv) : 93.3%       36 calls 5.278E-01,7.159E-01 sec    0.811 Gflops (4.280E+08 flops)
+invert_with_cg(5d,5d,inv,cg): total_iter=38 cycle=1 stop_rsd=1.000E-08
+Timer::start                   restore_field_from_odd_prec_sym2 :  0.5%       36 calls 3.662E-03,3.832E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                    restore_field_from_odd_prec_sym2 :  0.5%       36 calls 3.844E-03,3.832E-03 sec    0.000 Gflops (0.000E+00 flops)
+invert_with_cg(5d,5d,inv,cg): checking 3.759166E-09 from 1.000000E+00
+Timer::stop                        invert_with_cg(5d,5d,inv,cg) : 98.6%       36 calls 5.653E-01,7.568E-01 sec    0.757 Gflops (4.280E+08 flops)
+Timer::stop                               invert_dwf(4d,4d,inv) : 98.7%       36 calls 5.662E-01,7.576E-01 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                            set_point_src_propagator : 98.7%        3 calls 6.564E+00,9.097E+00 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                      write_field_float_from_double :  0.1%        3 calls 1.310E-02,9.895E-03 sec    0.045 Gflops (5.898E+05 flops)
+Timer::start                                        write_field :  0.1%        6 calls 6.490E-04,4.537E-03 sec    0.006 Gflops (4.096E+03 flops)
+write_field: fn='results/free-4nt8/results=1000/psrc-prop-0.field'.
+Timer::start                                field_crc32_shuffle :  0.0%        9 calls 3.622E-04,5.664E-04 sec    0.011 Gflops (4.096E+03 flops)
+Timer::stop                                 field_crc32_shuffle :  0.0%        9 calls 7.501E-04,5.868E-04 sec    0.786 Gflops (5.898E+05 flops)
+Timer::start                                 serial_write_field :  0.1%        6 calls 1.121E-04,2.822E-03 sec    0.037 Gflops (4.096E+03 flops)
+Timer::stop                                  serial_write_field :  0.1%        6 calls 1.425E-03,2.589E-03 sec    0.414 Gflops (5.898E+05 flops)
+Timer::stop                                         write_field :  0.1%        6 calls 3.447E-03,4.356E-03 sec    0.171 Gflops (5.898E+05 flops)
+Timer::stop                       write_field_float_from_double :  0.1%        3 calls 4.252E-03,8.014E-03 sec    0.139 Gflops (5.898E+05 flops)
+Timer::start                 dist_write_field_float_from_double :  0.3%        3 calls 3.574E-02,4.254E-02 sec    0.017 Gflops (5.898E+05 flops)
+Timer::start                                   dist_write_field :  0.3%        3 calls 3.495E-02,4.137E-02 sec    0.017 Gflops (5.898E+05 flops)
+dist_write_field: fn='results/free-4nt8/results=1000/psrc-prop-0'.
+Timer::start                                      shuffle_field :  0.1%        3 calls 2.455E-03,8.579E-03 sec    0.000 Gflops (0.000E+00 flops)
+shuffle_field: 1x1x1x2 -> 2x2x2x4 (total_site: 4x4x4x8 ; site_size: 1152 ; total_size: 0.001 GB)
+Timer::start                             shuffle_field(fs,f,sp) :  0.0%        3 calls 2.311E-03,4.857E-03 sec    0.255 Gflops (5.898E+05 flops)
+Timer::start                                 shuffle_field-comm :  0.0%        3 calls 1.981E-04,8.075E-04 sec    2.977 Gflops (5.898E+05 flops)
+Timer::start                            shuffle_field-comm-init :  0.0%        3 calls 4.005E-05,2.240E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                             shuffle_field-comm-init :  0.0%        3 calls 3.004E-05,1.593E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                  shuffle_field-comm :  0.0%        3 calls 7.300E-04,7.817E-04 sec    0.808 Gflops (5.898E+05 flops)
+Timer::stop                              shuffle_field(fs,f,sp) :  0.0%        3 calls 1.412E-03,3.709E-03 sec    0.418 Gflops (5.898E+05 flops)
+Timer::stop                                       shuffle_field :  0.1%        3 calls 2.165E-03,6.441E-03 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                dist_write_geo_info :  0.0%        3 calls 1.431E-04,2.050E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 dist_write_geo_info :  0.0%        3 calls 7.796E-05,1.627E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                               dist_write_dist_data :  0.2%        3 calls 3.148E-02,3.083E-02 sec    0.019 Gflops (5.898E+05 flops)
+Qlat::dist_write_dist_data: cycle / n_cycle =    1 /    4 ; total_ops =          8 ; total_bytes =          147456
+Qlat::dist_write_dist_data: cycle / n_cycle =    2 /    4 ; total_ops =         16 ; total_bytes =          294912
+Qlat::dist_write_dist_data: cycle / n_cycle =    3 /    4 ; total_ops =         24 ; total_bytes =          442368
+Qlat::dist_write_dist_data: cycle / n_cycle =    4 /    4 ; total_ops =         32 ; total_bytes =          589824
+Timer::start                                        dist_crc32s :  0.1%        3 calls 5.574E-03,7.399E-03 sec    0.106 Gflops (5.898E+05 flops)
+Timer::stop                                         dist_crc32s :  0.1%        3 calls 3.286E-03,6.028E-03 sec    0.180 Gflops (5.898E+05 flops)
+Timer::stop                                dist_write_dist_data :  0.3%        3 calls 2.721E-02,2.962E-02 sec    0.022 Gflops (5.898E+05 flops)
+Timer::stop                                    dist_write_field :  0.4%        3 calls 3.745E-02,4.006E-02 sec    0.016 Gflops (5.898E+05 flops)
+Timer::stop                  dist_write_field_float_from_double :  0.4%        3 calls 3.809E-02,4.106E-02 sec    0.015 Gflops (5.898E+05 flops)
+Timer::start             write_selected_field_float_from_double :  0.0%        3 calls 2.553E-03,3.511E-03 sec    0.014 Gflops (3.686E+04 flops)
+Timer::start                               write_selected_field :  0.0%        3 calls 1.971E-03,2.418E-03 sec    0.019 Gflops (3.686E+04 flops)
+write_selected_field: fn='results/free-4nt8/results=1000/psrc-prop-0.sfield'.
+Timer::start                                set_field_selection :  0.0%        9 calls 6.819E-05,2.739E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                 set_field_selection :  0.0%        9 calls 1.979E-04,2.655E-04 sec    0.000 Gflops (0.000E+00 flops)
+Timer::start                                 set_selected_field :  0.0%        3 calls 4.292E-05,4.995E-05 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                  set_selected_field :  0.0%        3 calls 1.650E-04,8.829E-05 sec    0.000 Gflops (0.000E+00 flops)
+Timer::stop                                write_selected_field :  0.0%        3 calls 5.366E-03,3.401E-03 sec    0.007 Gflops (3.686E+04 flops)
+Timer::stop              write_selected_field_float_from_double :  0.0%        3 calls 5.914E-03,4.312E-03 sec    0.006 Gflops (3.686E+04 flops)
+ndim: 2
+"tsep"[8]: "0" "1" "2" "3" "4" "5" "6" "7"
+"re-im"[2]: "re" "im"
+tsep[       0] re-im[      re]  4.77591858462204533E-01
+tsep[       0] re-im[      im]  0.00000000000000000E+00
+tsep[       1] re-im[      re]  3.85018818852286171E-01
+tsep[       1] re-im[      im]  0.00000000000000000E+00
+tsep[       2] re-im[      re]  3.06959408127858491E-01
+tsep[       2] re-im[      im]  0.00000000000000000E+00
+tsep[       3] re-im[      re]  2.83030918008284171E-01
+tsep[       3] re-im[      im]  0.00000000000000000E+00
+tsep[       4] re-im[      re]  2.76520261700637981E-01
+tsep[       4] re-im[      im]  0.00000000000000000E+00
+tsep[       5] re-im[      re]  2.83030918008284227E-01
+tsep[       5] re-im[      im]  0.00000000000000000E+00
+tsep[       6] re-im[      re]  3.06959408127858491E-01
+tsep[       6] re-im[      im]  0.00000000000000000E+00
+tsep[       7] re-im[      re]  3.85018818852286060E-01
+tsep[       7] re-im[      im]  0.00000000000000000E+00
+prop qnorm =  2.70413041013970012E+00
+prop[0] qnorm =  6.13619597510947114E-03
+Timer::stop                                     compute_traj_do : 99.8%        3 calls 6.628E+00,9.212E+00 sec    0.000 Gflops (0.000E+00 flops)
+Timer::display-start:  fname : time% number of calls; Avg,Tot sec; Avg,Tot flops; Gflops
+Timer::display                                 get_default_budget :  0.000%        1 calls; 2.15E-06,2.15E-06 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                      qset_line_buf :  0.000%        8 calls; 8.94E-07,7.15E-06 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                          get_trajs :  0.000%        2 calls; 3.93E-06,7.87E-06 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                         qread_data :  0.000%        3 calls; 4.05E-06,1.22E-05 sec; 2.05E+03,6.14E+03 flops;  0.51 Gflops
+Timer::display                                     get_time_limit :  0.000%        1 calls; 1.41E-05,1.41E-05 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                             install_qhandle_sigint :  0.000%        4 calls; 3.76E-06,1.50E-05 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                     get_lock_expiration_time_limit :  0.000%        1 calls; 5.98E-05,5.98E-05 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   display_geo_node :  0.000%        1 calls; 7.10E-05,7.10E-05 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                        set_point_src_fermion_field :  0.000%       36 calls; 3.49E-06,1.26E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                     set_lock_expiration_time_limit :  0.000%        5 calls; 2.72E-05,1.36E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   qmkdir_sync_node :  0.001%        3 calls; 5.47E-05,1.64E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                         rmdir_lock :  0.001%        2 calls; 8.25E-05,1.65E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                 make_dist_io_geons :  0.001%        4 calls; 4.74E-05,1.90E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                       qremove_info :  0.001%        2 calls; 1.13E-04,2.26E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                      read_geo_info :  0.001%        3 calls; 7.57E-05,2.27E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                 set_selected_field :  0.001%        3 calls; 8.83E-05,2.65E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                         mkdir_lock :  0.001%        4 calls; 7.41E-05,2.96E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                            shuffle_field-comm-init :  0.002%        3 calls; 1.59E-04,4.78E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                dist_write_geo_info :  0.002%        3 calls; 1.63E-04,4.88E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                      setup_log_idx :  0.002%        1 calls; 5.80E-04,5.80E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                  set_marks_field_1 :  0.002%        4 calls; 1.53E-04,6.13E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                set_marks_field_all :  0.002%        3 calls; 2.23E-04,6.70E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                       release_lock :  0.003%        2 calls; 4.14E-04,8.28E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                  make_dist_io_geos :  0.003%        4 calls; 2.20E-04,8.80E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        qmkdir_info :  0.003%       11 calls; 8.03E-05,8.83E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                       qrename_info :  0.003%       12 calls; 8.02E-05,9.63E-04 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                        gf_avg_spatial_plaq_no_comm :  0.004%        3 calls; 3.38E-04,1.01E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                             qmkdir :  0.004%       17 calls; 6.75E-05,1.15E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                             qclose :  0.004%       98 calls; 1.21E-05,1.19E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                            qrename :  0.004%       27 calls; 4.50E-05,1.22E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        obtain_lock :  0.005%        3 calls; 4.69E-04,1.41E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                  gf_avg_link_trace :  0.005%        3 calls; 4.77E-04,1.43E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                gf_avg_plaq_no_comm :  0.005%        3 calls; 4.85E-04,1.46E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                     make_comm_plan :  0.008%        7 calls; 3.33E-04,2.33E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                 shuffle_field-comm :  0.008%        3 calls; 7.82E-04,2.35E-03 sec; 5.90E+05,1.77E+06 flops;  0.75 Gflops
+Timer::display                                set_field_selection :  0.009%        9 calls; 2.65E-04,2.39E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                             qtouch :  0.009%       21 calls; 1.17E-04,2.46E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                    convert_field_float_from_double :  0.010%        9 calls; 2.97E-04,2.67E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                      set_left_expanded_gauge_field :  0.010%        3 calls; 9.19E-04,2.76E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        qtouch_info :  0.011%       21 calls; 1.44E-04,3.02E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               Inv::setup(gf,fa,lm) :  0.011%        3 calls; 1.01E-03,3.03E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                gf_avg_spatial_plaq :  0.011%        3 calls; 1.02E-03,3.05E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        gf_avg_plaq :  0.018%        3 calls; 1.71E-03,5.12E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                field_crc32_shuffle :  0.019%        9 calls; 5.87E-04,5.28E-03 sec; 1.99E+05,1.79E+06 flops;  0.34 Gflops
+Timer::display                                     write_field_64 :  0.019%        3 calls; 1.77E-03,5.31E-03 sec; 4.10E+03,1.23E+04 flops;  0.00 Gflops
+Timer::display                                              qopen :  0.019%      146 calls; 3.67E-05,5.35E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                              write_field_selection :  0.020%        3 calls; 1.86E-03,5.59E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                  make_shuffle_plan :  0.024%        1 calls; 6.59E-03,6.59E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display              set_propagator_col_from_fermion_field :  0.024%       36 calls; 1.85E-04,6.66E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                           fermion_field_5d_from_4d :  0.026%       72 calls; 1.01E-04,7.28E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                      set_g_rand_color_matrix_field :  0.027%        2 calls; 3.75E-03,7.51E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                           fermion_field_4d_from_5d :  0.029%       36 calls; 2.23E-04,8.04E-03 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               write_selected_field :  0.037%        3 calls; 3.40E-03,1.02E-02 sec; 3.69E+04,1.11E+05 flops;  0.01 Gflops
+Timer::display                                       gf_show_info :  0.039%        3 calls; 3.60E-03,1.08E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                             shuffle_field(fs,f,sp) :  0.040%        3 calls; 3.71E-03,1.11E-02 sec; 5.90E+05,1.77E+06 flops;  0.16 Gflops
+Timer::display                              serial_read_field_par :  0.041%        3 calls; 3.75E-03,1.12E-02 sec; 4.10E+03,1.23E+04 flops;  0.00 Gflops
+Timer::display             write_selected_field_float_from_double :  0.047%        3 calls; 4.31E-03,1.29E-02 sec; 3.69E+04,1.11E+05 flops;  0.01 Gflops
+Timer::display                                        qwrite_data :  0.047%       66 calls; 1.98E-04,1.31E-02 sec; 4.21E+04,2.78E+06 flops;  0.21 Gflops
+Timer::display                                         read_field :  0.051%        3 calls; 4.69E-03,1.41E-02 sec; 4.10E+03,1.23E+04 flops;  0.00 Gflops
+Timer::display                                      read_field_64 :  0.052%        3 calls; 4.80E-03,1.44E-02 sec; 4.10E+03,1.23E+04 flops;  0.00 Gflops
+Timer::display                         refresh_expanded-comm-init :  0.054%     7827 calls; 1.89E-06,1.48E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                 serial_write_field :  0.056%        6 calls; 2.59E-03,1.55E-02 sec; 2.97E+05,1.78E+06 flops;  0.11 Gflops
+Timer::display                               read_field_selection :  0.058%        3 calls; 5.36E-03,1.61E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        dist_crc32s :  0.065%        3 calls; 6.03E-03,1.81E-02 sec; 5.90E+05,1.77E+06 flops;  0.10 Gflops
+Timer::display                                     multiply_m_e_e :  0.069%       72 calls; 2.66E-04,1.92E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                      shuffle_field :  0.070%        3 calls; 6.44E-03,1.93E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                      write_field_float_from_double :  0.087%        3 calls; 8.01E-03,2.40E-02 sec; 5.90E+05,1.77E+06 flops;  0.07 Gflops
+Timer::display                                        write_field :  0.094%        6 calls; 4.36E-03,2.61E-02 sec; 2.97E+05,1.78E+06 flops;  0.07 Gflops
+Timer::display                            mk_grid_field_selection :  0.101%        3 calls; 9.31E-03,2.79E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                mk_field_selection(n_per_tslice,rs) :  0.103%        3 calls; 9.54E-03,2.86E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   get_half_fermion :  0.116%      144 calls; 2.23E-04,3.21E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   set_half_fermion :  0.156%      144 calls; 2.99E-04,4.31E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                          check_dir :  0.206%      119 calls; 4.80E-04,5.72E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                              set_sparse_parameters :  0.215%        3 calls; 1.99E-02,5.96E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               gf_ape_smear_no_comm :  0.221%       10 calls; 6.11E-03,6.11E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                       gf_ape_smear :  0.294%       10 calls; 8.15E-03,8.15E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               dist_write_dist_data :  0.321%        3 calls; 2.96E-02,8.89E-02 sec; 5.90E+05,1.77E+06 flops;  0.02 Gflops
+Timer::display                                 load_configuration :  0.327%        3 calls; 3.02E-02,9.05E-02 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   dist_write_field :  0.434%        3 calls; 4.01E-02,1.20E-01 sec; 5.90E+05,1.77E+06 flops;  0.01 Gflops
+Timer::display                 dist_write_field_float_from_double :  0.445%        3 calls; 4.11E-02,1.23E-01 sec; 5.90E+05,1.77E+06 flops;  0.01 Gflops
+Timer::display                   restore_field_from_odd_prec_sym2 :  0.498%       36 calls; 3.83E-03,1.38E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display           multiply_wilson_d_no_comm(5d,5d,gf,mass) :  0.534%       36 calls; 4.10E-03,1.48E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                      multiply_d_minus(5d,5d,gf,fa) :  0.777%       36 calls; 5.98E-03,2.15E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                        multiply_d_minus(5d,5d,Inv) :  0.781%       36 calls; 6.01E-03,2.16E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                              refresh_expanded-comm :  1.096%     7827 calls; 3.88E-05,3.04E-01 sec; 9.86E+04,7.72E+08 flops;  2.54 Gflops
+Timer::display                                         multiply_m :  1.225%       36 calls; 9.42E-03,3.39E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                              field_operator*=(F,D) :  1.674%     5523 calls; 8.39E-05,4.64E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   Field::operator= :  1.747%    11627 calls; 4.16E-05,4.84E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   field_operator+= :  1.949%     3814 calls; 1.42E-04,5.40E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                        dot_product :  2.202%     1853 calls; 3.29E-04,6.10E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                            set_odd_prec_field_sym2 :  2.225%       36 calls; 1.71E-02,6.16E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   field_operator-= :  2.991%     5814 calls; 1.42E-04,8.28E-01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                              multiply_mdag_e_e_inv :  4.503%     3850 calls; 3.24E-04,1.25E+00 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                 multiply_m_e_e_inv :  5.031%     3886 calls; 3.59E-04,1.39E+00 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                   refresh_expanded :  6.852%     7827 calls; 2.42E-04,1.90E+00 sec; 9.86E+04,7.72E+08 flops;  0.41 Gflops
+Timer::display         multiply_wilson_ddag_e_o_no_comm(5d,5d,gf) : 27.804%     3850 calls; 2.00E-03,7.70E+00 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display            multiply_wilson_d_e_o_no_comm(5d,5d,gf) : 28.505%     3922 calls; 2.01E-03,7.90E+00 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                        multiply_m_e_o(5d,5d,gf,fa) : 37.860%     3922 calls; 2.67E-03,1.05E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                     multiply_mdag_e_o(5d,5d,gf,fa) : 38.354%     3850 calls; 2.76E-03,1.06E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                  multiply_mpc_sym2 : 42.241%     1889 calls; 6.19E-03,1.17E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               multiply_mpcdag_sym2 : 43.863%     1925 calls; 6.31E-03,1.21E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                       compute_traj : 76.014%        3 calls; 7.02E+00,2.11E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                            compute : 76.015%        2 calls; 1.05E+01,2.11E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                               multiply_hermop_sym2 : 84.630%     1889 calls; 1.24E-02,2.34E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                          cg_with_f : 93.039%       36 calls; 7.16E-01,2.58E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                      cg_with_herm_sym_2(5d,5d,inv) : 93.041%       36 calls; 7.16E-01,2.58E+01 sec; 5.80E+08,2.09E+10 flops;  0.81 Gflops
+Timer::display                       invert_with_cg(5d,5d,inv,cg) : 98.355%       36 calls; 7.57E-01,2.72E+01 sec; 5.80E+08,2.09E+10 flops;  0.77 Gflops
+Timer::display                              invert_dwf(4d,4d,inv) : 98.468%       36 calls; 7.58E-01,2.73E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                           set_point_src_propagator : 98.522%        3 calls; 9.10E+00,2.73E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display                                    compute_traj_do : 99.768%        3 calls; 9.21E+00,2.76E+01 sec; 0.00E+00,0.00E+00 flops;  0.00 Gflops
+Timer::display-end:    --------------------- total 2.7693E+01 sec ----------------------

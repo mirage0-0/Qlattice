@@ -1,0 +1,16 @@
+node_file_size = 18432
+geo.multiplicity = 288
+sizeof(M) = 4
+geo.geon.num_node = 32
+geo.geon.size_node[0] = 2
+geo.geon.size_node[1] = 2
+geo.geon.size_node[2] = 2
+geo.geon.size_node[3] = 4
+geo.local_volume() = 16
+geo.node_site[0] = 2
+geo.node_site[1] = 2
+geo.node_site[2] = 2
+geo.node_site[3] = 2
+PI = 3.14159265358979311600
+PI_double = 18 2d 44 54 fb 21 9 40
+PI_float = db f 49 40

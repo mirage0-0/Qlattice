@@ -11,30 +11,46 @@ jobs:
   build_nix_ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v30
+    - uses: actions/checkout@v6
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-25.11
+    - name: Check disk space
+      run: df -h
     - name: Build qlat
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-ucxless.qlat-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
     - name: Test qlat
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-ucxless.qlat-tests -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
     - name: Build qlat with GPT and CPS
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-ucxless.qlat-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
     - name: Test qlat with GPT and CPS
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-ucxless.qlat-tests -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
     - name: Build qlat with jhub-env
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-ucxless.qlat-jhub-env -j 1 --cores 3
-    - uses: actions/upload-artifact@v4
+    - name: Check disk space
+      run: df -h
+    - uses: actions/upload-artifact@v6
       with:
         name: qlat-docs
         path: result/share/doc/qlat/html
-    - uses: actions/configure-pages@v4
-    - uses: actions/upload-pages-artifact@v3
+    - uses: actions/configure-pages@v5
+    - uses: actions/upload-pages-artifact@v4
       with:
         path: result/share/doc/qlat/html
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: qlat-packages
         path: result/share/qlat-pypi/*.tar.gz
+    - name: Check disk space
+      run: df -h
 
   deploy_docs:
     # Add a dependency to the build job
@@ -54,10 +70,40 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  build_nix_ubuntu_clang:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-25.11
+    - name: Check disk space
+      run: df -h
+    - name: Build qlat
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-clang-ucxless.qlat-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+    - name: Test qlat
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-clang-ucxless.qlat-tests -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+    - name: Build qlat with GPT and CPS
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-clang-ucxless.qlat-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+    - name: Test qlat with GPT and CPS
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-clang-ucxless.qlat-tests -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+    - name: Build qlat with jhub-env
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-clang-ucxless.qlat-jhub-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+
   build_qlat_ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -73,7 +119,7 @@ jobs:
         sudo apt-get install -y python3-full python3-dev
         sudo apt-get install -y libopenmpi-dev ninja-build patchelf libeigen3-dev libgsl-dev zlib1g-dev libssl-dev libmpfr-dev
         sudo apt-get install -y libfftw3-dev
-        # sudo apt-get install -y gnuplot texlive-metapost poppler-utils
+        # sudo apt-get install -y gnuplot poppler-utils
         #
         sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra tex-gyre
     - name: Build default
@@ -121,7 +167,7 @@ jobs:
   build_qlat_gpt_ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -138,7 +184,7 @@ jobs:
         sudo apt-get install -y libopenmpi-dev ninja-build patchelf libeigen3-dev libgsl-dev zlib1g-dev libssl-dev libmpfr-dev
         sudo apt-get install -y libfftw3-dev
         sudo apt-get install -y clang libomp-dev
-        # sudo apt-get install -y gnuplot texlive-metapost poppler-utils
+        # sudo apt-get install -y gnuplot poppler-utils
     - name: Download dependencies
       run: |
         ./scripts/download-core.sh
@@ -223,12 +269,12 @@ jobs:
         USE_COMPILER=clang ./scripts/hadrons-tblum.sh
     - name: Check error for Build more packages
       run: |
-        for path in $HOME/qlat-build/{default/gpt/lib/python3/dist-packages/{cgpt.so,gpt/__init__.py},{default/Grid-clehner,hadrons/Grid,tblum/Grid-tblum}/{lib/libGrid.a,bin/{grid-config,Mobius2p1fEOFA,Benchmark_dwf,Benchmark_dwf_fp32}},{hadrons/Hadrons,tblum/Hadrons-tblum}/{lib/libHadrons.a,bin/{hadrons-config,HadronsXmlRun,HadronsContractor}}} ; do if [ -e "$path" ] ; then echo "Build '$path' successfully." ; else echo "Failed to build '$path'." ; fi ; done
+        for path in $HOME/qlat-build/{default/gpt/lib/python3/dist-packages/{cgpt.so,gpt/__init__.py},{default/Grid-clehner,hadrons/Grid,tblum/Grid-tblum}/{lib/libGrid.a,bin/{grid-config,Benchmark_dwf_fp32}},{hadrons/Hadrons,tblum/Hadrons-tblum}/{lib/libHadrons.a,bin/{hadrons-config,HadronsXmlRun,HadronsContractor}}} ; do if [ -e "$path" ] ; then echo "Build '$path' successfully." ; else echo "Failed to build '$path'." ; fi ; done
 
   build_pip_ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -244,7 +290,7 @@ jobs:
         sudo apt-get install -y python3-full python3-dev
         sudo apt-get install -y libopenmpi-dev ninja-build patchelf libeigen3-dev libgsl-dev zlib1g-dev libssl-dev libmpfr-dev
         sudo apt-get install -y libfftw3-dev
-        # sudo apt-get install -y gnuplot texlive-metapost poppler-utils
+        # sudo apt-get install -y gnuplot poppler-utils
     - name: Download dependencies
       run: |
         ./scripts/download-core.sh
@@ -260,7 +306,7 @@ jobs:
         ./scripts/python-venv.sh
         ./scripts/python-pip-install.sh
         ./scripts/cuba.sh
-        ./scripts/eigen.sh
+        # ./scripts/eigen.sh
         ./scripts/c-lime.sh
         ./scripts/hdf5.sh
     - name: Show python venv
@@ -332,20 +378,40 @@ jobs:
       run: |
         ! git diff | grep '^[+-]CHECK: ' # || echo "Check failed!"
 
-  build_nix_mac:
+  build_nix_mac_clang:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v30
+    - uses: actions/checkout@v6
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-25.11
+    - name: Check disk space
+      run: df -h
     - name: Build qlat
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-clang-ucxless.qlat-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
     - name: Test qlat
       run: nix-build nixpkgs/q-pkgs.nix -A pkgs-std-clang-ucxless.qlat-tests -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
+    - name: Build qlat with GPT and CPS
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-cpsless-clang-ucxless.qlat-env -j 1 --cores 3 --argstr version "25.05"
+    - name: Check disk space
+      run: df -h
+    - name: Test qlat with GPT and CPS
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-cpsless-clang-ucxless.qlat-tests -j 1 --cores 3 --argstr version "25.05"
+    - name: Check disk space
+      run: df -h
+    - name: Build qlat with jhub-env
+      run: nix-build nixpkgs/q-pkgs.nix -A pkgs-cpsless-clang-ucxless.qlat-jhub-env -j 1 --cores 3
+    - name: Check disk space
+      run: df -h
 
   build_qlat_mac:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -358,7 +424,7 @@ jobs:
       run: |
         # brew update
         brew install llvm autoconf automake coreutils flock findutils pkg-config gnu-sed
-        brew install open-mpi ninja patchelf eigen gsl zlib openssl@3 mpfr
+        brew install open-mpi ninja patchelf eigen@3 gsl zlib openssl@3 mpfr
         brew install fftw
         # brew upgrade
     - name: Build default
@@ -399,7 +465,7 @@ jobs:
   build_qlat_gpt_mac:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -412,7 +478,7 @@ jobs:
       run: |
         # brew update
         brew install llvm autoconf automake coreutils flock findutils pkg-config gnu-sed
-        brew install open-mpi ninja patchelf eigen gsl zlib openssl@3 mpfr
+        brew install open-mpi ninja patchelf eigen@3 gsl zlib openssl@3 mpfr
         brew install fftw
         # brew upgrade
     - name: Download dependencies
@@ -499,12 +565,12 @@ jobs:
         USE_COMPILER=clang ./scripts/hadrons-tblum.sh
     - name: Check error for Build more packages
       run: |
-        for path in $HOME/qlat-build/{default/gpt/lib/python3/dist-packages/{cgpt.so,gpt/__init__.py},{default/Grid-clehner,hadrons/Grid,tblum/Grid-tblum}/{lib/libGrid.a,bin/{grid-config,Mobius2p1fEOFA,Benchmark_dwf,Benchmark_dwf_fp32}},{hadrons/Hadrons,tblum/Hadrons-tblum}/{lib/libHadrons.a,bin/{hadrons-config,HadronsXmlRun,HadronsContractor}}} ; do if [ -e "$path" ] ; then echo "Build '$path' successfully." ; else echo "Failed to build '$path'." ; fi ; done
+        for path in $HOME/qlat-build/{default/gpt/lib/python3/dist-packages/{cgpt.so,gpt/__init__.py},{default/Grid-clehner,hadrons/Grid,tblum/Grid-tblum}/{lib/libGrid.a,bin/{grid-config,Benchmark_dwf_fp32}},{hadrons/Hadrons,tblum/Hadrons-tblum}/{lib/libHadrons.a,bin/{hadrons-config,HadronsXmlRun,HadronsContractor}}} ; do if [ -e "$path" ] ; then echo "Build '$path' successfully." ; else echo "Failed to build '$path'." ; fi ; done
 
   build_pip_mac:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Show info
       run: |
         whoami
@@ -517,7 +583,7 @@ jobs:
       run: |
         # brew update
         brew install llvm autoconf automake coreutils flock findutils pkg-config gnu-sed
-        brew install open-mpi ninja patchelf eigen gsl zlib openssl@3 mpfr
+        brew install open-mpi ninja patchelf eigen@3 gsl zlib openssl@3 mpfr
         brew install fftw
         # brew upgrade
     - name: Download dependencies
@@ -537,7 +603,7 @@ jobs:
         ./scripts/python-venv.sh
         ./scripts/python-pip-install.sh
         ./scripts/cuba.sh
-        ./scripts/eigen.sh
+        # ./scripts/eigen.sh
         ./scripts/c-lime.sh
         ./scripts/hdf5.sh
     - name: Show python venv

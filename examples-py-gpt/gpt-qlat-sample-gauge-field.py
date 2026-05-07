@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import qlat as q
 import qlat_gpt as qg
+import qlat as q
 
 qg.begin_with_gpt()
 
@@ -54,4 +53,4 @@ q.timer_display()
 
 qg.end_with_gpt()
 
-q.displayln_info(f"CHECK: finished successfully.")
+q.displayln_info("CHECK: finished successfully.")

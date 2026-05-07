@@ -1,3 +1,5 @@
+:orphan:
+
 # LAT-IO format
 
 Source code located in `qlat-utils/include/qlat-utils/lat-io.h`
@@ -11,7 +13,7 @@ FILE-HEADER
 BINARY-DATA
 ```
 
-### FILE-HEADER
+## FILE-HEADER
 
 Example:
 
@@ -28,6 +30,6 @@ END_HEADER
 
 ```
 
-### BINARY-DATA
+## BINARY-DATA
 
 Consist of the data stored in double precision (little endian) in sequential order.

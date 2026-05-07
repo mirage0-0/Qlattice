@@ -29,7 +29,7 @@ sed -i "s/^    version=\".*\" # default version$/    version=\"v$version-current
 
 echo "Version info updated."
 
-) || echo "Update version not successful."
+) || exit 1
 
 (
 
@@ -42,7 +42,57 @@ for dir in $(find qlat* examples-* -type d -name depend-qlat) ; do
     fi
 done
 
-) || echo "Update 'depend-qlat/meson.build' not successful"
+) || exit 1
+
+(
+
+echo "Update 'depend-grid/meson.build'."
+
+for dir in $(find qlat* examples-* -type d -name depend-grid) ; do
+    fn="$dir/meson.build"
+    if [ -f "$fn" ] ; then
+        cp -pv qlat-grid/depend-grid/meson.build "$fn"
+    fi
+done
+
+) || exit 1
+
+(
+
+echo "Create '.clangd'."
+
+fn=.clangd
+
+echo "CompileFlags:" >"$fn"
+echo "    Add: [" >>"$fn"
+echo "        '-DQLAT_USE_GRID_EIGEN'," >>"$fn"
+echo "        '-D__QLAT_NO_FLOAT128__'," >>"$fn"
+echo "        '-DNO_CPS'," >>"$fn"
+for pkg in zlib ompi python fftw3 fftw3f gsl ; do
+    if pkg-config --cflags $pkg >/dev/null 2>&1 ; then
+        echo "        '$(pkg-config --cflags $pkg)'," >>"$fn"
+    else
+        echo "pkg-config '$pkg' is not available."
+    fi
+done
+if grid-config --cxxflags >/dev/null 2>&1 ; then
+    for arg in $(grid-config --cxxflags) ; do
+        if [ "${arg#-I}" == "${arg}" ] ; then
+            echo "skip '$arg'"
+        else
+            echo "        '$arg'," >>"$fn"
+        fi
+    done
+else
+    echo "grid-config is not available."
+fi
+echo "        '-I$PWD/qlat-utils/qlat_utils/include'," >>"$fn"
+echo "        '-I$PWD/qlat/qlat/include'," >>"$fn"
+echo "        '-I$PWD/qlat-grid/qlat_grid/include'," >>"$fn"
+echo "        '-I$PWD/qlat-cps/qlat_cps/include'" >>"$fn"
+echo "    ]" >>"$fn"
+
+) || echo "Create '.clangd' not successful."
 
 (
 

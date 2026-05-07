@@ -54,7 +54,7 @@ using Real = RealD;  // default Real type should not change
 inline std::string vssprintf(const char* fmt, va_list args)
 {
   char* cstr;
-  int ret = vasprintf(&cstr, fmt, args);
+  Int ret = vasprintf(&cstr, fmt, args);
   if (ret < 0) {
     assert(false);
   }
@@ -72,15 +72,15 @@ inline std::string ssprintf(const char* fmt, ...)
 
 inline std::string show() { return ""; }
 
-inline std::string show(const int& x) { return ssprintf("%d", x); }
+inline std::string show(const Int& x) { return ssprintf("%d", x); }
 
-inline std::string show(const unsigned int& x) { return ssprintf("%u", x); }
+inline std::string show(const uint32_t& x) { return ssprintf("%u", x); }
 
 inline std::string show(const Long& x) { return ssprintf("%ld", x); }
 
-inline std::string show(const unsigned long& x) { return ssprintf("%lu", x); }
+inline std::string show(const uint64_t& x) { return ssprintf("%lu", x); }
 
-inline std::string show(const double& x) { return ssprintf("%24.17E", x); }
+inline std::string show(const RealD& x) { return ssprintf("%24.17E", x); }
 
 inline std::string show(const bool& x) { return x ? "true" : "false"; }
 
@@ -126,9 +126,9 @@ inline Long read_long(const std::string& str)
   return ret;
 }
 
-inline double read_double(const std::string& str)
+inline RealD read_double(const std::string& str)
 {
-  double ret = 0.0;
+  RealD ret = 0.0;
   reads(ret, str);
   return ret;
 }
@@ -340,7 +340,7 @@ inline bool parse_long(Long& num, Long& cur, const std::string& data)
   return true;
 }
 
-inline bool parse_double(double& num, Long& cur, const std::string& data)
+inline bool parse_double(RealD& num, Long& cur, const std::string& data)
 {
   assert(cur <= (Long)data.size());
   const Long initial = cur;
@@ -416,10 +416,10 @@ inline std::vector<std::string> split_line_with_spaces(const std::string& str)
   return words;
 }
 
-inline std::vector<double> read_doubles(const std::string& str)
+inline std::vector<RealD> read_doubles(const std::string& str)
 {
   const std::vector<std::string> strs = split_line_with_spaces(str);
-  std::vector<double> ret(strs.size());
+  std::vector<RealD> ret(strs.size());
   for (size_t i = 0; i < strs.size(); ++i) {
     ret[i] = read_double(strs[i]);
   }
@@ -457,6 +457,40 @@ inline std::string info_get_prop(const std::vector<std::string>& lines,
   } else {
     return info_get_prop(lines, prop1);
   }
+}
+
+inline bool starts_with(const std::string& str, const std::string& prefix)
+{
+  return str.size() >= prefix.size() &&
+         str.compare(0, prefix.size(), prefix) == 0;
+}
+
+inline bool ends_with(const std::string& str, const std::string& suffix)
+{
+  if (str.size() < suffix.size()) {
+    return false;
+  }
+  return (str.substr(str.size() - suffix.size()) == suffix);
+}
+
+inline std::string remove_prefix(const std::string& str,
+                                 const std::string& prefix)
+{
+  if (str.size() >= prefix.size() &&
+      str.compare(0, prefix.size(), prefix) == 0) {
+    return str.substr(prefix.size());
+  }
+  return str;
+}
+
+inline std::string remove_suffix(const std::string& str,
+                                 const std::string& suffix)
+{
+  if (str.size() >= suffix.size() &&
+      str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0) {
+    return str.substr(0, str.size() - suffix.size());
+  }
+  return str;
 }
 
 inline void display_c_stdout(const std::string& str)

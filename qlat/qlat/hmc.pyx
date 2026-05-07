@@ -23,7 +23,7 @@ cdef class GaugeMomentum(FieldColorMatrix):
         super().__init__(geo, 4)
 
     cdef cc.Handle[cc.GaugeMomentum] xxx(self):
-        assert self.xx.multiplicity == 4
+        assert self.xx.multiplicity == 4 or self.xx.multiplicity == 0
         return cc.Handle[cc.GaugeMomentum](<cc.GaugeMomentum&>self.xx)
 
     def set_rand(self, RngState rng, cc.RealD sigma=1.0):
@@ -61,6 +61,17 @@ def gf_evolve_fa(GaugeField gf, GaugeMomentum gm, FieldRealD mf, cc.RealD step_s
 def gf_evolve_fa_dual(GaugeField gf, GaugeMomentum gm_dual, FieldRealD mf_dual, cc.RealD step_size):
     return cc.gf_evolve_dual(gf.xxx().val(), gm_dual.xxx().val(), mf_dual.xx, step_size)
 
+def field_color_matrix_exp(FieldColorMatrix fc1, cc.PyComplexD coef):
+    cdef FieldColorMatrix fc = FieldColorMatrix()
+    cdef cc.ComplexD cc_coef = cc.ccpy_d(coef)
+    cc.field_color_matrix_exp(fc.xx, fc1.xx, cc_coef)
+    return fc
+
+def field_color_matrix_mul(FieldColorMatrix fc1, FieldColorMatrix fc2):
+    cdef FieldColorMatrix fc = FieldColorMatrix()
+    cc.field_color_matrix_mul(fc.xx, fc1.xx, fc2.xx)
+    return fc
+
 def set_gm_force(GaugeMomentum gm_force, GaugeField gf, GaugeAction ga):
     return cc.set_gm_force(gm_force.xxx().val(), gf.xxx().val(), ga.xx)
 
@@ -73,6 +84,14 @@ def project_gauge_transform(GaugeMomentum gm, GaugeMomentum gm_dual, FieldRealD 
     """
     return cc.project_gauge_transform(gm.xxx().val(), gm_dual.xxx().val(), mf.xx, mf_dual.xx)
 
+def set_gauge_transform_momentum(GaugeMomentum gm, GaugeMomentum gm_dual, FieldColorMatrix gtm):
+    """
+    Set `gm` and `gm_dual` with `gtm`.
+    The overall effects of `gm` and `gm_dual` with `gf_evolve` and `gf_evolve_dual` is a pure gauge transformation from `gtm`.
+    The name `gtm` stands for gauge tranformation momentum.
+    """
+    return cc.set_gauge_transform_momentum(gm.xxx().val(), gm_dual.xxx().val(), gtm.xx)
+
 def dot_gauge_momentum(GaugeMomentum gm1, GaugeMomentum gm2):
     """
     return RealD dot field with multiplicity = 4
@@ -80,6 +99,22 @@ def dot_gauge_momentum(GaugeMomentum gm1, GaugeMomentum gm2):
     cdef FieldRealD f = FieldRealD()
     cc.dot_gauge_momentum(f.xx, gm1.xxx().val(), gm2.xxx().val())
     return f
+
+def set_anti_hermitian_matrix_from_basis(FieldColorMatrix fc, FieldRealD basis):
+    r"""
+    fc[x, m] = \sum_a T_a * basis[x, m * 8 + a]
+    T_a^dagger = -T_a
+    Tr[T_a T_b] = -2 \delta_{a,b}
+    """
+    cc.set_anti_hermitian_matrix_from_basis(fc.xx, basis.xx)
+
+def set_basis_from_anti_hermitian_matrix(FieldRealD basis, FieldColorMatrix fc):
+    r"""
+    fc[x, m] = \sum_a T_a * basis[x, m * 8 + a]
+    T_a^dagger = -T_a
+    Tr[T_a T_b] = -2 \delta_{a,b}
+    """
+    cc.set_basis_from_anti_hermitian_matrix(basis.xx, fc.xx)
 
 @q.timer_verbose
 def metropolis_accept(delta_h, traj, rs):
@@ -112,28 +147,28 @@ def gm_evolve_fg_pure_gauge(gm, gf_init, ga, fg_dt, dt):
     gm_force *= dt
     gm += gm_force
 
-@q.timer_verbose
+@q.timer(is_timer_fork=True)
 def run_hmc_evolve_pure_gauge(gm, gf, ga, rs, n_step, md_time=1.0):
     energy = gm_hamilton_node(gm) + gf_hamilton_node(gf, ga)
     dt = md_time / n_step
-    lam = 0.5 * (1.0 - 1.0 / math.sqrt(3.0));
-    theta = (2.0 - math.sqrt(3.0)) / 48.0;
-    ttheta = theta * dt * dt * dt;
+    lam = 0.5 * (1.0 - 1.0 / math.sqrt(3.0))
+    theta = (2.0 - math.sqrt(3.0)) / 48.0
+    ttheta = theta * dt * dt * dt
     gf_evolve(gf, gm, lam * dt)
     for i in range(n_step):
-        gm_evolve_fg_pure_gauge(gm, gf, ga, 4.0 * ttheta / dt, 0.5 * dt);
-        gf_evolve(gf, gm, (1.0 - 2.0 * lam) * dt);
-        gm_evolve_fg_pure_gauge(gm, gf, ga, 4.0 * ttheta / dt, 0.5 * dt);
+        gm_evolve_fg_pure_gauge(gm, gf, ga, 4.0 * ttheta / dt, 0.5 * dt)
+        gf_evolve(gf, gm, (1.0 - 2.0 * lam) * dt)
+        gm_evolve_fg_pure_gauge(gm, gf, ga, 4.0 * ttheta / dt, 0.5 * dt)
         if i < n_step - 1:
-            gf_evolve(gf, gm, 2.0 * lam * dt);
+            gf_evolve(gf, gm, 2.0 * lam * dt)
         else:
-            gf_evolve(gf, gm, lam * dt);
+            gf_evolve(gf, gm, lam * dt)
     gf.unitarize()
-    delta_h = gm_hamilton_node(gm) + gf_hamilton_node(gf, ga) - energy;
+    delta_h = gm_hamilton_node(gm) + gf_hamilton_node(gf, ga) - energy
     delta_h = glb_sum_double(delta_h)
     return delta_h
 
-@q.timer_verbose
+@q.timer(is_timer_fork=True)
 def run_hmc_pure_gauge(gf, ga, traj, rs, *, is_reverse_test=False, n_step=6, md_time=1.0, is_always_accept=False):
     fname = q.get_fname()
     rs = rs.split(f"{traj}")

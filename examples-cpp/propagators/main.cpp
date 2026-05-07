@@ -54,15 +54,17 @@ inline bool compute_traj_do(const std::string& job_tag, const int traj)
   Inverter inv;
   setup_inverter(inv, gf, fa, lm);
   //
-  const Coordinate xg_point_src = Coordinate(0,0,0,0);
+  const Coordinate xg_point_src = Coordinate(0, 0, 0, 0);
   //
   Propagator4d prop;
   set_point_src_propagator(prop, inv, xg_point_src);
   //
   // save prop (big endian)
   write_field_float_from_double(prop, job_path + "/psrc-prop-0.field");
-  dist_write_field_float_from_double(prop, Coordinate(2,2,2,4), job_path + "/psrc-prop-0");
-  write_selected_field_float_from_double(prop, job_path + "/psrc-prop-0.sfield", fsel);
+  dist_write_field_float_from_double(prop, Coordinate(2, 2, 2, 4),
+                                     job_path + "/psrc-prop-0");
+  write_selected_field_float_from_double(prop, job_path + "/psrc-prop-0.sfield",
+                                         fsel);
   //
   // pion contraction
   const LatData ld = contract_pion(prop, xg_point_src[3]);
@@ -76,7 +78,8 @@ inline bool compute_traj_do(const std::string& job_tag, const int traj)
   //
   displayln_info(ssprintf("prop qnorm = %24.17E", qnorm(prop)));
   //
-  displayln_info(ssprintf("prop[0] qnorm = %24.17E", qnorm(prop.get_elem(Coordinate()))));
+  displayln_info(
+      ssprintf("prop[0] qnorm = %24.17E", qnorm(prop.get_elem(Coordinate()))));
   //
   qtouch_info(job_path + "/checkpoint.txt");
   return false;
@@ -128,9 +131,9 @@ inline bool compute(const std::string& job_tag)
 {
   TIMER_VERBOSE("compute");
   bool is_failed = false;
-  const std::vector<int> trajs = get_trajs(job_tag);
-  for (int i = 0; i < (int)trajs.size(); ++i) {
-    const int traj = trajs[i];
+  const std::vector<int> traj_list = get_traj_list(job_tag);
+  for (int i = 0; i < (int)traj_list.size(); ++i) {
+    const int traj = traj_list[i];
     is_failed = compute_traj(job_tag, traj) or is_failed;
   }
   return is_failed;
@@ -143,22 +146,23 @@ inline bool compute(const std::string& job_tag)
 int main(int argc, char* argv[])
 {
   using namespace qlat;
-  std::vector<std::string> job_tags;
-  job_tags.push_back("test-4nt8");
-  job_tags.push_back("free-4nt8");
+  std::vector<std::string> job_tag_list;
+  job_tag_list.push_back("test-4nt8");
+  job_tag_list.push_back("free-4nt8");
   std::vector<Coordinate> size_node_list;
-  size_node_list.push_back(Coordinate(2,2,2,4));
-  size_node_list.push_back(Coordinate(1,2,2,2));
-  size_node_list.push_back(Coordinate(1,1,1,4));
+  size_node_list.push_back(Coordinate(2, 2, 2, 4));
+  size_node_list.push_back(Coordinate(1, 2, 2, 2));
+  size_node_list.push_back(Coordinate(1, 1, 1, 4));
   begin(&argc, &argv, size_node_list);
   display_geometry_node();
   setup_log_idx();
   setup();
-  for (int k = 0; k < (int)job_tags.size(); ++k) {
-    const std::string& job_tag = job_tags[k];
+  for (int k = 0; k < (int)job_tag_list.size(); ++k) {
+    const std::string& job_tag = job_tag_list[k];
     if (not compute(job_tag)) {
       Timer::display();
-      displayln_info(ssprintf("program finished successfully for '%s'.", job_tag.c_str()));
+      displayln_info(
+          ssprintf("program finished successfully for '%s'.", job_tag.c_str()));
     }
   }
   displayln_info("CHECK: finished successfully.");

@@ -1,8 +1,5 @@
-import numpy as np
 import qlat as q
 import qlat_cps as qc
-import qlat_gpt as qg
-import gpt as g
 
 from qlat_scripts.v1 import *
 
@@ -15,7 +12,7 @@ def gen_gauge_transform_cps_fake(job_tag, traj):
         return
     total_site = q.Coordinate(get_param(job_tag, "total_site"))
     geo = q.Geometry(total_site)
-    rs = q.RngState(f"{fname}/{job_tag}/{traj}")
+    rs = q.RngState(f"{fname}/{get_job_seed(job_tag)}/{traj}")
     gt = q.GaugeTransform(geo)
     gt.set_rand(rs)
     gt.unitarize()
@@ -28,18 +25,24 @@ def gen_prop_wsrc_cps_fake(job_tag, traj, inv_type):
     Generate some fake data.
     """
     fname = q.get_fname()
-    inv_type_name_list = [ "light", "strange", "charm", ]
+    inv_type_name_list = [
+        "light",
+        "strange",
+        "charm",
+    ]
     inv_type_name = inv_type_name_list[inv_type]
     path = f"{job_tag}/prop-wsrc-full-cps-{inv_type_name}/traj-{traj}"
     if get_load_path(f"{path}/checkpoint.txt"):
         q.displayln_info(-1, f"{fname}: {job_tag}/{traj}/{inv_type_name} already done.")
         return
-    with q.TimerFork(max_call_times_for_always_show_info=0, verbose=1, show_display=True):
+    with q.TimerFork(
+        max_call_times_for_always_show_info=0, verbose=1, show_display=True
+    ):
         total_site = q.Coordinate(get_param(job_tag, "total_site"))
         geo = q.Geometry(total_site)
         num_prop_sel = total_site[3] // 2
         num_prop_exact_sel = 2
-        rs = q.RngState(f"{fname}-sel/{job_tag}/{traj}")
+        rs = q.RngState(f"{fname}-sel/{get_job_seed(job_tag)}/{traj}")
         tslice_list = []
         for i in range(num_prop_sel):
             tslice = rs.rand_gen() % total_site[3]
@@ -52,7 +55,7 @@ def gen_prop_wsrc_cps_fake(job_tag, traj, inv_type):
             if tslice in tslice_exact_list:
                 continue
             tslice_exact_list.append(tslice)
-        rs = q.RngState(f"{fname}-prop/{job_tag}/{traj}")
+        rs = q.RngState(f"{fname}-prop/{get_job_seed(job_tag)}/{traj}")
         prop = q.Prop(geo)
         for tslice in tslice_exact_list:
             inv_acc = 2
@@ -75,12 +78,17 @@ def gen_prop_wsrc_cps_fake(job_tag, traj, inv_type):
 
 @q.timer_verbose
 def gen_all_data_cps_fake(job_tag):
-    with q.TimerFork(max_call_times_for_always_show_info=0, verbose=1, show_display=True):
+    with q.TimerFork(
+        max_call_times_for_always_show_info=0, verbose=1, show_display=True
+    ):
         fname = q.get_fname()
         num_traj = 2
-        rs = q.RngState(f"{fname}-traj-sel/{job_tag}")
+        rs = q.RngState(f"{fname}-traj-sel/{get_job_seed(job_tag)}")
         for i in range(num_traj):
-            traj = rs.select(get_param(job_tag, "trajs"))
+            traj = rs.select(get_param(job_tag, "traj_list"))
             gen_gauge_transform_cps_fake(job_tag, traj)
-            for inv_type in [ 0, 1, ]:
+            for inv_type in [
+                0,
+                1,
+            ]:
                 gen_prop_wsrc_cps_fake(job_tag, traj, inv_type)

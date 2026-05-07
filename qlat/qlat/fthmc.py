@@ -3,7 +3,6 @@ from qlat import *
 import qlat.c as c
 
 class FlowInfo:
-
     def __init__(self):
         self.cdata = c.mk_flow_info()
 

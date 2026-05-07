@@ -34,14 +34,14 @@ crc32_t field_crc32_shuffle(const Field<M>& f)
   std::vector<Field<M>> fs;
   shuffle_field(fs, f, new_size_node);
   crc32_t ret = 0;
-  for (int i = 0; i < (int)fs.size(); ++i) {
-    const int new_id_node = fs[i].geo().geon.id_node;
-    const int new_num_node = fs[i].geo().geon.num_node;
+  for (Int i = 0; i < (int)fs.size(); ++i) {
+    const Int new_id_node = fs[i].geo().geon.id_node;
+    const Int new_num_node = fs[i].geo().geon.num_node;
     const Vector<M> v = get_data(fs[i]);
     ret ^= crc32_shift(crc32_par(v),
                        (new_num_node - new_id_node - 1) * v.data_size());
   }
-  glb_sum_byte(ret);
+  glb_sum(get_data_char(ret));
   timer.flops += get_data(f).data_size() * geo.geon.num_node;
   return ret;
 }
@@ -54,7 +54,7 @@ crc32_t field_crc32_sites(const Field<M>& f)
   const Int multiplicity = f.multiplicity;
   const Long total_volume = geo.total_volume();
   const Long data_size_site = multiplicity * sizeof(M);
-  const int v_limit = omp_get_max_threads();
+  const Int v_limit = omp_get_max_threads();
   std::vector<crc32_t> crcs(v_limit, 0);
 #pragma omp parallel
   {
@@ -68,14 +68,14 @@ crc32_t field_crc32_sites(const Field<M>& f)
       const Vector<M> v = f.get_elems_const(xl);
       crc ^= crc32_shift(crc32(v), offset);
     }
-    const int id = omp_get_thread_num();
+    const Int id = omp_get_thread_num();
     crcs[id] = crc;
   }
   crc32_t ret = 0;
-  for (int i = 0; i < v_limit; ++i) {
+  for (Int i = 0; i < v_limit; ++i) {
     ret ^= crcs[i];
   }
-  glb_sum_byte(ret);
+  glb_sum(get_data_char(ret));
   timer.flops += get_data(f).data_size() * geo.geon.num_node;
   return ret;
 }
@@ -97,7 +97,7 @@ Long dist_write_field(const Field<M>& f, const Coordinate& new_size_node,
   displayln_info(fname + ssprintf(": fn='%s'.", path.c_str()));
   std::vector<Field<M>> fs;
   shuffle_field(fs, f, new_size_node);
-  Long total_bytes = dist_write_fields(fs, product(new_size_node), path);
+  Long total_bytes = dist_write_fields(fs, volume(new_size_node), path);
   timer.flops += total_bytes;
   return total_bytes;
 }
@@ -112,7 +112,8 @@ Long dist_read_field(Field<M>& f, const std::string& path)
   Int multiplicity;
   std::vector<Field<M>> fs;
   Coordinate new_size_node;
-  const Long total_bytes = dist_read_fields(fs, geo, multiplicity, new_size_node, path);
+  const Long total_bytes =
+      dist_read_fields(fs, geo, multiplicity, new_size_node, path);
   if (total_bytes == 0) {
     return 0;
   } else {
@@ -132,16 +133,16 @@ void convert_field_float_from_double(Field<N>& ff, const Field<M>& f)
   TIMER("convert_field_float_from_double");
   const Geometry& geo = f.geo();
   qassert(geo.is_only_local);
-  qassert(sizeof(M) % sizeof(double) == 0);
-  qassert(sizeof(N) % sizeof(float) == 0);
+  qassert(sizeof(M) % sizeof(RealD) == 0);
+  qassert(sizeof(N) % sizeof(RealF) == 0);
   qassert(f.multiplicity * sizeof(M) / 2 % sizeof(N) == 0);
-  const int multiplicity = f.multiplicity * sizeof(M) / 2 / sizeof(N);
+  const Int multiplicity = f.multiplicity * sizeof(M) / 2 / sizeof(N);
   ff.init(geo, multiplicity);
   const Vector<M> fdata = get_data(f);
   const Vector<double> fd((double*)fdata.data(),
-                          fdata.data_size() / sizeof(double));
+                          fdata.data_size() / sizeof(RealD));
   Vector<N> ffdata = get_data(ff);
-  Vector<float> ffd((float*)ffdata.data(), ffdata.data_size() / sizeof(float));
+  Vector<RealF> ffd((RealF*)ffdata.data(), ffdata.data_size() / sizeof(RealF));
   qassert(ffd.size() == fd.size());
   qacc_for(i, ffd.size(), { ffd[i] = fd[i]; });
 }
@@ -152,18 +153,18 @@ void convert_field_double_from_float(Field<N>& ff, const Field<M>& f)
 {
   TIMER("convert_field_double_from_float");
   const Geometry& geo = f.geo();
-  const int multiplicity = f.multiplicity * sizeof(M) * 2 / sizeof(N);
+  const Int multiplicity = f.multiplicity * sizeof(M) * 2 / sizeof(N);
   qassert(geo.is_only_local);
-  qassert(sizeof(M) % sizeof(float) == 0);
-  qassert(sizeof(N) % sizeof(double) == 0);
+  qassert(sizeof(M) % sizeof(RealF) == 0);
+  qassert(sizeof(N) % sizeof(RealD) == 0);
   qassert(f.multiplicity * sizeof(M) * 2 % sizeof(N) == 0);
   ff.init(geo, multiplicity);
   const Vector<M> fdata = get_data(f);
-  const Vector<float> fd((float*)fdata.data(),
-                         fdata.data_size() / sizeof(float));
+  const Vector<RealF> fd((RealF*)fdata.data(),
+                         fdata.data_size() / sizeof(RealF));
   Vector<N> ffdata = get_data(ff);
   Vector<double> ffd((double*)ffdata.data(),
-                     ffdata.data_size() / sizeof(double));
+                     ffdata.data_size() / sizeof(RealD));
   qassert(ffd.size() == fd.size());
   qacc_for(i, ffd.size(), { ffd[i] = fd[i]; });
 }
@@ -174,7 +175,7 @@ Long dist_write_field_float_from_double(const Field<M>& f,
 // interface_function
 {
   TIMER_VERBOSE_FLOPS("dist_write_field_float_from_double");
-  Field<float> ff;
+  Field<RealF> ff;
   convert_field_float_from_double(ff, f);
   to_from_big_endian(get_data(ff));
   const Long total_bytes = dist_write_field(ff, path);
@@ -189,7 +190,7 @@ Long dist_write_field_float_from_double(const Field<M>& f,
 // interface_function
 {
   TIMER_VERBOSE_FLOPS("dist_write_field_float_from_double");
-  Field<float> ff;
+  Field<RealF> ff;
   convert_field_float_from_double(ff, f);
   to_from_big_endian(get_data(ff));
   const Long total_bytes = dist_write_field(ff, new_size_node, path);
@@ -202,7 +203,7 @@ Long dist_read_field_double_from_float(Field<M>& f, const std::string& path)
 // interface_function
 {
   TIMER_VERBOSE_FLOPS("dist_read_field_double_from_float");
-  Field<float> ff;
+  Field<RealF> ff;
   const Long total_bytes = dist_read_field(ff, path);
   if (total_bytes == 0) {
     return 0;
@@ -258,7 +259,8 @@ Long dist_read_field_double(Field<M>& f, const std::string& path)
 
 // ----------------------
 
-inline std::string make_field_header(const Geometry& geo, const Int multiplicity, const Int sizeof_M,
+inline std::string make_field_header(const Geometry& geo,
+                                     const Int multiplicity, const Int sizeof_M,
                                      const crc32_t crc32)
 {
   const Coordinate total_site = geo.total_site();
@@ -293,7 +295,7 @@ inline void read_geo_info(Coordinate& total_site, Int& multiplicity,
           while (infos.back() != "END_HEADER\n" && infos.back() != "") {
             infos.push_back(qgetline(qfile));
           }
-          for (int m = 0; m < 4; ++m) {
+          for (Int m = 0; m < 4; ++m) {
             reads(total_site[m],
                   info_get_prop(infos, ssprintf("total_site[%d] = ", m)));
           }
@@ -325,14 +327,14 @@ Long write_field(const Field<M>& f, const std::string& path,
   const Geometry& geo = f.geo();
   const crc32_t crc32 = field_crc32(f);
   if (get_force_field_write_sizeof_M() == 0) {
-    qtouch_info(path + ".partial", make_field_header(geo, f.multiplicity, sizeof(M), crc32));
+    qtouch_info(path + ".partial",
+                make_field_header(geo, f.multiplicity, sizeof(M), crc32));
   } else {
-    const int sizeof_M = get_force_field_write_sizeof_M();
+    const Int sizeof_M = get_force_field_write_sizeof_M();
     qassert((f.multiplicity * sizeof(M)) % sizeof_M == 0);
     const Int multiplicity = (f.multiplicity * sizeof(M)) / sizeof_M;
-    qtouch_info(
-        path + ".partial",
-        make_field_header(geo, multiplicity, sizeof_M, crc32));
+    qtouch_info(path + ".partial",
+                make_field_header(geo, multiplicity, sizeof_M, crc32));
     get_force_field_write_sizeof_M() = 0;
   }
   const Long file_size = serial_write_field(
@@ -355,8 +357,8 @@ Long read_field(Field<M>& f, const std::string& path,
   TIMER_VERBOSE_FLOPS("read_field");
   displayln_info(fname + ssprintf(": fn='%s'.", path.c_str()));
   Coordinate total_site;
-  int multiplicity = 0;
-  int sizeof_M = 0;
+  Int multiplicity = 0;
+  Int sizeof_M = 0;
   crc32_t crc = 0;
   read_geo_info(total_site, multiplicity, sizeof_M, crc, path);
   if (total_site == Coordinate() or multiplicity == 0) {
@@ -390,16 +392,16 @@ Long read_field(Field<M>& f, const std::string& path,
     qassert(false);
   }
   const crc32_t f_crc = field_crc32(f);
-  const bool is_checking = is_checksum_missmatch();
-  is_checksum_missmatch() = false;
+  const bool is_checking = is_checksum_mismatch();
+  is_checksum_mismatch() = false;
   if (crc != f_crc) {
     displayln_info(fname + ssprintf(": WARNING: file crc32 do not match "
                                     "read_info_crc=%06X vs read_data_crc=%06X",
                                     crc, f_crc));
-    is_checksum_missmatch() = true;
+    is_checksum_mismatch() = true;
   }
   if (is_checking) {
-    qassert(is_checksum_missmatch() == false);
+    qassert(is_checksum_mismatch() == false);
   }
   timer.flops += file_size;
   return file_size;
@@ -412,7 +414,7 @@ Long write_field_float_from_double(
 // interface_function
 {
   TIMER_VERBOSE_FLOPS("write_field_float_from_double");
-  Field<float> ff;
+  Field<RealF> ff;
   convert_field_float_from_double(ff, f);
   to_from_big_endian(get_data(ff));
   const Long total_bytes = write_field(ff, path, new_size_node);
@@ -427,7 +429,7 @@ Long read_field_double_from_float(
 // interface_function
 {
   TIMER_VERBOSE_FLOPS("read_field_double_from_float");
-  Field<float> ff;
+  Field<RealF> ff;
   const Long total_bytes = read_field(ff, path, new_size_node);
   if (total_bytes == 0) {
     return 0;

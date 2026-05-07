@@ -6,14 +6,13 @@ tempita = files('tempita.py')
 
 init_files = files(
   '__init__.py',
-)
+  )
 
 py_files = files(
   'ama.py',
   'cache.py',
   'c.py',
   'data.py',
-  'get_include_dir.py',
   'load_prop.py',
   'lru_cache.py',
   '__main__.py',

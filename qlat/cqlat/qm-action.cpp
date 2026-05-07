@@ -2,27 +2,30 @@
 
 EXPORT(mk_qm_action, {
   using namespace qlat;
-  double alpha = 0.0;
-  double beta = 0.0;
-  double FV_offset = 0.0;
-  double TV_offset = 0.0;
-  double barrier_strength = 1.0;
-  double M = 1.0;
-  double L = 0.0;
-  double P = 0.0;
-  double epsilon = 0.0;
-  long t_TV_start = 0;
-  long t_full1 = 10;
-  long t_full2 = 10;
+  RealD alpha = 0.0;
+  RealD beta = 0.0;
+  RealD V_FV_min = 0.0;
+  RealD FV_offset = 0.0;
+  RealD TV_offset = 0.0;
+  RealD barrier_strength = 1.0;
+  RealD L = 1.0;
+  RealD M = 0.0;
+  RealD epsilon = 0.0;
   long t_FV_out = 10;
   long t_FV_mid = 5;
-  double dt = 1.0;
-  bool proj_sq = false;
-  if (!PyArg_ParseTuple(args, "d|d|d|d|d|d|d|d|d|l|l|l|l|l|d|b", &alpha, &beta, &FV_offset, &TV_offset,
-      &barrier_strength, &M, &L, &P, &epsilon, &t_full1, &t_full2, &t_FV_out, &t_FV_mid, &t_TV_start, &dt, &proj_sq)) {
+  RealD dt = 1.0;
+  bool measure_offset_L = false;
+  bool measure_offset_M = false;
+
+  if (!PyArg_ParseTuple(args, "d|d|d|d|d|d|d|d|d|l|l|d|b|b", &alpha, &beta,
+                        &V_FV_min, &FV_offset, &TV_offset, &barrier_strength,
+                        &L, &M, &epsilon, &t_FV_out, &t_FV_mid, &dt,
+                        &measure_offset_L, &measure_offset_M)) {
     return NULL;
   }
-  QMAction* pqma = new QMAction(alpha, beta, FV_offset, TV_offset, barrier_strength, M, L, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, t_TV_start, dt, proj_sq);
+  QMAction* pqma = new QMAction(
+      alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, L, M,
+      epsilon, t_FV_out, t_FV_mid, dt, measure_offset_L, measure_offset_M);
   return py_convert((void*)pqma);
 })
 
@@ -86,36 +89,6 @@ EXPORT(get_L_qm_action, {
   return py_convert(qma.L);
 })
 
-EXPORT(get_P_qm_action, {
-  using namespace qlat;
-  PyObject* p_qma = NULL;
-  if (!PyArg_ParseTuple(args, "O", &p_qma)) {
-    return NULL;
-  }
-  const QMAction& qma = py_convert_type<QMAction>(p_qma);
-  return py_convert(qma.P);
-})
-
-EXPORT(get_t_full1_qm_action, {
-  using namespace qlat;
-  PyObject* p_qma = NULL;
-  if (!PyArg_ParseTuple(args, "O", &p_qma)) {
-    return NULL;
-  }
-  const QMAction& qma = py_convert_type<QMAction>(p_qma);
-  return py_convert(qma.t_full1);
-})
-
-EXPORT(get_t_full2_qm_action, {
-  using namespace qlat;
-  PyObject* p_qma = NULL;
-  if (!PyArg_ParseTuple(args, "O", &p_qma)) {
-    return NULL;
-  }
-  const QMAction& qma = py_convert_type<QMAction>(p_qma);
-  return py_convert(qma.t_full2);
-})
-
 EXPORT(get_t_FV_out_qm_action, {
   using namespace qlat;
   PyObject* p_qma = NULL;
@@ -149,25 +122,32 @@ EXPORT(get_dt_qm_action, {
 EXPORT(V_qm_action, {
   using namespace qlat;
   PyObject* p_qma = NULL;
-  double x = 0.0;
+  RealD x[2];
+  x[0] = 0.0;
+  x[1] = 0.0;
   long t = 0;
-  if (!PyArg_ParseTuple(args, "O|d|l", &p_qma, &x, &t)) {
+  if (!PyArg_ParseTuple(args, "O|d|d|l", &p_qma, &x[0], &x[1], &t)) {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  return py_convert(qma.V(x,t));
+  Vector<RealD> x_v(&x[0], 2);
+  return py_convert(qma.V(x_v, t));
 })
 
 EXPORT(dV_qm_action, {
   using namespace qlat;
   PyObject* p_qma = NULL;
-  double x = 0.0;
+  RealD x[2];
+  x[0] = 0.0;
+  x[1] = 0.0;
   long t = 0;
-  if (!PyArg_ParseTuple(args, "O|d|l", &p_qma, &x, &t)) {
+  int idx = 0;
+  if (!PyArg_ParseTuple(args, "O|d|d|l|i", &p_qma, &x[0], &x[1], &t, &idx)) {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  return py_convert(qma.dV(x,t));
+  Vector<RealD> x_v(&x[0], 2);
+  return py_convert(qma.dV(x_v, t, idx));
 })
 
 EXPORT(action_node_qm_action, {
@@ -178,8 +158,8 @@ EXPORT(action_node_qm_action, {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  const Field<double>& f = py_convert_type<Field<double>>(p_f);
-  const double ret = qma.action_node(f);
+  Field<RealD>& f = py_convert_type<Field<RealD>>(p_f);
+  RealD ret = qma.action_node(f);
   return py_convert(ret);
 })
 
@@ -191,8 +171,8 @@ EXPORT(hmc_m_hamilton_node_qm_action, {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  const Field<double>& m = py_convert_type<Field<double>>(p_m);
-  const double ret = qma.hmc_m_hamilton_node(m);
+  Field<RealD>& m = py_convert_type<Field<RealD>>(p_m);
+  RealD ret = qma.hmc_m_hamilton_node(m);
   return py_convert(ret);
 })
 
@@ -204,8 +184,8 @@ EXPORT(sum_sq_qm_action, {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  const Field<double>& f = py_convert_type<Field<double>>(p_f);
-  const double ret = qma.sum_sq(f);
+  Field<RealD>& f = py_convert_type<Field<RealD>>(p_f);
+  RealD ret = qma.sum_sq(f);
   return py_convert(ret);
 })
 
@@ -218,8 +198,8 @@ EXPORT(hmc_set_force_qm_action, {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  Field<double>& force = py_convert_type<Field<double>>(p_force);
-  const Field<double>& f = py_convert_type<Field<double>>(p_f);
+  Field<RealD>& force = py_convert_type<Field<RealD>>(p_force);
+  Field<RealD>& f = py_convert_type<Field<RealD>>(p_f);
   qma.hmc_set_force(force, f);
   Py_RETURN_NONE;
 })
@@ -229,13 +209,13 @@ EXPORT(hmc_field_evolve_qm_action, {
   PyObject* p_qma = NULL;
   PyObject* p_f = NULL;
   PyObject* p_m = NULL;
-  double step_size = 0.0;
+  RealD step_size = 0.0;
   if (!PyArg_ParseTuple(args, "OOOd", &p_qma, &p_f, &p_m, &step_size)) {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  Field<double>& f = py_convert_type<Field<double>>(p_f);
-  const Field<double>& m = py_convert_type<Field<double>>(p_m);
+  Field<RealD>& f = py_convert_type<Field<RealD>>(p_f);
+  Field<RealD>& m = py_convert_type<Field<RealD>>(p_m);
   qma.hmc_field_evolve(f, m, step_size);
   Py_RETURN_NONE;
 })
@@ -249,8 +229,8 @@ EXPORT(hmc_set_rand_momentum_qm_action, {
     return NULL;
   }
   QMAction& qma = py_convert_type<QMAction>(p_qma);
-  Field<double>& m = py_convert_type<Field<double>>(p_m);
-  const RngState& rs = py_convert_type<RngState>(p_rs);
+  Field<RealD>& m = py_convert_type<Field<RealD>>(p_m);
+  RngState& rs = py_convert_type<RngState>(p_rs);
   qma.hmc_set_rand_momentum(m, rs);
   Py_RETURN_NONE;
 })

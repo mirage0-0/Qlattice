@@ -16,7 +16,7 @@ inline void cps_begin(int* argc, char** argv[], const Coordinate& total_site)
   begin(argc, argv);
 }
 
-void cps_end() { end(); }
+inline void cps_end() { end(); }
 
 }  // namespace qlat
 
@@ -24,29 +24,20 @@ void cps_end() { end(); }
 
 #define QLAT_CPS
 
-#include <gf/tools.h>
-
-#include <gf/gauge_field.h>
-
-#include <gf/fermion_field.h>
-
-#include <gf/qed.h>
-
-#include <gf/inverter.h>
-
-#include <gf/rng_state.h>
-
 #include <alg/alg_fix_gauge.h>
-
 #include <alg/alg_rnd_gauge.h>
+#include <gf/fermion_field.h>
+#include <gf/gauge_field.h>
+#include <gf/inverter.h>
+#include <gf/qed.h>
+#include <gf/rng_state.h>
+#include <gf/tools.h>
 
 extern MPI_Comm QMP_COMM_WORLD;
 
-#include "cps-utils.h"
-
-#include "cps-pio.h"
-
 #include "cps-lanc.h"
+#include "cps-pio.h"
+#include "cps-utils.h"
 
 namespace qlat
 {  //
@@ -89,7 +80,7 @@ void cps_begin(int* argc, char** argv[], const Coordinate& total_site)
   cps::LRG.Initialize();
   Coordinate size_node(cps::SizeX(), cps::SizeY(), cps::SizeZ(), cps::SizeT());
   begin(cps::UniqueID(), size_node);
-  sync_node();
+  SYNC_NODE();
   cps::dataWriteParNumber() = 256;
   cps::dataReadParNumber() = 256;
 }
@@ -133,7 +124,7 @@ inline void field_convert(cps::GridComm<M>& gc, const Field<N>& f)
     const Coordinate xl = geo.coordinate_from_index(index);
     const Vector<N> v = f.get_elems_const(xl);
     M* gcv = gc.getElem(xl.data(), 0);
-    for (int m = 0; m < geo.multiplicity; ++m) {
+    for (Int m = 0; m < geo.multiplicity; ++m) {
       value_convert(gcv[m], v[m]);
     }
   }
@@ -152,15 +143,14 @@ inline void field_convert(Field<N>& f, const cps::GridComm<M>& gc)
     const Coordinate xl = geo.coordinate_from_index(index);
     const M* gcv = gc.getElem(xl.data(), 0);
     Vector<N> v = f.get_elems(xl);
-    for (int m = 0; m < geo.multiplicity; ++m) {
+    for (Int m = 0; m < geo.multiplicity; ++m) {
       value_convert(v[m], gcv[m]);
     }
   }
 }
 
-inline void gf_fix_gauge_landau(GaugeField& gf,
-                                const double stop_cond = 1.0e-12,
-                                const double max_iter_num = 500000)
+inline void gf_fix_gauge_landau(GaugeField& gf, const RealD stop_cond = 1.0e-12,
+                                const RealD max_iter_num = 500000)
 {
   TIMER_VERBOSE("gf_fix_gauge_landau")
   cps::GaugeField cgf;
@@ -184,8 +174,8 @@ inline void gf_fix_gauge_landau(GaugeField& gf,
 }
 
 inline void gt_gf_fix_gauge_coulomb(GaugeTransform& gt, const GaugeField& gf,
-                                    const double stop_cond = 1.0e-12,
-                                    const double max_iter_num = 500000)
+                                    const RealD stop_cond = 1.0e-12,
+                                    const RealD max_iter_num = 500000)
 {
   TIMER_VERBOSE("gt_gf_fix_gauge_coulomb")
   cps::GaugeField cgf;
@@ -207,8 +197,9 @@ inline void gt_gf_fix_gauge_coulomb(GaugeTransform& gt, const GaugeField& gf,
 #pragma omp parallel for
   for (Long index = 0; index < gt.geo().local_volume(); ++index) {
     const Coordinate xl = gt.geo().coordinate_from_index(index);
-    const int k =
-        ((xl[2] * gt.geo().node_site[1]) + xl[1]) * gt.geo().node_site[0] + xl[0];
+    const Int k =
+        ((xl[2] * gt.geo().node_site[1]) + xl[1]) * gt.geo().node_site[0] +
+        xl[0];
     value_convert(gt.get_elem(xl), lat.fix_gauge_ptr[xl[3]][k]);
   }
   fg.free();
@@ -216,8 +207,8 @@ inline void gt_gf_fix_gauge_coulomb(GaugeTransform& gt, const GaugeField& gf,
 }
 
 inline void gf_fix_gauge_coulomb(GaugeField& gf,
-                                 const double stop_cond = 1.0e-12,
-                                 const double max_iter_num = 500000)
+                                 const RealD stop_cond = 1.0e-12,
+                                 const RealD max_iter_num = 500000)
 {
   TIMER_VERBOSE("gf_fix_gauge_coulomb")
   GaugeTransform gt;
@@ -304,7 +295,7 @@ inline void run_lanc(LowModesCPS& lm, const GaugeField& gf,
   field_convert(cgf, gf);
   cps::LancArg cla = lanc_arg_convert(la, fa);
   lm.init(geo_reform(gf.geo(), fa.ls, 0), fa);
-  cps::LanczosRun<float>::run(lm.lanc, cgf, fa_convert(fa), cla);
+  cps::LanczosRun<RealF>::run(lm.lanc, cgf, fa_convert(fa), cla);
 }
 
 inline Long read_low_modes_compressed(LowModesCPS& lm, const std::string& path)
@@ -318,7 +309,7 @@ inline Long read_low_modes_compressed(LowModesCPS& lm, const std::string& path)
   TIMER_VERBOSE_FLOPS("read_low_modes_compressed");
   cps::LanczosDefault& lanc = lm.lanc;
   lanc.free_evecs();
-  vector<double> vals;
+  vector<RealD> vals;
   std::vector<HalfVector> hvs;
   {
     CompressedEigenSystemInfo cesi;
@@ -337,13 +328,13 @@ inline Long read_low_modes_compressed(LowModesCPS& lm, const std::string& path)
   qassert(nvec == vals.size());
   qassert(vec_size == lanc.vec_size);
   lanc.resize(nvec);
-  for (int k = 0; k < nvec; k++) {
+  for (Int k = 0; k < nvec; k++) {
     lanc.getVal(k) = vals[k];
   }
   {
     TIMER_VERBOSE_FLOPS("load_from_compressed_eigen_vectors-alloc");
     timer.flops += nvec * vec_size;
-    for (int k = 0; k < nvec; k++) {
+    for (Int k = 0; k < nvec; k++) {
       lanc.alloc(k);
       convert_half_vector_bfm_format(
           Vector<ComplexF>((ComplexF*)lanc.getVec(k),
@@ -410,7 +401,7 @@ inline void load_or_compute_low_modes(LowModesCPS& lm, const std::string& path,
 }
 
 struct InverterDomainWallCPS {
-  box_acc<Geometry> geo;
+  box<Geometry> geo;
   FermionAction fa;
   GaugeField gf;
   //
@@ -439,11 +430,11 @@ struct InverterDomainWallCPS {
     inverter.init(cgf, cfa);
   }
   //
-  double& stop_rsd() { return inverter.stop_rsd; }
+  RealD& stop_rsd() { return inverter.stop_rsd; }
   //
-  int& max_num_iter() { return inverter.max_num_iter; }
+  Int& max_num_iter() { return inverter.max_num_iter; }
   //
-  int& max_mixed_precision_cycle()
+  Int& max_mixed_precision_cycle()
   {
     return inverter.max_mixed_precision_cycle;
   }

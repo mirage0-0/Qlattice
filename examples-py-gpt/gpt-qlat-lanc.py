@@ -2,97 +2,376 @@
 
 # Need --mpi X.X.X.X runtime option
 
-import qlat as q
-import gpt as g
 import qlat_gpt as qg
+import qlat as q
 
-from qlat_scripts.v1 import *
+from qlat_scripts.v1 import (
+    get_load_path,
+    set_param,
+    get_param,
+    check_job,
+    run_gf,
+    run_eig,
+    run_params,
+    test_eig,
+    get_param_clanc,
+)
 
-import pprint
-import os
+import subprocess
 
-@q.timer
-def test_eig(gf, eig, job_tag, inv_type):
-    geo = gf.geo
-    src = q.FermionField4d(geo)
-    src.set_rand(q.RngState("test_eig:src.set_rand"))
-    q.displayln_info(f"CHECK: src norm {src.qnorm():.10E}")
-    sol_ref = ru.get_inv(gf, job_tag, inv_type, inv_acc = 2, eig = eig, eps = 1e-10, mpi_split = False, qtimer = False) * src
-    q.displayln_info(f"CHECK: sol_ref norm {sol_ref.qnorm():.10E} with eig")
-    for inv_acc in [0, 1, 2]:
-        sol = ru.get_inv(gf, job_tag, inv_type, inv_acc, eig = eig, mpi_split = False, qtimer = False) * src
-        sol -= sol_ref
-        q.displayln_info(f"CHECK: sol diff norm {sol.qnorm():.1E} inv_acc={inv_acc} with eig")
-        sol = ru.get_inv(gf, job_tag, inv_type, inv_acc, mpi_split = False, qtimer = False) * src
-        sol -= sol_ref
-        q.displayln_info(f"CHECK: sol diff norm {sol.qnorm():.1E} inv_acc={inv_acc} without eig")
-
-@q.timer
+@q.timer(is_timer_fork=True)
 def run_job(job_tag, traj):
+    traj_gf = traj
+    if q.is_test():
+        traj_gf = 1000
+    #
     fns_produce = [
-            f"{job_tag}/eig/traj-{traj}/metadata.txt",
-            ]
+        f"{job_tag}/eig/traj-{traj_gf}/metadata.txt",
+    ]
     fns_need = [
-            # (f"{job_tag}/configs/ckpoint_lat.{traj}", f"{job_tag}/configs/ckpoint_lat.IEEE64BIG.{traj}",),
-            ]
+        (
+            f"{job_tag}/configs/ckpoint_lat.{traj_gf}",
+            f"{job_tag}/configs/ckpoint_lat.IEEE64BIG.{traj_gf}",
+        ),
+    ]
+    #
+    if q.is_test():
+        fns_need = []
+    #
     if not check_job(job_tag, traj, fns_produce, fns_need):
         return
     #
-    traj_gf = traj
-    if job_tag[:5] == "test-":
-        # ADJUST ME
-        traj_gf = 1000
-        #
-
     q.check_stop()
     q.check_time_limit()
     #
-    total_site = q.Coordinate(get_param(job_tag, "total_site"))
-    geo = q.Geometry(total_site)
-    q.displayln_info("CHECK: geo.show() =", geo.show())
+    if q.is_test():
+        total_site = q.Coordinate(get_param(job_tag, "total_site"))
+        geo = q.Geometry(total_site)
+        q.json_results_append(f"geo.show() = {geo.show()}")
     #
     get_gf = run_gf(job_tag, traj_gf)
-    get_gf().show_info()
-    #
     get_eig = run_eig(job_tag, traj_gf, get_gf)
-    test_eig(get_gf(), get_eig(), job_tag, inv_type = 0)
     #
     # test repartition
-    path = get_load_path(f"{job_tag}/eig/traj-{traj}")
-    q.check_compressed_eigen_vectors(path)
-    #
-    new_size_node = q.Coordinate([ 2, 2, 2, 2, ])
-    path_new = path
-    q.eigen_system_repartition(new_size_node, path, path_new)
-    q.check_compressed_eigen_vectors(path)
-    #
-    get_eig = run_eig(job_tag, traj_gf, get_gf)
-    test_eig(get_gf(), get_eig(), job_tag, inv_type = 0)
+    if q.is_test():
+        if get_param_clanc(job_tag, inv_type=0, inv_acc=0) is not None:
+            path = get_load_path(f"{job_tag}/eig/traj-{traj_gf}")
+            q.check_compressed_eigen_vectors(path)
+            #
+            new_size_node = q.Coordinate(
+                [
+                    2,
+                    2,
+                    2,
+                    2,
+                ]
+            )
+            path_new = path
+            q.eigen_system_repartition(new_size_node, path, path_new)
+            q.check_compressed_eigen_vectors(path)
+            #
+            get_eig = run_eig(job_tag, traj_gf, get_gf)
+            test_eig(job_tag, get_gf(), get_eig(), inv_type=0)
+            #
+            # test zip folder
+            q.sync_node()
+            for i in range(32):
+                if i % q.get_num_node() == q.get_id_node():
+                    if q.is_directory(f"{path}/{i:02}"):
+                        subprocess.run(
+                            ["zip", "-r", "-Z", "store", f"{i:02}.zip", f"{i:02}"],
+                            cwd=path,
+                        )
+                        subprocess.run(["rm", "-rf", f"{i:02}/"], cwd=path)
+            q.sync_node()
+        #
+        get_eig = run_eig(job_tag, traj_gf, get_gf)
+        test_eig(job_tag, get_gf(), get_eig(), inv_type=0)
 
-set_param("test-4nt8", "mk_sample_gauge_field", "rand_n_step", value = 2)
-set_param("test-4nt8", "mk_sample_gauge_field", "flow_n_step", value = 8)
-set_param("test-4nt8", "mk_sample_gauge_field", "hmc_n_traj", value = 1)
-set_param("test-4nt8", "trajs", value = [ 1000, ])
+# ----
 
-qg.begin_with_gpt()
+job_tag = "test-4nt8-checker"
+set_param(job_tag, "seed")("test-4nt8")
+#
+set_param(job_tag, "traj_list")(
+    [
+        1000,
+    ]
+)
+#
+set_param(job_tag, "total_site")(
+    [
+        4,
+        4,
+        4,
+        8,
+    ]
+)
+set_param(job_tag, "load_config_params", "twist_boundary_at_boundary")(
+    [
+        0.0,
+        0.0,
+        0.0,
+        -0.5,
+    ]
+)
+#
+set_param(job_tag, "mk_sample_gauge_field", "rand_n_step")(2)
+set_param(job_tag, "mk_sample_gauge_field", "flow_n_step")(8)
+set_param(job_tag, "mk_sample_gauge_field", "hmc_n_traj")(1)
+#
+set_param(job_tag, "quark_flavor_list")(
+    [
+        "light",
+        "strange",
+        "charm-1",
+        "charm-2",
+    ]
+)
+set_param(job_tag, "quark_mass_list")(
+    [
+        0.01,
+        0.04,
+        0.1,
+        0.2,
+    ]
+)
+set_param(job_tag, "fermion_params", 0, 0)(
+    {
+        "Ls": 8,
+        "M5": 1.8,
+        "b": 1.5,
+        "c": 0.5,
+        "boundary_phases": [1.0, 1.0, 1.0, 1.0],
+    }
+)
+for inv_type, mass in enumerate(get_param(job_tag, "quark_mass_list")):
+    set_param(job_tag, "fermion_params", inv_type, 0)(
+        get_param(job_tag, "fermion_params", 0, 0).copy()
+    )
+    set_param(job_tag, "fermion_params", inv_type, 0, "mass")(mass)
+    for inv_acc in [
+        0,
+        1,
+        2,
+    ]:
+        set_param(job_tag, "fermion_params", inv_type, inv_acc)(
+            get_param(job_tag, "fermion_params", inv_type, 0).copy()
+        )
+        set_param(job_tag, f"cg_params-{inv_type}-{inv_acc}", "maxiter")(10)
+        set_param(job_tag, f"cg_params-{inv_type}-{inv_acc}", "maxcycle")(1 + inv_acc)
+#
+set_param(job_tag, "lanc_params", 0, 0, "cheby_params")(
+    {"low": 0.10, "high": 5.5, "order": 50}
+)
+set_param(job_tag, "lanc_params", 0, 0, "irl_params")(
+    {
+        "Nstop": 20,
+        "Nk": 25,
+        "Nm": 30,
+        "resid": 1e-8,
+        "betastp": 0.0,
+        "maxiter": 20,
+        "Nminres": 1,
+    }
+)
+set_param(job_tag, "lanc_params", 0, 0, "pit_params")(
+    {"eps": 0.01, "maxiter": 500, "real": True}
+)
+set_param(job_tag, "lanc_params", 0, 0, "fermion_params")(
+    get_param(job_tag, "fermion_params", 0, 0).copy()
+)
+#
+set_param(job_tag, "clanc_params", 0, 0, "nbasis")(20)
+set_param(job_tag, "clanc_params", 0, 0, "block")(
+    [
+        2,
+        2,
+        2,
+        2,
+    ]
+)
+set_param(job_tag, "clanc_params", 0, 0, "cheby_params")(
+    {
+        "low": 0.20,
+        "high": 5.5,
+        "order": 50,
+    }
+)
+set_param(job_tag, "clanc_params", 0, 0, "save_params")(
+    {
+        "nsingle": 10,
+        "mpi": [
+            1,
+            1,
+            1,
+            4,
+        ],
+    }
+)
+set_param(job_tag, "clanc_params", 0, 0, "irl_params")(
+    {
+        "Nstop": 30,
+        "Nk": 35,
+        "Nm": 40,
+        "resid": 1e-8,
+        "betastp": 0.0,
+        "maxiter": 20,
+        "Nminres": 1,
+    }
+)
+set_param(job_tag, "clanc_params", 0, 0, "smoother_params")(
+    {"eps": 1e-08, "maxiter": 10}
+)
 
-q.qremove_all_info("results")
+job_tag = "test-4nt8-checker2"
+set_param(job_tag, "seed")("test-4nt8")
+#
+set_param(job_tag, "traj_list")(
+    [
+        1000,
+    ]
+)
+#
+set_param(job_tag, "total_site")(
+    [
+        4,
+        4,
+        4,
+        8,
+    ]
+)
+set_param(job_tag, "load_config_params", "twist_boundary_at_boundary")(
+    [
+        0.0,
+        0.0,
+        0.0,
+        -0.5,
+    ]
+)
+#
+set_param(job_tag, "mk_sample_gauge_field", "rand_n_step")(2)
+set_param(job_tag, "mk_sample_gauge_field", "flow_n_step")(8)
+set_param(job_tag, "mk_sample_gauge_field", "hmc_n_traj")(1)
+#
+set_param(job_tag, "quark_flavor_list")(
+    [
+        "light",
+        "strange",
+        "charm-1",
+        "charm-2",
+    ]
+)
+set_param(job_tag, "quark_mass_list")(
+    [
+        0.01,
+        0.04,
+        0.1,
+        0.2,
+    ]
+)
+set_param(job_tag, "fermion_params", 0, 0)(
+    {
+        "Ls": 8,
+        "M5": 1.8,
+        "b": 1.5,
+        "c": 0.5,
+        "boundary_phases": [1.0, 1.0, 1.0, 1.0],
+    }
+)
+for inv_type, mass in enumerate(get_param(job_tag, "quark_mass_list")):
+    set_param(job_tag, "fermion_params", inv_type, 0)(
+        get_param(job_tag, "fermion_params", 0, 0).copy()
+    )
+    set_param(job_tag, "fermion_params", inv_type, 0, "mass")(mass)
+    for inv_acc in [
+        0,
+        1,
+        2,
+    ]:
+        set_param(job_tag, "fermion_params", inv_type, inv_acc)(
+            get_param(job_tag, "fermion_params", inv_type, 0).copy()
+        )
+        set_param(job_tag, f"cg_params-{inv_type}-{inv_acc}", "maxiter")(10)
+        set_param(job_tag, f"cg_params-{inv_type}-{inv_acc}", "maxcycle")(1 + inv_acc)
+#
+set_param(job_tag, "lanc_params", 0, 0, "cheby_params")(
+    {"low": 0.10, "high": 5.5, "order": 50}
+)
+set_param(job_tag, "lanc_params", 0, 0, "irl_params")(
+    {
+        "Nstop": 20,
+        "Nk": 25,
+        "Nm": 30,
+        "resid": 1e-8,
+        "betastp": 0.0,
+        "maxiter": 20,
+        "Nminres": 1,
+    }
+)
+set_param(job_tag, "lanc_params", 0, 0, "pit_params")(
+    {"eps": 0.01, "maxiter": 500, "real": True}
+)
+set_param(job_tag, "lanc_params", 0, 0, "fermion_params")(
+    get_param(job_tag, "fermion_params", 0, 0).copy()
+)
 
-job_tags = [
-        "test-4nt8",
-        ]
+# ----
 
-q.check_time_limit()
+job_tag_list_default = [
+    "test-4nt8-checker",
+    "test-4nt8-checker2",
+]
+job_tag_list_str_default = ",".join(job_tag_list_default)
+job_tag_list = q.get_arg("--job_tag_list", default=job_tag_list_str_default).split(",")
 
-for job_tag in job_tags:
-    q.displayln_info(pprint.pformat(get_param(job_tag)))
-    for v in get_param(job_tag).items():
-        q.displayln_info(f"CHECK: {v}")
-    for traj in get_param(job_tag, "trajs"):
+# ----
+
+def gracefully_finish():
+    q.displayln_info("Begin to gracefully_finish.")
+    q.timer_display()
+    if q.is_test():
+        q.json_results_append(
+            f"q.obtained_lock_history_list={q.obtained_lock_history_list}"
+        )
+        q.check_log_json(__file__)
+    qg.end_with_gpt()
+    q.displayln_info("CHECK: finished successfully.")
+    exit()
+
+def try_gracefully_finish():
+    """
+    Call `gracefully_finish` if not test and if some work is done (q.obtained_lock_history_list != [])
+    """
+    if (not q.is_test()) and (len(q.obtained_lock_history_list) > 0):
+        gracefully_finish()
+
+if __name__ == "__main__":
+    qg.begin_with_gpt()
+    q.check_time_limit()
+
+    job_tag_traj_list = []
+    for job_tag in job_tag_list:
+        run_params(job_tag)
+        traj_list = get_param(job_tag, "traj_list")
+        for traj in traj_list:
+            job_tag_traj_list.append(
+                (
+                    job_tag,
+                    traj,
+                )
+            )
+    if not q.is_test():
+        job_tag_traj_list = q.random_permute(
+            job_tag_traj_list, q.RngState(f"{q.get_time()}")
+        )
+        job_tag_traj_list = q.get_comm().bcast(job_tag_traj_list)
+    for job_tag, traj in job_tag_traj_list:
+        q.check_time_limit()
         run_job(job_tag, traj)
+        q.clean_cache()
+        try_gracefully_finish()
 
-q.timer_display()
+    gracefully_finish()
 
-qg.end_with_gpt()
-
-q.displayln_info(f"CHECK: finished successfully.")
+# ----

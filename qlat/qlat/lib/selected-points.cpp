@@ -5,11 +5,12 @@
 namespace qlat
 {  //
 
-PointsSelection mk_tslice_point_selection(const Coordinate& total_site,
-                                          const int t_dir)
+PointsSelection mk_tslice_points_selection(const Coordinate& total_site,
+                                           const Int t_dir)
+// psel.size() == total_site[t_dir]
 {
   qassert(0 <= t_dir and t_dir < 4);
-  const int t_size = total_site[t_dir];
+  const Int t_size = total_site[t_dir];
   PointsSelection psel;
   psel.init(total_site, t_size);
   const Coordinate xg_all = Coordinate(-1, -1, -1, -1);
@@ -20,12 +21,12 @@ PointsSelection mk_tslice_point_selection(const Coordinate& total_site,
   return psel;
 }
 
-PointsSelection mk_random_point_selection(const Coordinate& total_site,
-                                         const Long num, const RngState& rs,
-                                         const Long pool_factor)
+PointsSelection mk_random_points_selection(const Coordinate& total_site,
+                                           const Long num, const RngState& rs,
+                                           const Long pool_factor)
 // same rs for all node for uniform result
 {
-  TIMER_VERBOSE("mk_random_point_selection");
+  TIMER_VERBOSE("mk_random_points_selection");
   if (num == 0) {
     PointsSelection psel;
     return psel;
@@ -36,7 +37,7 @@ PointsSelection mk_random_point_selection(const Coordinate& total_site,
   for (Long i = 0; i < (Long)psel_pool.size(); ++i) {
     RngState rsi = rs.split(i);
     Coordinate xg;
-    for (int m = 0; m < 4; ++m) {
+    for (Int m = 0; m < 4; ++m) {
       xg[m] = modl(rand_gen(rsi), total_site[m]);
     }
     psel_pool[i] = xg;
@@ -68,13 +69,81 @@ PointsSelection mk_random_point_selection(const Coordinate& total_site,
         fname +
         ssprintf(": pool_factor=%d is too small, rerun with larger factor.",
                  pool_factor));
-    return mk_random_point_selection(total_site, num, rs, pool_factor + 2);
+    return mk_random_points_selection(total_site, num, rs, pool_factor + 2);
   }
 }
 
-void save_point_selection(const PointsSelection& psel, const std::string& path)
+void set_psel_full(PointsSelection& psel, const Geometry& geo)
 {
-  TIMER_VERBOSE("save_point_selection");
+  TIMER("set_psel_full");
+  const Coordinate total_site = geo.total_site();
+  const Long n_points = geo.local_volume();
+  psel.init(total_site, n_points, PointsDistType::Full);
+  qacc_for(index, n_points, {
+    const Coordinate xl = geo.coordinate_from_index(index);
+    const Coordinate xg = geo.coordinate_g_from_l(xl);
+    psel[index] = xg;
+  });
+}
+
+void lat_data_from_points_selection(LatDataInt& ld, const PointsSelection& psel)
+{
+  TIMER("lat_data_from_points_selection");
+  Long n_points = psel.size();
+  LatDim dim;
+  dim.name = "idx";
+  dim.size = n_points + 1;
+  dim.indices.resize(1);
+  dim.indices[0] = "total_site";
+  ld.init();
+  ld.info.push_back(dim);
+  ld.info.push_back(lat_dim_number("mu", 0, 3));
+  lat_data_alloc(ld);
+  Vector<Int> v = lat_data_get(ld, make_array<Int>(0));
+  for (Int mu = 0; mu < 4; ++mu) {
+    v[mu] = psel.total_site[mu];
+  }
+  for (Long idx = 0; idx < (Long)psel.size(); ++idx) {
+    const Coordinate& c = psel[idx];
+    Vector<Int> v = lat_data_get(ld, make_array<Int>(idx + 1));
+    for (Int mu = 0; mu < 4; ++mu) {
+      v[mu] = c[mu];
+    }
+  }
+}
+
+void points_selection_from_lat_data(PointsSelection& psel, const LatDataInt& ld,
+                                    const PointsDistType points_dist_type)
+{
+  TIMER("points_selection_from_lat_data");
+  qassert(ld.info.size() == 2);
+  qassert(ld.info[0].name == "idx");
+  qassert(ld.info[1].name == "mu");
+  qassert(ld.info[0].size >= 1);
+  qassert(ld.info[1].size == 4);
+  qassert(ld.info[0].indices[0] == "total_site");
+  const Long n_points = ld.info[0].size - 1;
+  Coordinate total_site;
+  const Vector<Int> v = lat_data_get_const(ld, make_array<Int>(0));
+  for (Int mu = 0; mu < 4; ++mu) {
+    total_site[mu] = v[mu];
+  }
+  psel.init();
+  psel.init(total_site, n_points, points_dist_type);
+  for (Long idx = 0; idx < psel.size(); ++idx) {
+    Coordinate& c = psel[idx];
+    const Vector<Int> v = lat_data_get_const(ld, make_array<Int>(idx + 1));
+    for (Int mu = 0; mu < 4; ++mu) {
+      c[mu] = v[mu];
+    }
+  }
+}
+
+static void save_points_selection_txt(const PointsSelection& psel,
+                                      const std::string& path)
+{
+  TIMER_VERBOSE("save_points_selection_txt");
+  qassert(ends_with(path, ".txt"));
   qassert(psel.points_dist_type == PointsDistType::Global);
   QFile qfile = qfopen(path + ".partial", "w");
   qfprintf(qfile, "%ld\n", (Long)psel.size());
@@ -86,19 +155,41 @@ void save_point_selection(const PointsSelection& psel, const std::string& path)
   qrename(path + ".partial", path);
 }
 
-void save_point_selection_info(const PointsSelection& psel,
-                               const std::string& path)
+void save_points_selection(const PointsSelection& psel, const std::string& path)
+// IMPORTANT: first point saved in lati is the total_site
+// path has to end with ".lati"
 {
-  TIMER_VERBOSE("save_point_selection_info");
+  TIMER_VERBOSE("save_points_selection");
   qassert(psel.points_dist_type == PointsDistType::Global);
-  if (0 == get_id_node()) {
-    save_point_selection(psel, path);
+  if (ends_with(path, ".txt")) {
+    qwarn(fname + ssprintf(": path='%s' with old format. Need to set "
+                           "total_site manually when reading.",
+                           path.c_str()));
+    save_points_selection_txt(psel, path);
+    return;
   }
+  qassert(ends_with(path, ".lati"));
+  // save_points_selection_txt(psel, remove_suffix(path, ".lati") + ".txt");
+  LatDataInt ld;
+  lat_data_from_points_selection(ld, psel);
+  ld.save(path);
 }
 
-PointsSelection load_point_selection(const std::string& path)
+void save_points_selection_info(const PointsSelection& psel,
+                                const std::string& path)
 {
-  TIMER_VERBOSE("load_point_selection");
+  TIMER_VERBOSE("save_points_selection_info");
+  qassert(psel.points_dist_type == PointsDistType::Global);
+  if (0 == get_id_node()) {
+    save_points_selection(psel, path);
+  }
+  SYNC_NODE();
+}
+
+static PointsSelection load_points_selection_txt(const std::string& path)
+{
+  TIMER_VERBOSE("load_points_selection");
+  qassert(ends_with(path, ".txt"));
   qwarn(
       fname +
       ssprintf(": path='%s' with old format. Need to set total_site manually.",
@@ -124,12 +215,26 @@ PointsSelection load_point_selection(const std::string& path)
   return psel;
 }
 
-PointsSelection load_point_selection_info(const std::string& path)
+PointsSelection load_points_selection(const std::string& path)
 {
-  TIMER_VERBOSE("load_point_selection_info");
+  TIMER_VERBOSE("load_points_selection");
+  if (ends_with(path, ".txt")) {
+    return load_points_selection_txt(path);
+  }
+  qassert(ends_with(path, ".lati"));
+  LatDataInt ld;
+  ld.load(path);
+  PointsSelection psel;
+  points_selection_from_lat_data(psel, ld);
+  return psel;
+}
+
+PointsSelection load_points_selection_info(const std::string& path)
+{
+  TIMER_VERBOSE("load_points_selection_info");
   PointsSelection psel;
   if (0 == get_id_node()) {
-    psel = load_point_selection(path);
+    psel = load_points_selection(path);
   }
   bcast(psel);
   return psel;

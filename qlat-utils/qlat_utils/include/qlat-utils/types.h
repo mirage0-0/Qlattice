@@ -3,6 +3,7 @@
 #include <qlat-utils/mat-vec.h>
 #include <qlat-utils/rng-state.h>
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -15,10 +16,10 @@ using crc32_t = uint32_t;
 
 // -------------------------------------------------------------------------
 
-template <class M, size_t N>
+template <class M, std::size_t N>
 qacc bool qisnan(const array<M, N>& arr)
 {
-  for (int i = 0; i < (int)N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     if (qisnan(arr[i])) {
       return true;
     }
@@ -29,7 +30,7 @@ qacc bool qisnan(const array<M, N>& arr)
 template <class M>
 bool qisnan(const std::vector<M>& arr)
 {
-  for (size_t i = 0; i < arr.size(); ++i) {
+  for (std::size_t i = 0; i < arr.size(); ++i) {
     if (qisnan(arr[i])) {
       return true;
     }
@@ -40,7 +41,7 @@ bool qisnan(const std::vector<M>& arr)
 // --------------------
 
 struct API Coordinate : public array<Int, DIMN> {
-  qacc Coordinate() { array<Int, DIMN>::fill(0); }
+  qacc Coordinate() { init(); }
   qacc Coordinate(Int first, Int second, Int third, Int fourth)
   {
     Int* p = data();
@@ -49,10 +50,11 @@ struct API Coordinate : public array<Int, DIMN> {
     p[2] = third;
     p[3] = fourth;
   }
+  qacc void init() { array<Int, DIMN>::fill(0); }
 };
 
 struct API CoordinateD : public array<RealD, DIMN> {
-  qacc CoordinateD() { memset(this, 0, sizeof(CoordinateD)); }
+  qacc CoordinateD() { init(); }
   qacc CoordinateD(const array<RealD, DIMN>& arr)
   {
     CoordinateD& c = *this;
@@ -73,10 +75,11 @@ struct API CoordinateD : public array<RealD, DIMN> {
   qacc CoordinateD(const Coordinate& x)
   {
     CoordinateD& c = *this;
-    for (int i = 0; i < DIMN; ++i) {
+    for (Int i = 0; i < DIMN; ++i) {
       c[i] = x[i];
     }
   }
+  qacc void init() { array<RealD, DIMN>::fill(0); }
 };
 
 // -------------------------------------------------------------------------
@@ -93,8 +96,8 @@ template <>
 struct IsBasicDataType<char> {
   static constexpr bool value = true;
   static constexpr bool is_complex = false;
-  static const std::string get_type_name() { return "char"; }
-  using ElementaryType = char;
+  static const std::string get_type_name() { return "Char"; }
+  using ElementaryType = Char;
 };
 
 template <>
@@ -209,19 +212,25 @@ struct IsBasicDataType<ComplexT<RealDD>> {
   using ElementaryType = RealDD;
 };
 
-template <int DIMN, class T>
+template <Int DIMN, class T>
 struct IsBasicDataType<MatrixT<DIMN, T>> {
   static constexpr bool value = IsBasicDataType<T>::value;
   static constexpr bool is_complex = IsBasicDataType<T>::is_complex;
-  static const std::string get_type_name() { return "MatrixT_" + IsBasicDataType<T>::get_type_name(); }
+  static const std::string get_type_name()
+  {
+    return "MatrixT_" + IsBasicDataType<T>::get_type_name();
+  }
   using ElementaryType = typename IsBasicDataType<T>::ElementaryType;
 };
 
-template <int DIMN, class T>
+template <Int DIMN, class T>
 struct IsBasicDataType<MvectorT<DIMN, T>> {
   static constexpr bool value = IsBasicDataType<T>::value;
   static constexpr bool is_complex = IsBasicDataType<T>::is_complex;
-  static const std::string get_type_name() { return "MvectorT_" + IsBasicDataType<T>::get_type_name(); }
+  static const std::string get_type_name()
+  {
+    return "MvectorT_" + IsBasicDataType<T>::get_type_name();
+  }
   using ElementaryType = typename IsBasicDataType<T>::ElementaryType;
 };
 
@@ -382,7 +391,7 @@ struct IsBasicDataType<RngState> {
   static constexpr bool value = true;
   static constexpr bool is_complex = false;
   static const std::string get_type_name() { return "RngState"; }
-  using ElementaryType = char;
+  using ElementaryType = Char;
 };
 
 // -------------------------------------------------------------------------
@@ -421,8 +430,17 @@ struct IsDataValueType {
   static constexpr bool is_complex = IsBasicDataType<BasicDataType>::is_complex;
 };
 
-template <class M, size_t N>
+template <class M, std::size_t N>
 struct IsDataValueType<array<M, N>> {
+  using DataType = M;
+  using BasicDataType = typename IsDataValueType<DataType>::BasicDataType;
+  using ElementaryType = typename IsBasicDataType<DataType>::ElementaryType;
+  static constexpr bool value = IsDataValueType<DataType>::value;
+  static constexpr bool is_complex = IsDataValueType<DataType>::is_complex;
+};
+
+template <class M, std::size_t N>
+struct IsDataValueType<std::array<M, N>> {
   using DataType = M;
   using BasicDataType = typename IsDataValueType<DataType>::BasicDataType;
   using ElementaryType = typename IsBasicDataType<DataType>::ElementaryType;
@@ -480,7 +498,7 @@ template <class M>
 qacc constexpr bool is_char()
 {
   bool ret = false;
-  if (is_same<M, char>()) {
+  if (is_same<M, Char>()) {
     ret = true;
   }
   return ret;
@@ -553,7 +571,7 @@ qacc constexpr bool is_composed_of_char()
 // -------------------------------------------------------------------------
 
 template <class M>
-qacc constexpr int element_size_of()
+qacc constexpr Int element_size_of()
 // for example: size for convert endianness
 {
   return sizeof(typename IsDataValueType<M>::ElementaryType);
@@ -583,7 +601,7 @@ enum DATA_TYPE {
   //
   INT_TYPE = 4 + MAXTYPE * sizeof(int),
   UINT_TYPE = 5 + MAXTYPE * sizeof(unsigned int),
-  LONG_TYPE = 6 + MAXTYPE * sizeof(Long),
+  LONG_TYPE = 6 + MAXTYPE * sizeof(long),
   ULONG_TYPE = 7 + MAXTYPE * sizeof(unsigned long),
   LONGL_TYPE = 8 + MAXTYPE * sizeof(long long),
   ULONGL_TYPE = 9 + MAXTYPE * sizeof(unsigned long long),
@@ -596,22 +614,22 @@ enum DATA_TYPE {
   INT64_TYPE = 16 + MAXTYPE * sizeof(std::int64_t),
   UINT64_TYPE = 17 + MAXTYPE * sizeof(std::uint64_t),
   //
-  DOUBLE_TYPE = FLOATIND + 0 + MAXTYPE * sizeof(double),
+  DOUBLE_TYPE = FLOATIND + 0 + MAXTYPE * sizeof(RealD),
   FLOAT_TYPE = FLOATIND + 1 + MAXTYPE * sizeof(float),
   ComplexD_TYPE = FLOATIND + 2 + MAXTYPE * sizeof(ComplexD),
   ComplexF_TYPE = FLOATIND + 3 + MAXTYPE * sizeof(ComplexF),
   //
-  ColorMatrix_TYPE = FLOATIND + 4 + MAXTYPE * sizeof(ColorMatrixT<double>),
+  ColorMatrix_TYPE = FLOATIND + 4 + MAXTYPE * sizeof(ColorMatrixT<RealD>),
   ColorMatrixF_TYPE = FLOATIND + 5 + MAXTYPE * sizeof(ColorMatrixT<float>),
-  WilsonMatrix_TYPE = FLOATIND + 6 + MAXTYPE * sizeof(WilsonMatrixT<double>),
+  WilsonMatrix_TYPE = FLOATIND + 6 + MAXTYPE * sizeof(WilsonMatrixT<RealD>),
   WilsonMatrixF_TYPE = FLOATIND + 7 + MAXTYPE * sizeof(WilsonMatrixT<float>),
-  SpinMatrix_TYPE = FLOATIND + 8 + MAXTYPE * sizeof(SpinMatrixT<double>),
+  SpinMatrix_TYPE = FLOATIND + 8 + MAXTYPE * sizeof(SpinMatrixT<RealD>),
   SpinMatrixF_TYPE = FLOATIND + 9 + MAXTYPE * sizeof(SpinMatrixT<float>),
-  WilsonVector_TYPE = FLOATIND + 10 + MAXTYPE * sizeof(WilsonVectorT<double>),
+  WilsonVector_TYPE = FLOATIND + 10 + MAXTYPE * sizeof(WilsonVectorT<RealD>),
   WilsonVectorF_TYPE = FLOATIND + 11 + MAXTYPE * sizeof(WilsonVectorT<float>),
   //
   NonRelWilsonMatrix_TYPE =
-      FLOATIND + 12 + MAXTYPE * sizeof(NonRelWilsonMatrixT<double>),
+      FLOATIND + 12 + MAXTYPE * sizeof(NonRelWilsonMatrixT<RealD>),
   NonRelWilsonMatrixF_TYPE =
       FLOATIND + 13 + MAXTYPE * sizeof(NonRelWilsonMatrixT<float>),
   INVALID_TYPE = 9999999
@@ -643,12 +661,12 @@ qacc DATA_TYPE get_data_type<unsigned short>()
   return USHORT_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<int>()
+qacc DATA_TYPE get_data_type<Int>()
 {
   return INT_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<unsigned int>()
+qacc DATA_TYPE get_data_type<uint32_t>()
 {
   return UINT_TYPE;
 }
@@ -658,7 +676,7 @@ qacc DATA_TYPE get_data_type<Long>()
   return LONG_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<unsigned long>()
+qacc DATA_TYPE get_data_type<uint64_t>()
 {
   return ULONG_TYPE;
 }
@@ -679,7 +697,7 @@ qacc DATA_TYPE get_data_type<std::int8_t>()
 // INT64_TYPE         ; } template<> qacc DATA_TYPE get_data_type<std::uint64_t
 // >(){return  UINT64_TYPE         ; }
 template <>
-qacc DATA_TYPE get_data_type<double>()
+qacc DATA_TYPE get_data_type<RealD>()
 {
   return DOUBLE_TYPE;
 }
@@ -699,7 +717,7 @@ qacc DATA_TYPE get_data_type<ComplexF>()
   return ComplexF_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<ColorMatrixT<double>>()
+qacc DATA_TYPE get_data_type<ColorMatrixT<RealD>>()
 {
   return ColorMatrix_TYPE;
 }
@@ -709,7 +727,7 @@ qacc DATA_TYPE get_data_type<ColorMatrixT<float>>()
   return ColorMatrixF_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<WilsonMatrixT<double>>()
+qacc DATA_TYPE get_data_type<WilsonMatrixT<RealD>>()
 {
   return WilsonMatrix_TYPE;
 }
@@ -719,7 +737,7 @@ qacc DATA_TYPE get_data_type<WilsonMatrixT<float>>()
   return WilsonMatrixF_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<SpinMatrixT<double>>()
+qacc DATA_TYPE get_data_type<SpinMatrixT<RealD>>()
 {
   return SpinMatrix_TYPE;
 }
@@ -729,7 +747,7 @@ qacc DATA_TYPE get_data_type<SpinMatrixT<float>>()
   return SpinMatrixF_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<WilsonVectorT<double>>()
+qacc DATA_TYPE get_data_type<WilsonVectorT<RealD>>()
 {
   return WilsonVector_TYPE;
 }
@@ -739,7 +757,7 @@ qacc DATA_TYPE get_data_type<WilsonVectorT<float>>()
   return WilsonVectorF_TYPE;
 }
 template <>
-qacc DATA_TYPE get_data_type<NonRelWilsonMatrixT<double>>()
+qacc DATA_TYPE get_data_type<NonRelWilsonMatrixT<RealD>>()
 {
   return NonRelWilsonMatrix_TYPE;
 }
@@ -750,34 +768,34 @@ qacc DATA_TYPE get_data_type<NonRelWilsonMatrixT<float>>()
 }
 
 template <class M>
-qacc int get_data_type_is_Double()
+qacc Int get_data_type_is_Double()
 {
   return -1;
 }
 
 template <>
-qacc int get_data_type_is_Double<RealF>()
+qacc Int get_data_type_is_Double<RealF>()
 {
-  return  0;
+  return 0;
 }
 
 template <>
-qacc int get_data_type_is_Double<RealD>()
+qacc Int get_data_type_is_Double<RealD>()
 {
-  return  1;
+  return 1;
 }
 
 template <>
-qacc int get_data_type_is_Double<RealDD>()
+qacc Int get_data_type_is_Double<RealDD>()
 {
-  return  2;
+  return 2;
 }
 
 template <class M>
-qacc int Is_data_double()
+qacc Int Is_data_double()
 {
   using D = typename IsBasicDataType<M>::ElementaryType;
-  int type = get_data_type_is_Double<D>();
+  Int type = get_data_type_is_Double<D>();
   qassert(type != -1);
   return type;
 }
@@ -788,7 +806,7 @@ qacc bool get_data_type_is_double()
   DATA_TYPE cur = get_data_type<M>();
   if ((cur < FLOATIND) or (cur == INVALID_TYPE)) {
     if (get_id_node() == 0) {
-      printf("Given type not float/double %d \n", (int)cur);
+      printf("Given type not float/double %d \n", (Int)cur);
     }
     qassert(false);
   }

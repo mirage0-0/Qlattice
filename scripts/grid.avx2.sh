@@ -57,8 +57,11 @@ source qcore/set-prefix.sh $name
         $opts \
         --prefix="$prefix"
 
-    time-run make -j$num_proc
-    time-run make install
+    time-run make -j$num_proc -C Grid
+    time-run make -j$num_proc -C benchmarks Benchmark_dwf_fp32
+    time-run make install -C Grid
+    time-run install -D -m755 grid-config "$prefix"/bin/grid-config
+    time-run install -D -m755 benchmarks/Benchmark_dwf_fp32 "$prefix"/bin/Benchmark_dwf_fp32
 
     mk-setenv.sh
     echo "!!!! $name build !!!!"

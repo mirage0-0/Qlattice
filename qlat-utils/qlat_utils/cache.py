@@ -2,6 +2,16 @@ from .timer import *
 from . import c
 
 class Cache(dict):
+    """
+    Attributes:
+        cache_keys: The keys for this cache.\n
+    Example::\n
+        cache_fields_io = q.mk_cache("fields_io")
+        cache_fields_io[id(self)] = (fsel, sbs,)
+        if id(self) in cache_fields_io:
+            c_fsel, c_sbs = cache_fields_io[id(self)]
+        cache_fields_io.pop(id(self), None)
+    """
 
     def __init__(self, *keys):
         super().__init__()
@@ -17,8 +27,6 @@ def list_cache(ca=cache):
     for key, val in ca.items():
         if isinstance(val, Cache):
             l[key] = list_cache(val)
-        else:
-            l[key] = None
     return l
 
 def show_cache_keys(keys):
@@ -79,4 +87,5 @@ def clear_all_caches():
     clean python level cache and then C++ level cache
     """
     clean_cache()
+    cache.clear()
     c.clear_all_caches()

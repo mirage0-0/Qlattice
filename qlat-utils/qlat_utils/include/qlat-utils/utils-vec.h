@@ -1,7 +1,7 @@
 #pragma once
 
-#include <qlat-utils/utils-extra.h>
 #include <qlat-utils/rng-state.h>
+#include <qlat-utils/utils-extra.h>
 
 namespace qlat
 {  //
@@ -146,40 +146,21 @@ qacc array<M, 10> make_array(const M& x, const M& x1, const M& x2, const M& x3,
   return arr;
 }
 
-template <class M>
-qacc void set_zero(Vector<M> vec)
-{
-  std::memset((void*)vec.data(), 0, vec.data_size());
-}
-
-template <class M, int N>
-qacc void set_zero(Array<M, N> arr)
-{
-  Long size = N * sizeof(M);
-  std::memset((void*)arr.data(), 0, size);
-}
-
-template <class M>
-qacc Vector<M> get_data_one_elem(const M& x)
-{
-  return Vector<M>(&x, 1);
-}
+// template <class T>
+// qacc RealD qnorm(const Vector<T>& mm)
+// {
+//   RealD sum = 0.0;
+//   const Long size = mm.size();
+//   for (Long i = 0; i < size; ++i) {
+//     sum += qnorm(mm[i]);
+//   }
+//   return sum;
+// }
 
 template <class T>
-qacc double qnorm(const Vector<T>& mm)
+qacc RealD qnorm(const Vector<T>& m1, const Vector<T>& m2)
 {
-  double sum = 0.0;
-  const Long size = mm.size();
-  for (Long i = 0; i < size; ++i) {
-    sum += qnorm(mm[i]);
-  }
-  return sum;
-}
-
-template <class T>
-qacc double qnorm(const Vector<T>& m1, const Vector<T>& m2)
-{
-  double sum = 0.0;
+  RealD sum = 0.0;
   const Long size = m1.size();
   qassert(size == (Long)m2.size());
   for (Long i = 0; i < size; ++i) {
@@ -188,50 +169,11 @@ qacc double qnorm(const Vector<T>& m1, const Vector<T>& m2)
   return sum;
 }
 
-template <class N, class M>
-qacc Vector<N> get_data_as(const Vector<M>& v)
-{
-  const Long n = v.data_size() / sizeof(N);
-  Vector<N> v1((N*)v.data(), n);
-  qassert(v1.data_size() == v.data_size());
-  return v1;
-}
-
-template <class M>
-qacc Vector<char> get_data_char(const Vector<M>& v)
-{
-  return get_data_as<char>(v);
-}
-
-template <class M>
-qacc Vector<RealD> get_data_real_d(const Vector<M>& v)
-{
-  return get_data_as<RealD>(v);
-}
-
-template <class M>
-qacc Vector<ComplexD> get_data_complex_d(const Vector<M>& v)
-{
-  return get_data_as<ComplexD>(v);
-}
-
-template <class M>
-qacc Vector<Long> get_data_long(const Vector<M>& v)
-{
-  return get_data_as<Long>(v);
-}
-
-template <class M>
-qacc Long get_data_size(const M& x)
-{
-  return get_data(x).data_size();
-}
-
 template <class T>
-qacc double qnorm_double(const Vector<T>& m1, const Vector<T>& m2)
+qacc RealD qnorm_double(const Vector<T>& m1, const Vector<T>& m2)
 {
-  const Vector<double> dm1((double*)m1.data(), m1.data_size() / sizeof(double));
-  const Vector<double> dm2((double*)m2.data(), m2.data_size() / sizeof(double));
+  const Vector<RealD> dm1((RealD*)m1.data(), m1.data_size() / sizeof(RealD));
+  const Vector<RealD> dm2((RealD*)m2.data(), m2.data_size() / sizeof(RealD));
   return qnorm(dm1, dm2);
 }
 
@@ -270,16 +212,16 @@ qacc void assign_truncate(M& x, const N& y)
   }
 }
 
-qacc bool is_integer(const double& x)
+qacc bool is_integer(const RealD& x)
 {
-  const double diff = x - (Long)x;
+  const RealD diff = x - (Long)x;
   return 1e-6 > diff || diff > 1 - 1e-6;
 }
 
 template <class M>
 qacc bool is_integer(const std::vector<M>& v)
 {
-  for (int i = 0; i < (int)v.size(); ++i) {
+  for (Int i = 0; i < (Int)v.size(); ++i) {
     if (!is_integer(v[i])) {
       return false;
     }
@@ -287,10 +229,10 @@ qacc bool is_integer(const std::vector<M>& v)
   return true;
 }
 
-template <class M, unsigned long N>
+template <class M, std::size_t N>
 qacc bool is_integer(const array<M, N>& v)
 {
-  for (int i = 0; i < N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     if (!is_integer(v[i])) {
       return false;
     }
@@ -298,37 +240,37 @@ qacc bool is_integer(const array<M, N>& v)
   return true;
 }
 
-template <class M, int N>
+template <class M, std::size_t N>
 qacc Array<M, N> operator+=(Array<M, N> v, const Array<M, N> v1)
 {
-  for (int i = 0; i < N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     v.p[i] += v1.p[i];
   }
   return v;
 }
 
-template <class M, int N>
+template <class M, std::size_t N>
 qacc Array<M, N> operator-=(Array<M, N> v, const Array<M, N> v1)
 {
-  for (int i = 0; i < N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     v.p[i] -= v1.p[i];
   }
   return v;
 }
 
-template <class M, int N>
-qacc Array<M, N> operator*=(Array<M, N> v, const double factor)
+template <class M, std::size_t N>
+qacc Array<M, N> operator*=(Array<M, N> v, const RealD factor)
 {
-  for (int i = 0; i < N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     v.p[i] *= factor;
   }
   return v;
 }
 
-template <class M, int N>
+template <class M, std::size_t N>
 qacc Array<M, N> operator*=(Array<M, N> v, const ComplexD factor)
 {
-  for (int i = 0; i < N; ++i) {
+  for (Int i = 0; i < (Int)N; ++i) {
     v.p[i] *= factor;
   }
   return v;
@@ -355,7 +297,7 @@ qacc Vector<M> operator-=(Vector<M> v, const Vector<M> v1)
 }
 
 template <class M>
-qacc Vector<M> operator*=(Vector<M> v, const double factor)
+qacc Vector<M> operator*=(Vector<M> v, const RealD factor)
 {
   for (Long i = 0; i < v.size(); ++i) {
     v.p[i] *= factor;
@@ -372,21 +314,21 @@ qacc Vector<M> operator*=(Vector<M> v, const ComplexD factor)
   return v;
 }
 
-template <class M, unsigned long N>
+template <class M, std::size_t N>
 qacc array<M, N> operator+(const array<M, N>& v1, const array<M, N>& v2)
 {
   array<M, N> ret;
-  for (unsigned long i = 0; i < N; ++i) {
+  for (std::size_t i = 0; i < N; ++i) {
     ret[i] = v1[i] + v2[i];
   }
   return ret;
 }
 
-template <class M, unsigned long N>
+template <class M, std::size_t N>
 qacc array<M, N> operator-(const array<M, N>& v1, const array<M, N>& v2)
 {
   array<M, N> ret;
-  for (unsigned long i = 0; i < N; ++i) {
+  for (std::size_t i = 0; i < N; ++i) {
     ret[i] = v1[i] - v2[i];
   }
   return ret;
@@ -432,7 +374,7 @@ void vector_append(std::vector<M>& v, const std::vector<M>& v1)
 }
 
 template <class M>
-std::vector<Long> vector_map_size(const std::vector<std::vector<M> >& datatable)
+std::vector<Long> vector_map_size(const std::vector<std::vector<M>>& datatable)
 {
   std::vector<Long> row_sizes(datatable.size());
   for (size_t i = 0; i < datatable.size(); ++i) {
@@ -443,7 +385,7 @@ std::vector<Long> vector_map_size(const std::vector<std::vector<M> >& datatable)
 }
 
 template <class M>
-std::vector<M> vector_concat(const std::vector<std::vector<M> >& datatable)
+std::vector<M> vector_concat(const std::vector<std::vector<M>>& datatable)
 {
   size_t total_size = 0;
   for (size_t i = 0; i < datatable.size(); ++i) {

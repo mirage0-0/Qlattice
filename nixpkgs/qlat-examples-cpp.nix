@@ -19,14 +19,20 @@
 , nixgl ? null
 , ngpu ? "1"
 , use-pypi ? null
+, use-gitee ? null
 }:
 
 let
 
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+
   orig-stdenv = stdenv;
 
   version-pypi = use-pypi;
-  qlat-src-pypi = builtins.fetchTarball "https://github.com/jinluchang/Qlattice/archive/refs/tags/v${version-pypi}.tar.gz";
+  qlat-src-pypi = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/Qlattice" else "https://github.com/jinluchang/Qlattice";
+    ref = "refs/tags/v${version-pypi}";
+  };
 
   version = if use-pypi != null then version-pypi else builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ../VERSION) + "-current";
 
@@ -74,10 +80,8 @@ in buildPythonPackage rec {
       cp -pv "${../qcore/bin/NVCC.py}" "$PWD/NVCC.py"
       patchShebangs --build "$PWD/NVCC.py"
       #
-      cp -pv "${../qcore/bin/bind-gpu-qlat.sh}" "$PWD/bind-gpu-qlat.sh"
-      patchShebangs --build "$PWD/bind-gpu-qlat.sh"
       export NGPU=${ngpu}
-      export mpi_options="$mpi_options $PWD/bind-gpu-qlat.sh"
+      export mpi_options="$mpi_options bind-gpu-qlat.sh"
       #
       GXX=""
       GXX+=" -Xcudafe '--diag_suppress=20014'"
@@ -90,7 +94,7 @@ in buildPythonPackage rec {
       #
       export NVCC_OPTIONS="-std=c++17 -arch=${nvcc-arch} --expt-extended-lambda --expt-relaxed-constexpr -fopenmp -fno-strict-aliasing $GXX" # -D__DEBUG_VECUTILS__
       export QLAT_CXX="$PWD/NVCC.py -ccbin c++ $NVCC_OPTIONS"
-      export QLAT_MPICXX="$PWD/NVCC.py -ccbin mpic++ $NVCC_OPTIONS"
+      export QLAT_MPICXX="$PWD/NVCC.py -ccbin ${mpi.dev}/bin/mpic++ $NVCC_OPTIONS"
       export QLAT_CXXFLAGS="--NVCC-compile -D__QLAT_BARYON_SHARED_SMALL__" # -fPIC
       export QLAT_LDFLAGS="--NVCC-link" # --shared
       #
@@ -153,22 +157,37 @@ in buildPythonPackage rec {
     #
     echo
     for i in * ; do
-    if [ -f "$i"/build/log.check.txt.new ] ; then
-      if diff "$i"/build/log.check.txt "$i"/build/log.check.txt.new ; then
-        echo "$i" passed
-      else
-        echo
-        cat "$i"/build/log.full
-        echo
-        echo "$i" failed
-        echo
-        false
+      if [ -f "$i"/build/log.check.txt.new ] ; then
+        if diff "$i"/build/log.check.txt "$i"/build/log.check.txt.new ; then
+          echo "$i" passed
+        else
+          echo
+          cat "$i"/build/log.full
+          echo
+          echo "$i" failed
+          echo
+        fi
       fi
-    fi
     done
     echo
+    failed=false
+    for i in * ; do
+      if [ -f "$i"/build/log.check.txt.new ] ; then
+        if diff "$i"/build/log.check.txt "$i"/build/log.check.txt.new >/dev/null 2>&1 ; then
+          echo "$i" passed
+        else
+          echo "$i" failed
+          failed=true
+        fi
+      fi
+    done
+    if $failed ; then
+      false
+    fi
+    echo
     #
-    rm -rfv ./*/build/results
+    # rm -rfv ./*/build/results
+    rm -rf ./*/build
     #
     pwd
     mkdir -p "$out/share/qlat/examples-cpp"

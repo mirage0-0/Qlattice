@@ -41,7 +41,7 @@ py3.install_sources(config_file, subdir: 'qlat_utils/include/qlat-utils')
 
 header_files = files(
   'array.h',
-  'assert.h',
+  'qassert.h',
   'cache.h',
   'compatible-endian.h',
   'compatible-omp.h',
@@ -53,7 +53,7 @@ header_files = files(
   'eigen.h',
   'eigen-sys.h',
   'env.h',
-  'endian.h',
+  'qendian.h',
   'handle.h',
   'lat-io.h',
   'mat.h',

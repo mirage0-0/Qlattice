@@ -19,6 +19,14 @@ type_name_list = [
     'Int8t',
     'Char',
     ]
+type_name_for_glb_max_min_list = [
+    'RealD',
+    'RealF',
+    'Long',
+    'Int',
+    'Int64t',
+    'Int32t',
+    ]
 }}
 
 from qlat_utils.all cimport *
@@ -96,6 +104,8 @@ cdef class Field{{name}}(FieldBase):
         """
         other can be Field, SelectedField, SelectedPoints
         field geo does not change if already initialized
+        #
+        Preserve original data if not assigned.
         """
         if isinstance(other, Field{{name}}):
             set_field_f_f_{{name}}(self, <Field{{name}}>other)
@@ -119,7 +129,16 @@ cdef class Field{{name}}(FieldBase):
         return cc.set_zero(self.xx)
 
     def swap(self, Field{{name}} f1):
-        return cc.qswap(f1.xx, self.xx)
+        cc.qswap(self.xx, f1.xx)
+
+    def swap_cast(self, FieldChar f1):
+        cc.qswap_cast(self.xx, f1.xx)
+
+    def swap_sp_cast(self, SelectedPointsChar f1, Geometry geo):
+        """
+        Only swap data. Does NOT affect f1.psel at all.
+        """
+        cc.qswap_cast(self.xx, f1.xx, geo.xx)
 
     @property
     def total_site(self):
@@ -188,6 +207,30 @@ cdef class Field{{name}}(FieldBase):
         cc.field_glb_sum_tslice(sp.xx, self.xx, t_dir)
         return sp
 
+{{if (name in type_name_for_glb_max_min_list)}}
+
+    def glb_max(self):
+        """
+        return SelectedPoints with n_points=1
+        """
+        from .c import get_psel_single
+        cdef PointsSelection psel = get_psel_single(self.total_site)
+        cdef SelectedPoints{{name}} sp = SelectedPoints{{name}}(psel, self.multiplicity)
+        cc.field_glb_max(sp.xx, self.xx)
+        return sp
+
+    def glb_min(self):
+        """
+        return SelectedPoints with n_points=1
+        """
+        from .c import get_psel_single
+        cdef PointsSelection psel = get_psel_single(self.total_site)
+        cdef SelectedPoints{{name}} sp = SelectedPoints{{name}}(psel, self.multiplicity)
+        cc.field_glb_min(sp.xx, self.xx)
+        return sp
+
+{{endif}}
+
     def get_elems_xg(self, xg_arr):
         """
         xg_arr can be xg_arr, xg_list, or xg
@@ -232,7 +275,10 @@ cdef class Field{{name}}(FieldBase):
         """
         return new shifted Field
         self is not changed.
+        #
         shift is the coordinate to shift the field (or None, which means no shift)
+        roughly shifted_field[(xg + shift) % total_site] == original_field[xg]
+        #
         is_reflect determine whether to negate coordinate after shift
         """
         cdef Field{{name}} f1 = self.copy(is_copying_data=False)

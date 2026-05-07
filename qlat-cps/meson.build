@@ -1,8 +1,8 @@
 project('qlat-cps', 'cpp', 'cython',
-  version: '0.77',
+  version: '1.02',
   license: 'GPL-3.0-or-later',
   default_options: [
-    'warning_level=3',
+    # 'warning_level=0',
     'cpp_std=c++17',
     'libdir=lib',
     'optimization=2',
@@ -10,7 +10,7 @@ project('qlat-cps', 'cpp', 'cython',
     'cython_language=cpp',
     ])
 
-add_project_arguments('-fno-strict-aliasing', language: ['c', 'cpp'])
+add_project_arguments([ '-fno-strict-aliasing', '-w', ], language: ['c', 'cpp'])
 
 py_mod = import('python')
 py3 = py_mod.find_installation('python3', pure: false)
@@ -33,4 +33,5 @@ subdir('depend-cps')
 
 deps = [ mpic, qlat, cps, ]
 
+subdir('qlat_cps_config')
 subdir('qlat_cps')

@@ -1,0 +1,1262 @@
+[
+ [
+  "benchmark_prop_spatial_smear: Coordinate([4, 4, 4, 4]) 0"
+ ],
+ [
+  "gf sig",
+  {
+   "value": [
+    {
+     "real": 21.50868196285736,
+     "imag": 19.83441182358265,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 14.135092077768515,
+     "imag": 15.702455236290936,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 15.698833236473462,
+     "imag": 10.968106066489941,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -98.64553047587891,
+     "imag": -92.4261567071967,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -38.292206280119956,
+     "imag": -58.34523778987752,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 82.62219592434093,
+     "imag": 100.53370185075784,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.04027262263537748,
+     "imag": -0.0280258615473801,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.13460167556015976,
+     "imag": -0.23249553416115482,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.17917583671322712,
+     "imag": 0.16099078009006043,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.04027262263537751,
+     "imag": -0.028025861547380126,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.13460167556015973,
+     "imag": -0.2324955341611548,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.17917583671322718,
+     "imag": 0.16099078009006051,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.04027262263537766,
+     "imag": -0.028025861547380126,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.13460167556016012,
+     "imag": -0.23249553416115556,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.17917583671322773,
+     "imag": 0.16099078009006104,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -41.66777715133427,
+     "imag": -102.50681878371475,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -98.3133476113772,
+     "imag": -69.52286200925408,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 123.46501409358196,
+     "imag": 134.7322441085929,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.02715867415032834,
+     "imag": -0.020012432435412772,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.11216803347364879,
+     "imag": -0.2514560500232294,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.21129552911765723,
+     "imag": 0.19455601664777225,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.027158674150328344,
+     "imag": -0.020012432435412814,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.11216803347364877,
+     "imag": -0.25145605002322946,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.21129552911765714,
+     "imag": 0.1945560166477722,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.027158674150328403,
+     "imag": -0.020012432435412744,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.11216803347364906,
+     "imag": -0.25145605002323024,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.21129552911765787,
+     "imag": 0.1945560166477729,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -82.20067906375951,
+     "imag": -115.63179558418517,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -46.72728475169396,
+     "imag": -23.498144706234427,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 137.248543202363,
+     "imag": 99.45687466902865,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.027623331176400437,
+     "imag": 0.028031773403107724,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.13997478973400274,
+     "imag": -0.24360877201525974,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.1895119180504627,
+     "imag": 0.17141574187221148,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.02762333117640045,
+     "imag": 0.028031773403107717,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.1399747897340028,
+     "imag": -0.24360877201525977,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.1895119180504627,
+     "imag": 0.1714157418722116,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.02762333117640057,
+     "imag": 0.028031773403107946,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.13997478973400326,
+     "imag": -0.24360877201526057,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.1895119180504633,
+     "imag": 0.17141574187221204,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "benchmark_prop_spatial_smear: Coordinate([4, 4, 4, 4]) 1"
+ ],
+ [
+  "gf sig",
+  {
+   "value": [
+    {
+     "real": 11.784500558853349,
+     "imag": -1.8180034792315851,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -32.070579916606306,
+     "imag": 30.679815077079088,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 25.131687428152052,
+     "imag": 5.203560374193469,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -40.78594420641895,
+     "imag": -100.44246190624152,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -86.43702782673564,
+     "imag": -104.97726795716298,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -45.20326444453294,
+     "imag": -35.96002835445396,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.06829456964796612,
+     "imag": -0.1844869496146125,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.005024875636825354,
+     "imag": -0.13393584842203338,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.13077346201368417,
+     "imag": -0.06392335050872625,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.06829456964796617,
+     "imag": -0.1844869496146125,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.005024875636825431,
+     "imag": -0.13393584842203338,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.13077346201368423,
+     "imag": -0.0639233505087263,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.06829456964796642,
+     "imag": -0.18448694961461315,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.0050248756368253475,
+     "imag": -0.1339358484220338,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.13077346201368453,
+     "imag": -0.06392335050872645,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -44.42641056317588,
+     "imag": -75.41991017936456,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -114.64922173832396,
+     "imag": -39.4524712144086,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -42.623301389683135,
+     "imag": -98.10936022301591,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.05605934802766662,
+     "imag": -0.1973513128893003,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.00538590843698275,
+     "imag": -0.1276932591791853,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1289390569394133,
+     "imag": -0.07185571907428148,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.05605934802766667,
+     "imag": -0.1973513128893003,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.005385908436982743,
+     "imag": -0.12769325917918542,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.12893905693941332,
+     "imag": -0.07185571907428148,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.05605934802766679,
+     "imag": -0.19735131288930102,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.005385908436982723,
+     "imag": -0.12769325917918573,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1289390569394137,
+     "imag": -0.07185571907428172,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -66.46106547066758,
+     "imag": 19.232791463387006,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -59.44350828354766,
+     "imag": -101.97485208095027,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -91.65850406702896,
+     "imag": -95.40243134077596,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.08396189504982968,
+     "imag": -0.1637067942731423,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.038614941566677864,
+     "imag": -0.11946363930909584,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.15487116071852838,
+     "imag": -0.0593703366641639,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.08396189504982979,
+     "imag": -0.16370679427314225,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.03861494156667779,
+     "imag": -0.11946363930909581,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.15487116071852836,
+     "imag": -0.05937033666416392,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.08396189504983007,
+     "imag": -0.16370679427314283,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.03861494156667797,
+     "imag": -0.11946363930909623,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1548711607185288,
+     "imag": -0.05937033666416412,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "benchmark_prop_spatial_smear: Coordinate([6, 6, 6, 6]) 0"
+ ],
+ [
+  "gf sig",
+  {
+   "value": [
+    {
+     "real": -36.4018815019767,
+     "imag": 94.88823627806303,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 13.392774589419254,
+     "imag": 22.726416005298244,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -51.13765030662621,
+     "imag": 68.94673176808158,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -102.69594961327618,
+     "imag": -155.82417987244077,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -64.85682167989673,
+     "imag": 150.2379047935057,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 49.864437125800066,
+     "imag": -118.0124257633864,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.1478790947782557,
+     "imag": -0.12844895482268529,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1602721623443464,
+     "imag": -0.1897000207789154,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.37603356902310664,
+     "imag": 0.06044568581154705,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.14787909477825592,
+     "imag": -0.1284489548226852,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.16027216234434621,
+     "imag": -0.18970002077891535,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.37603356902310664,
+     "imag": 0.06044568581154702,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.14787909477825628,
+     "imag": -0.1284489548226856,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1602721623443467,
+     "imag": -0.189700020778916,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.3760335690231078,
+     "imag": 0.060445685811547245,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -41.40947726201456,
+     "imag": -35.633454400460145,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -95.59682556589837,
+     "imag": -117.96632191903457,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -119.9396822446314,
+     "imag": -42.51282423456453,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.060388562721200564,
+     "imag": -0.1120539165035682,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.03934543943033326,
+     "imag": -0.08977770358206424,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.41165807122721204,
+     "imag": 0.0646889112463824,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.060388562721200564,
+     "imag": -0.11205391650356804,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.039345439430333334,
+     "imag": -0.08977770358206422,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.4116580712272118,
+     "imag": 0.06468891124638243,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.06038856272120091,
+     "imag": -0.1120539165035684,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.03934543943033356,
+     "imag": -0.08977770358206458,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.4116580712272134,
+     "imag": 0.06468891124638249,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": -32.00303729903631,
+     "imag": -98.06913742468515,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -47.31820124821826,
+     "imag": 57.833110719181235,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 19.261205794351127,
+     "imag": -139.69890725623358,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": -0.12234072151062013,
+     "imag": -0.1223299541911333,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.07832181965052405,
+     "imag": -0.16050381517677353,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.3228675950404269,
+     "imag": 0.10019083572467677,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": -0.12234072151061984,
+     "imag": -0.12232995419113349,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.07832181965052423,
+     "imag": -0.16050381517677348,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.32286759504042684,
+     "imag": 0.10019083572467691,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": -0.12234072151062057,
+     "imag": -0.12232995419113385,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.07832181965052447,
+     "imag": -0.16050381517677398,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.3228675950404279,
+     "imag": 0.1001908357246773,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "benchmark_prop_spatial_smear: Coordinate([6, 6, 6, 6]) 1"
+ ],
+ [
+  "gf sig",
+  {
+   "value": [
+    {
+     "real": -18.918507983719262,
+     "imag": -53.98080037370353,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -56.19554042042183,
+     "imag": -5.711108840861723,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 12.803562006181835,
+     "imag": 20.99178524077337,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": 97.06080939083307,
+     "imag": -32.18599557392531,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -163.69974055618022,
+     "imag": -220.7571332546475,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -51.35504221907311,
+     "imag": -108.50269702817228,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": 0.30411395048822354,
+     "imag": 0.12907975884588796,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.2263953366479604,
+     "imag": -0.37487065782381457,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.3963413338234955,
+     "imag": 0.018674125278414486,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": 0.30411395048822343,
+     "imag": 0.12907975884588763,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.2263953366479603,
+     "imag": -0.3748706578238147,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.39634133382349557,
+     "imag": 0.018674125278414583,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": 0.3041139504882247,
+     "imag": 0.12907975884588818,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.22639533664796122,
+     "imag": -0.3748706578238158,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.3963413338234967,
+     "imag": 0.018674125278414513,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": 88.51220019527977,
+     "imag": -76.55329821399275,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -22.823580165455212,
+     "imag": -14.576870978598073,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 2.0120455569372453,
+     "imag": -231.98743912102825,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": 0.24637391394991995,
+     "imag": 0.13934871598109466,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1989325128026352,
+     "imag": -0.39757383736340834,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.44354967940431494,
+     "imag": -0.000626915574350087,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": 0.24637391394992006,
+     "imag": 0.13934871598109438,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1989325128026353,
+     "imag": -0.397573837363408,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.44354967940431506,
+     "imag": -0.0006269155743500315,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": 0.2463739139499207,
+     "imag": 0.13934871598109505,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.19893251280263594,
+     "imag": -0.3975738373634097,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.4435496794043165,
+     "imag": -0.0006269155743501564,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "prop sig",
+  {
+   "value": [
+    {
+     "real": 76.99676530580996,
+     "imag": 127.90231905528537,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 84.28242080542904,
+     "imag": -93.27293498557937,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -157.01501812178867,
+     "imag": -84.21784402878919,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop reference sig",
+  {
+   "value": [
+    {
+     "real": 0.3117609276199434,
+     "imag": 0.11617515746683826,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.17942763205343826,
+     "imag": -0.48218156815588187,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.3873720918767395,
+     "imag": 0.03584078369250539,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop spatial sig",
+  {
+   "value": [
+    {
+     "real": 0.31176092761994323,
+     "imag": 0.11617515746683804,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.1794276320534381,
+     "imag": -0.48218156815588187,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.38737209187673965,
+     "imag": 0.03584078369250514,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ],
+ [
+  "ss_prop GWU sig",
+  {
+   "value": [
+    {
+     "real": 0.3117609276199444,
+     "imag": 0.11617515746683849,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.17942763205343878,
+     "imag": -0.4821815681558834,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.3873720918767409,
+     "imag": 0.03584078369250536,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-10
+ ]
+]

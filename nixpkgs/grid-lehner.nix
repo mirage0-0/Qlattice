@@ -2,7 +2,6 @@
 , config
 , lib
 , fetchurl
-, fetchFromGitHub
 , mpi
 , c-lime
 , zlib
@@ -23,24 +22,24 @@
 , cudaPackages ? {}
 , nvcc-arch ? "sm_86"
 , cpuinfo ? "flags : avx2"
+, use-gitee ? null
 }:
 
 let
-
-  grid-stdenv = if cudaSupport then cudaPackages.backendStdenv else stdenv;
-
   cpuinfo-has-avx2 = (builtins.match ".*flags.*:.*avx2.*" cpuinfo) != null;
-
-in grid-stdenv.mkDerivation rec {
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+in stdenv.mkDerivation rec {
 
   pname = "Grid-lehner";
-  version = "e138258129faed5cb12fc0e5bbf829f69c6a2a3d";
+  # version = "f0573d04c76dd67a0af2ef1ce18ddf6b227567e2"; # 2025/04/17
+  # version = "faed6d3e9d8bfa45326a2720b8916228b941b69b"; # 2025/12/12
+  # version = "afd4423bef303fd176bcdb9f3ea89255cba06d53"; # 2026/03/11
+  version = "e13370f81f553b06b62dd7c2aaf20677b5d16ede"; # 2026/04/18
 
-  src = fetchFromGitHub {
-    owner = "lehner";
-    repo = "Grid";
+  src = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/grid" else "https://github.com/lehner/Grid";
+    ref = "feature/gpt";
     rev = version;
-    hash = "sha256-m1wpTWgoRFeZJbidy7ckD1iobFnaNOUjEnhYuJkxe4s=";
   };
 
   enableParallelBuilding = true;
@@ -67,7 +66,7 @@ in grid-stdenv.mkDerivation rec {
     gmp
     mpfr
   ]
-  ++ lib.optional grid-stdenv.cc.isClang openmp
+  ++ lib.optional stdenv.cc.isClang openmp
   ++ lib.optionals cudaSupport (with cudaPackages; [
     cuda_cccl
     cuda_cudart
@@ -86,9 +85,9 @@ in grid-stdenv.mkDerivation rec {
     cpu_cxx = "c++";
     gpu_cxx = "nvcc";
     cpu_cflags = "-fPIC -w -Wno-psabi";
-    gpu_cflags = "-Xcompiler -fPIC -ccbin mpic++ -arch=${nvcc-arch} -w -cudart shared";
+    gpu_cflags = "-Xcompiler -fPIC -ccbin ${mpi.dev}/bin/mpic++ -arch=${nvcc-arch} -w -cudart shared";
     cpu_ldflags = "";
-    gpu_ldflags = "-Xcompiler -fopenmp -ccbin mpic++ -cudart shared -lcublas";
+    gpu_ldflags = "-Xcompiler -fopenmp -ccbin ${mpi.dev}/bin/mpic++ -cudart shared -lcublas -L${lib.getLib cudaPackages.cuda_cudart}/lib/stubs";
     cxx = if cudaSupport then gpu_cxx else cpu_cxx;
     cflags = if cudaSupport then gpu_cflags else cpu_cflags;
     ldflags = if cudaSupport then gpu_ldflags else cpu_ldflags;
@@ -131,38 +130,58 @@ in grid-stdenv.mkDerivation rec {
     c++ --version
     #
     echo
-    echo 'grid-stdenv=${grid-stdenv.cc}'
+    echo 'stdenv=${stdenv.cc}'
     echo
   '' + extra;
 
   configureFlags = let
     cpu_avx2_flags = [
+      "--enable-comms=mpi-auto"
+      "--enable-unified=yes"
+      # "--enable-shm=shmopen"
+      # "--enable-shm-fast-path=shmopen"
+      "--enable-accelerator=none"
       "--enable-simd=AVX2"
       "--enable-alloc-align=4k"
-      "--enable-comms=mpi-auto"
-      "--enable-gparity=no"
+      "--disable-fermion-reps"
+      "--disable-gparity"
     ];
     cpu_gen16_flags = [
+      "--enable-comms=mpi-auto"
+      "--enable-unified=yes"
+      "--enable-accelerator=none"
       "--enable-simd=GEN"
       "--enable-gen-simd-width=16"
       "--enable-alloc-align=4k"
-      "--enable-comms=mpi-auto"
-      "--enable-gparity=no"
+      "--disable-fermion-reps"
+      "--disable-gparity"
     ];
     cpu_flags = if cpuinfo-has-avx2 then cpu_avx2_flags else cpu_gen16_flags;
     gpu_flags = [
+      "--enable-comms=mpi-auto"
+      "--enable-unified=no"
+      "--enable-shm=nvlink"
+      "--enable-accelerator=cuda"
       "--enable-simd=GPU"
       "--enable-gen-simd-width=32"
       "--enable-alloc-align=4k"
-      "--enable-comms=mpi-auto"
-      "--enable-shm=nvlink"
-      "--enable-gparity=no"
-      "--enable-unified=no"
-      "--enable-accelerator=cuda"
       "--disable-fermion-reps"
+      "--disable-gparity"
     ];
     flags = if cudaSupport then gpu_flags else cpu_flags;
   in flags;
+
+  preBuild = ''
+    cd Grid
+    pwd
+  '';
+
+  postInstall= ''
+    cd ..
+    make -j "$NIX_BUILD_CORES" -C benchmarks Benchmark_dwf_fp32
+    install -D -m755 grid-config "$out"/bin/grid-config
+    install -D -m755 benchmarks/Benchmark_dwf_fp32 "$out"/bin/Benchmark_dwf_fp32
+  '';
 
   postFixup = ''
     mkdir -pv "$out"/share/version

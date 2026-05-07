@@ -26,18 +26,19 @@
 
 let
 
-  orig-stdenv = stdenv;
-
   version-pypi = use-pypi;
   src-pypi = builtins.fetchTarball "https://files.pythonhosted.org/packages/source/q/qlat/qlat-${version-pypi}.tar.gz";
 
   version-local = builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ../VERSION) + "-current";
   src-local = ../qlat;
 
-in buildPythonPackage rec {
-
   pname = "qlat${qlat-name}";
   version = if use-pypi != null then version-pypi else version-local;
+
+in buildPythonPackage {
+
+  pname = pname;
+  version = version;
 
   pyproject = true;
 
@@ -45,7 +46,7 @@ in buildPythonPackage rec {
 
   enableParallelBuilding = true;
 
-  stdenv = if cudaSupport then cudaPackages.backendStdenv else orig-stdenv;
+  stdenv = stdenv;
 
   build-system = [
     qlat_utils
@@ -101,7 +102,7 @@ in buildPythonPackage rec {
       #
       export NVCC_OPTIONS="-std=c++17 -arch=${nvcc-arch} --expt-extended-lambda --expt-relaxed-constexpr -fopenmp -fno-strict-aliasing $GXX" # -D__DEBUG_VECUTILS__
       export QLAT_CXX="$PWD/NVCC.py -ccbin c++ $NVCC_OPTIONS"
-      export QLAT_MPICXX="$PWD/NVCC.py -ccbin mpic++ $NVCC_OPTIONS"
+      export QLAT_MPICXX="$PWD/NVCC.py -ccbin ${mpi.dev}/bin/mpic++ $NVCC_OPTIONS"
       export QLAT_CXXFLAGS="--NVCC-compile -D__QLAT_BARYON_SHARED_SMALL__" # -fPIC
       export QLAT_LDFLAGS="--NVCC-link" # --shared
       #
@@ -158,6 +159,8 @@ in buildPythonPackage rec {
     # echo readelf -d $out
     # readelf -d $out/lib/python3*/site-packages/cqlat.cpython-*.so
     # echo
+    patchShebangs --build "$out"/bin/bind-gpu-qlat.sh
+    #
     mkdir -pv "$out"/share/version
     echo ${version} >"$out"/share/version/${pname}
   '';

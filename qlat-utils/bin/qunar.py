@@ -3,7 +3,8 @@
 # Standalone unarchiver for https://jinluchang.github.io/Qlattice/contents/qar-format.html
 # Author: Christoph Lehner 2024
 #
-import sys, os
+import sys
+import os
 
 if len(sys.argv) == 4:
     src = sys.argv[1]
@@ -36,7 +37,7 @@ def expect_new_lines(n):
             sys.exit(3)
 
 def collapse_whitespace(x):
-    return ' '.join(x.split())
+    return " ".join(x.split())
 
 expect_new_lines(1)
 
@@ -88,7 +89,3 @@ while True:
         sys.exit(0)
 
     expect_new_lines(2)
-
-
-
-

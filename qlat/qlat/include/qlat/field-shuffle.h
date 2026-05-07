@@ -78,7 +78,7 @@ template <class M>
 void shuffle_field_comm(Vector<M> recv_buffer, const Vector<M> send_buffer,
                         const ShuffleCommPlan& scp, const Int multiplicity)
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field_comm(recv,send,scp,multiplicity)");
   const Long total_bytes = scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
@@ -87,7 +87,7 @@ void shuffle_field_comm(Vector<M> recv_buffer, const Vector<M> send_buffer,
   std::vector<MPI_Request> reqs;
   {
     TIMER("shuffle_field_comm-init");
-    const int mpi_tag = 4;
+    const Int mpi_tag = 4;
     for (size_t i = 0; i < scp.recv_msg_infos.size(); ++i) {
       const ShufflePlanMsgInfo& mi = scp.recv_msg_infos[i];
       mpi_irecv(&recv_buffer[mi.idx * multiplicity],
@@ -102,7 +102,7 @@ void shuffle_field_comm(Vector<M> recv_buffer, const Vector<M> send_buffer,
     }
   }
   mpi_waitall(reqs);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
@@ -110,14 +110,14 @@ void shuffle_field_comm_back(Vector<M> send_buffer, const Vector<M> recv_buffer,
                              const ShuffleCommPlan& scp, const Int multiplicity)
 // name is reversed
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field_comm_back(send,recv,scp,multiplicity)");
   const Long total_bytes = scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
   std::vector<MPI_Request> reqs;
   {
     TIMER("shuffle_field_comm_back-init");
-    const int mpi_tag = 5;
+    const Int mpi_tag = 5;
     for (size_t i = 0; i < scp.send_msg_infos.size(); ++i) {
       const ShufflePlanMsgInfo& mi = scp.send_msg_infos[i];
       mpi_irecv(&send_buffer[mi.idx * multiplicity],
@@ -132,14 +132,14 @@ void shuffle_field_comm_back(Vector<M> send_buffer, const Vector<M> recv_buffer,
     }
   }
   mpi_waitall(reqs);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
 void shuffle_field_pack_send(
     Vector<M> send_buffer, const Vector<M> fdata,
     const std::vector<ShufflePlanSendPackInfo>& send_pack_infos,
-    const int multiplicity)
+    const Int multiplicity)
 {
   TIMER_FLOPS("shuffle_field_pack_send(send_buffer,fdata)");
 #pragma omp parallel for
@@ -155,7 +155,7 @@ template <class M>
 void shuffle_field_unpack_send(
     Vector<M> fdata, const Vector<M> send_buffer,
     const std::vector<ShufflePlanSendPackInfo>& send_pack_infos,
-    const int multiplicity)
+    const Int multiplicity)
 {
   TIMER_FLOPS("shuffle_field_unpack_send(fdata,send_buffer)");
 #pragma omp parallel for
@@ -171,7 +171,7 @@ template <class M>
 void shuffle_field_unpack_recv(
     vector<Vector<M>>& fsdata, const Vector<M> recv_buffer,
     const std::vector<ShufflePlanRecvPackInfo>& recv_pack_infos,
-    const int multiplicity)
+    const Int multiplicity)
 {
   TIMER_FLOPS("shuffle_field_unpack_recv(fsdata,recv_buffer)");
 #pragma omp parallel for
@@ -188,7 +188,7 @@ template <class M>
 void shuffle_field_pack_recv(
     Vector<M> recv_buffer, const vector<Vector<M>>& fsdata,
     const std::vector<ShufflePlanRecvPackInfo>& recv_pack_infos,
-    const int multiplicity)
+    const Int multiplicity)
 {
   TIMER_FLOPS("shuffle_field_pack_recv(recv_buffer,fsdata)");
 #pragma omp parallel for
@@ -215,31 +215,29 @@ void shuffle_field(std::vector<Field<M>>& fs, const Field<M>& f,
     fs[0] = f;
     return;
   }
-  sync_node();
+  SYNC_NODE();
   TIMER_VERBOSE_FLOPS("shuffle_field(fs,f,sp)");
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
   if (sp.new_size_node != Coordinate()) {
     displayln_info(
-        0,
-        fname + ssprintf(": %s -> %s (total_site: %s ; site_size: %d ; "
-                         "total_size: %.3lf GB)",
-                         show(geo.geon.size_node).c_str(),
-                         show(sp.new_size_node).c_str(),
-                         show(geo.total_site()).c_str(),
-                         multiplicity * (int)sizeof(M),
-                         (double)(sp.scp.global_comm_size * multiplicity *
-                                  sizeof(M) * std::pow(0.5, 30))));
+        0, fname + ssprintf(": %s -> %s (total_site: %s ; site_size: %d ; "
+                            "total_size: %.3lf GB)",
+                            show(geo.geon.size_node).c_str(),
+                            show(sp.new_size_node).c_str(),
+                            show(geo.total_site()).c_str(),
+                            multiplicity * (int)sizeof(M),
+                            (RealD)(sp.scp.global_comm_size * multiplicity *
+                                    sizeof(M) * std::pow(0.5, 30))));
   }
   qassert(sp.geo_send == geo_resize(geo));
   clear(fs);
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
-  vector<M> send_buffer(sp.scp.total_send_size * multiplicity);
+  vector<M> send_buffer(sp.scp.total_send_size * multiplicity, MemType::Comm);
   shuffle_field_pack_send(get_data(send_buffer), get_data(f),
                           sp.send_pack_infos, multiplicity);
-  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity);
+  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity, MemType::Comm);
   shuffle_field_comm(get_data(recv_buffer), get_data(send_buffer), sp.scp,
                      multiplicity);
   clear(send_buffer);
@@ -247,13 +245,13 @@ void shuffle_field(std::vector<Field<M>>& fs, const Field<M>& f,
   for (size_t i = 0; i < fs.size(); ++i) {
     fs[i].init(sp.geos_recv[i], multiplicity);
   }
-  vector<Vector<M>> fsdata(fs.size());
+  vector<Vector<M>> fsdata(fs.size(), MemType::Cpu);
   for (size_t i = 0; i < fs.size(); ++i) {
     fsdata[i] = get_data(fs[i]);
   }
   shuffle_field_unpack_recv(fsdata, get_data(recv_buffer), sp.recv_pack_infos,
                             multiplicity);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
@@ -269,40 +267,38 @@ void shuffle_field_back(Field<M>& f, const std::vector<Field<M>>& fs,
     f = fs[0];
     return;
   }
-  sync_node();
+  SYNC_NODE();
   TIMER_VERBOSE_FLOPS("shuffle_field_back(f,fs,sp)");
   qassert(is_initialized(f));
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
   if (sp.new_size_node != Coordinate()) {
     displayln_info(
-        0,
-        fname + ssprintf(": %s -> %s (total_site: %s ; site_size: %d ; "
-                         "total_size: %.3lf GB)",
-                         show(sp.new_size_node).c_str(),
-                         show(geo.geon.size_node).c_str(),
-                         show(geo.total_site()).c_str(),
-                         multiplicity * (int)sizeof(M),
-                         (double)(sp.scp.global_comm_size * multiplicity *
-                                  sizeof(M) * std::pow(0.5, 30))));
+        0, fname + ssprintf(": %s -> %s (total_site: %s ; site_size: %d ; "
+                            "total_size: %.3lf GB)",
+                            show(sp.new_size_node).c_str(),
+                            show(geo.geon.size_node).c_str(),
+                            show(geo.total_site()).c_str(),
+                            multiplicity * (int)sizeof(M),
+                            (RealD)(sp.scp.global_comm_size * multiplicity *
+                                    sizeof(M) * std::pow(0.5, 30))));
   }
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
-  vector<Vector<M>> fsdata(fs.size());
+  vector<Vector<M>> fsdata(fs.size(), MemType::Cpu);
   for (size_t i = 0; i < fs.size(); ++i) {
     fsdata[i] = get_data(fs[i]);
   }
-  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity);
+  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity, MemType::Comm);
   shuffle_field_pack_recv(get_data(recv_buffer), fsdata, sp.recv_pack_infos,
                           multiplicity);
-  vector<M> send_buffer(sp.scp.total_send_size * multiplicity);
+  vector<M> send_buffer(sp.scp.total_send_size * multiplicity, MemType::Comm);
   shuffle_field_comm_back(get_data(send_buffer), get_data(recv_buffer), sp.scp,
                           multiplicity);
   clear(recv_buffer);
   shuffle_field_unpack_send(get_data(f), get_data(send_buffer),
                             sp.send_pack_infos, multiplicity);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
@@ -316,7 +312,7 @@ void shuffle_field(std::vector<SelectedField<M>>& fs, const SelectedField<M>& f,
     fs[0] = f;
     return;
   }
-  sync_node();
+  SYNC_NODE();
   TIMER_VERBOSE_FLOPS("shuffle_field(sel_fs,sel_f,sp)");
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
@@ -327,18 +323,17 @@ void shuffle_field(std::vector<SelectedField<M>>& fs, const SelectedField<M>& f,
                           show(sp.new_size_node).c_str(),
                           show(geo.total_site()).c_str(),
                           multiplicity * (int)sizeof(M),
-                          (double)(sp.scp.global_comm_size * multiplicity *
-                                   sizeof(M) * std::pow(0.5, 30))));
+                          (RealD)(sp.scp.global_comm_size * multiplicity *
+                                  sizeof(M) * std::pow(0.5, 30))));
   qassert(sp.geo_send == geo_resize(geo));
   clear(fs);
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
   qassert(sp.n_elems_send * multiplicity == (Long)f.field.size());
-  vector<M> send_buffer(sp.scp.total_send_size * multiplicity);
+  vector<M> send_buffer(sp.scp.total_send_size * multiplicity, MemType::Comm);
   shuffle_field_pack_send(get_data(send_buffer), get_data(f),
                           sp.send_pack_infos, multiplicity);
-  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity);
+  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity, MemType::Comm);
   shuffle_field_comm(get_data(recv_buffer), get_data(send_buffer), sp.scp,
                      multiplicity);
   clear(send_buffer);
@@ -346,13 +341,13 @@ void shuffle_field(std::vector<SelectedField<M>>& fs, const SelectedField<M>& f,
   for (size_t i = 0; i < fs.size(); ++i) {
     fs[i].init(sp.geos_recv[i], sp.n_elems_recv[i], multiplicity);
   }
-  vector<Vector<M>> fsdata(fs.size());
+  vector<Vector<M>> fsdata(fs.size(), MemType::Cpu);
   for (size_t i = 0; i < fs.size(); ++i) {
     fsdata[i] = get_data(fs[i]);
   }
   shuffle_field_unpack_recv(fsdata, get_data(recv_buffer), sp.recv_pack_infos,
                             multiplicity);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
@@ -369,7 +364,7 @@ void shuffle_field_back(SelectedField<M>& f,
     f = fs[0];
     return;
   }
-  sync_node();
+  SYNC_NODE();
   TIMER_VERBOSE_FLOPS("shuffle_field_back(sel_f,sel_fs,sp)");
   qassert(is_initialized(f));
   const Geometry& geo = f.geo();
@@ -381,25 +376,24 @@ void shuffle_field_back(SelectedField<M>& f,
                           show(geo.geon.size_node).c_str(),
                           show(geo.total_site()).c_str(),
                           multiplicity * (int)sizeof(M),
-                          (double)(sp.scp.global_comm_size * multiplicity *
-                                   sizeof(M) * std::pow(0.5, 30))));
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+                          (RealD)(sp.scp.global_comm_size * multiplicity *
+                                  sizeof(M) * std::pow(0.5, 30))));
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
-  vector<Vector<M>> fsdata(fs.size());
+  vector<Vector<M>> fsdata(fs.size(), MemType::Cpu);
   for (size_t i = 0; i < fs.size(); ++i) {
     fsdata[i] = get_data(fs[i]);
   }
-  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity);
+  vector<M> recv_buffer(sp.scp.total_recv_size * multiplicity, MemType::Comm);
   shuffle_field_pack_recv(get_data(recv_buffer), fsdata, sp.recv_pack_infos,
                           multiplicity);
-  vector<M> send_buffer(sp.scp.total_send_size * multiplicity);
+  vector<M> send_buffer(sp.scp.total_send_size * multiplicity, MemType::Comm);
   shuffle_field_comm_back(get_data(send_buffer), get_data(recv_buffer), sp.scp,
                           multiplicity);
   clear(recv_buffer);
   shuffle_field_unpack_send(get_data(f), get_data(send_buffer),
                             sp.send_pack_infos, multiplicity);
-  sync_node();
+  SYNC_NODE();
 }
 
 template <class M>
@@ -464,14 +458,14 @@ std::vector<GeometryNode> make_dist_io_geons(const Coordinate& new_size_node);
 std::vector<Geometry> make_dist_io_geos(const Coordinate& total_site,
                                         const Coordinate& new_size_node);
 
-inline int get_id_node_in_shuffle_from_new_id_node(const int new_id_node,
-                                                   const int new_num_node,
-                                                   const int num_node)
+inline Int get_id_node_in_shuffle_from_new_id_node(const Int new_id_node,
+                                                   const Int new_num_node,
+                                                   const Int num_node)
 {
-  const int min_size_chunk = new_num_node / num_node;
-  const int remain = new_num_node % num_node;
-  const int limit = remain * min_size_chunk + remain;
-  int id_node_in_shuffle;
+  const Int min_size_chunk = new_num_node / num_node;
+  const Int remain = new_num_node % num_node;
+  const Int limit = remain * min_size_chunk + remain;
+  Int id_node_in_shuffle;
   if (new_id_node <= limit) {
     id_node_in_shuffle = new_id_node / (min_size_chunk + 1);
   } else {
@@ -480,9 +474,9 @@ inline int get_id_node_in_shuffle_from_new_id_node(const int new_id_node,
   return id_node_in_shuffle;
 }
 
-inline int get_id_node_from_new_id_node(const int new_id_node,
-                                        const int new_num_node,
-                                        const int num_node)
+inline Int get_id_node_from_new_id_node(const Int new_id_node,
+                                        const Int new_num_node,
+                                        const Int num_node)
 {
   return get_id_node_from_id_node_in_shuffle(
       get_id_node_in_shuffle_from_new_id_node(new_id_node, new_num_node,
@@ -512,8 +506,8 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
   const Coordinate total_site = sp.geo_send.total_site();
   const Coordinate new_node_site = total_site / sp.new_size_node;
   qassert(sp.new_size_node * new_node_site == total_site);
-  const int new_num_node = product(sp.new_size_node);
-  const int num_node = sp.geo_send.geon.num_node;
+  const Int new_num_node = volume(sp.new_size_node);
+  const Int num_node = sp.geo_send.geon.num_node;
   // global index for each selected site
   SelectedField<Long> sf_rank;
   sf_rank.init(fsel, 1);
@@ -532,9 +526,9 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
     const Long gindex_s = func(gindex);
     const Coordinate xg_s = coordinate_from_index(gindex_s, total_site);
     const Coordinate new_coor_node = xg_s / new_node_site;
-    const int new_id_node =
+    const Int new_id_node =
         index_from_coordinate(new_coor_node, sp.new_size_node);
-    const int id_node =
+    const Int id_node =
         get_id_node_from_new_id_node(new_id_node, new_num_node, num_node);
     sf_rank.get_elem(idx) = fsel.f_rank.get_elem(xl);
     sf_gindex_s.get_elem(idx) = gindex_s;
@@ -549,7 +543,7 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
     Long count = 0;
     for (auto it = send_id_node_size.cbegin(); it != send_id_node_size.cend();
          ++it) {
-      const int id_node = it->first;
+      const Int id_node = it->first;
       const Long node_size = it->second;
       send_id_node_buffer_idx[id_node] = count;
       Long node_size_remain = node_size;
@@ -573,7 +567,7 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
   {
     Long last_buffer_idx = -1;
     for (Long idx = 0; idx < fsel.n_elems; ++idx) {
-      const int id_node = sf_id_node_send.get_elem(idx);
+      const Int id_node = sf_id_node_send.get_elem(idx);
       const Long buffer_idx = send_id_node_buffer_idx[id_node];
       if (buffer_idx == last_buffer_idx and
           sp.send_pack_infos.back().size < get_shuffle_max_pack_size()) {
@@ -593,10 +587,15 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
   // communicate to determine recv msg size from each node
   std::map<Int, Long> recv_id_node_size;
   {
-    vector<Long> send_size(num_node, 0), recv_size(num_node, -1);
+    vector<Long> send_size(num_node, MemType::Cpu);
+    vector<Long> recv_size(num_node, MemType::Cpu);
+    for (Int i = 0; i < num_node; ++i) {
+      send_size[i] = 0;
+      recv_size[i] = -1;
+    }
     for (auto it = send_id_node_size.cbegin(); it != send_id_node_size.cend();
          ++it) {
-      const int id_node = it->first;
+      const Int id_node = it->first;
       const Long node_size = it->second;
       qassert(0 <= id_node and id_node < num_node);
       qassert(0 <= node_size);
@@ -605,16 +604,16 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
     Long neg_count = 0;
     do {
       std::vector<MPI_Request> reqs;
-      const int mpi_tag = 12;
-      for (int i = 0; i < num_node; ++i) {
+      const Int mpi_tag = 12;
+      for (Int i = 0; i < num_node; ++i) {
         mpi_irecv(&recv_size[i], 1, MPI_LONG, i, mpi_tag, get_comm(), reqs);
       }
-      for (int i = 0; i < num_node; ++i) {
+      for (Int i = 0; i < num_node; ++i) {
         mpi_isend(&send_size[i], 1, MPI_LONG, i, mpi_tag, get_comm(), reqs);
       }
       mpi_waitall(reqs);
       neg_count = 0;
-      for (int i = 0; i < num_node; ++i) {
+      for (Int i = 0; i < num_node; ++i) {
         if (recv_size[i] < 0) {
           qwarn(fname +
                 ssprintf(": id_node=%d i=%d recv_size[i]=%ld neg_count=%ld",
@@ -640,7 +639,7 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
     Long count = 0;
     for (auto it = recv_id_node_size.cbegin(); it != recv_id_node_size.cend();
          ++it) {
-      const int id_node = it->first;
+      const Int id_node = it->first;
       const Long node_size = it->second;
       Long node_size_remain = node_size;
       while (node_size_remain > 0) {
@@ -656,27 +655,30 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
     sp.scp.total_recv_size = count;
   }
   // exec shuffle for sf_gindex_s
-  vector<Long> send_buffer(sp.scp.total_send_size);
+  vector<Long> send_buffer(sp.scp.total_send_size, MemType::Comm);
   shuffle_field_pack_send(get_data(send_buffer), get_data(sf_gindex_s),
                           sp.send_pack_infos, 1);
-  vector<Long> recv_buffer(sp.scp.total_recv_size);
+  vector<Long> recv_buffer(sp.scp.total_recv_size, MemType::Comm);
   shuffle_field_comm(get_data(recv_buffer), get_data(send_buffer), sp.scp, 1);
   shuffle_field_pack_send(get_data(send_buffer), get_data(sf_rank),
                           sp.send_pack_infos, 1);
-  vector<Long> recv_buffer_rank(sp.scp.total_recv_size);
+  vector<Long> recv_buffer_rank(sp.scp.total_recv_size, MemType::Comm);
   shuffle_field_comm(get_data(recv_buffer_rank), get_data(send_buffer), sp.scp,
                      1);
   clear(send_buffer);
   // recv_pack_infos
   {
-    vector<Int> local_geos_idx_from_new_id_node(new_num_node, -1);
-    for (int i = 0; i < (int)fsels.size(); ++i) {
-      const int local_geos_idx = i;
+    vector<Int> local_geos_idx_from_new_id_node(new_num_node, MemType::Cpu);
+    for (Int i = 0; i < new_num_node; ++i) {
+      local_geos_idx_from_new_id_node[i] = -1;
+    }
+    for (Int i = 0; i < (int)fsels.size(); ++i) {
+      const Int local_geos_idx = i;
       const Geometry& geo_recv = sp.geos_recv[i];
       local_geos_idx_from_new_id_node[geo_recv.geon.id_node] = local_geos_idx;
     }
     std::vector<FieldRank> f_ranks(fsels.size());
-    for (int i = 0; i < (int)f_ranks.size(); ++i) {
+    for (Int i = 0; i < (int)f_ranks.size(); ++i) {
       f_ranks[i].init(sp.geos_recv[i], 1);
 #pragma omp parallel for
       for (Long index = 0; index < f_ranks[i].geo().local_volume(); ++index) {
@@ -690,26 +692,27 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
       const Long gindex_s = recv_buffer[buffer_idx];
       const Coordinate xg_s = coordinate_from_index(gindex_s, total_site);
       const Coordinate new_coor_node = xg_s / new_node_site;
-      const int new_id_node =
+      const Int new_id_node =
           index_from_coordinate(new_coor_node, sp.new_size_node);
-      const int local_geos_idx = local_geos_idx_from_new_id_node[new_id_node];
+      const Int local_geos_idx = local_geos_idx_from_new_id_node[new_id_node];
       const Geometry& geo_recv = sp.geos_recv[local_geos_idx];
       const Coordinate xl_s = geo_recv.coordinate_l_from_g(xg_s);
       f_ranks[local_geos_idx].get_elem(xl_s) = recv_buffer_rank[buffer_idx];
     }
-    for (int i = 0; i < (int)fsels.size(); ++i) {
+    for (Int i = 0; i < (int)fsels.size(); ++i) {
       set_field_selection(fsels[i], f_ranks[i]);
     }
     Long last_local_geos_idx = -1;
-    vector<Long> last_field_idx(sp.geos_recv.size(), 0);
+    vector<Long> last_field_idx(sp.geos_recv.size(), MemType::Cpu);
+    set_zero(last_field_idx);
     for (Long buffer_idx = 0; buffer_idx < (Long)recv_buffer.size();
          ++buffer_idx) {
       const Long gindex_s = recv_buffer[buffer_idx];
       const Coordinate xg_s = coordinate_from_index(gindex_s, total_site);
       const Coordinate new_coor_node = xg_s / new_node_site;
-      const int new_id_node =
+      const Int new_id_node =
           index_from_coordinate(new_coor_node, sp.new_size_node);
-      const int local_geos_idx = local_geos_idx_from_new_id_node[new_id_node];
+      const Int local_geos_idx = local_geos_idx_from_new_id_node[new_id_node];
       qassert(local_geos_idx >= 0);
       qassert(
           get_id_node_from_new_id_node(new_id_node, new_num_node, num_node) ==
@@ -737,7 +740,7 @@ ShufflePlan make_shuffle_plan_generic(std::vector<FieldSelection>& fsels,
       }
     }
     sp.n_elems_recv.resize(fsels.size());
-    for (int i = 0; i < (int)fsels.size(); ++i) {
+    for (Int i = 0; i < (int)fsels.size(); ++i) {
       sp.n_elems_recv[i] = fsels[i].n_elems;
     }
   }
@@ -821,7 +824,7 @@ template <class M>
 void shuffle_field(std::vector<Field<M>>& fs, const Field<M>& f,
                    const Coordinate& new_size_node)
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field");
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
@@ -830,8 +833,7 @@ void shuffle_field(std::vector<Field<M>>& fs, const Field<M>& f,
   const ShufflePlan& sp = get_shuffle_plan(geo.total_site(), new_size_node);
   QLAT_DIAGNOSTIC_POP;
   shuffle_field(fs, f, sp);
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
 }
 
@@ -840,14 +842,13 @@ void shuffle_field_back(Field<M>& f, const std::vector<Field<M>>& fs,
                         const Coordinate& new_size_node)
 // f needs to have correct size
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field_back");
   QLAT_PUSH_DIAGNOSTIC_DISABLE_DANGLING_REF;
   const ShufflePlan& sp = get_shuffle_plan(f.geo().total_site(), new_size_node);
   QLAT_DIAGNOSTIC_POP;
   shuffle_field_back(f, fs, sp);
-  const Long total_bytes =
-      sp.scp.global_comm_size * f.multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * f.multiplicity * sizeof(M);
   timer.flops += total_bytes;
 }
 
@@ -859,14 +860,13 @@ void shuffle_field(std::vector<SelectedField<M>>& fs,
                    const SelectedField<M>& f, const Coordinate& new_size_node,
                    const FieldSelection& fsel)
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field(fs,f,nsn,fsel)");
   // const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
   const ShufflePlan sp = make_shuffle_plan(fsels, fsel, new_size_node);
   shuffle_field(fs, f, sp);
-  const Long total_bytes =
-      sp.scp.global_comm_size * multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * multiplicity * sizeof(M);
   timer.flops += total_bytes;
 }
 
@@ -877,13 +877,12 @@ void shuffle_field_back(SelectedField<M>& f,
                         const FieldSelection& fsel)
 // f needs to have correct size
 {
-  sync_node();
+  SYNC_NODE();
   TIMER_FLOPS("shuffle_field_back");
   std::vector<FieldSelection> fsels;
   const ShufflePlan sp = make_shuffle_plan(fsels, fsel, new_size_node);
   shuffle_field_back(f, fs, sp);
-  const Long total_bytes =
-      sp.scp.global_comm_size * f.multiplicity * sizeof(M);
+  const Long total_bytes = sp.scp.global_comm_size * f.multiplicity * sizeof(M);
   timer.flops += total_bytes;
 }
 
@@ -891,11 +890,11 @@ void shuffle_field_back(SelectedField<M>& f,
 
 inline Long index_from_coordinate_perp_dir(const Coordinate& coor,
                                            const Coordinate& size,
-                                           const int dir)
+                                           const Int dir)
 {
   array<int, 3> dirs;
-  int cur_dir = 0;
-  for (int i = 0; i < 4; ++i) {
+  Int cur_dir = 0;
+  for (Int i = 0; i < 4; ++i) {
     if (i != dir) {
       dirs[cur_dir] = i;
       cur_dir += 1;
@@ -907,12 +906,12 @@ inline Long index_from_coordinate_perp_dir(const Coordinate& coor,
 
 inline Coordinate coordinate_from_index_perp_dir(Long index,
                                                  const Coordinate& size,
-                                                 const int dir,
-                                                 const int coor_dir)
+                                                 const Int dir,
+                                                 const Int coor_dir)
 {
   array<int, 3> dirs;
-  int cur_dir = 0;
-  for (int i = 0; i < 4; ++i) {
+  Int cur_dir = 0;
+  for (Int i = 0; i < 4; ++i) {
     if (i != dir) {
       dirs[cur_dir] = i;
       cur_dir += 1;
@@ -930,9 +929,9 @@ inline Coordinate coordinate_from_index_perp_dir(Long index,
 
 inline Long get_id_node_fft(const Coordinate& xl, const Coordinate& node_site,
                             const Coordinate& coor_node,
-                            const Coordinate& size_node, const int dir)
+                            const Coordinate& size_node, const Int dir)
 {
-  const Long vol_perp_dir = product(node_site) / node_site[dir];
+  const Long vol_perp_dir = volume(node_site) / node_site[dir];
   const Long idx = index_from_coordinate_perp_dir(xl, node_site, dir);
   Coordinate new_coor_node = coor_node;
   new_coor_node[dir] = find_worker(idx, vol_perp_dir, size_node[dir]);
@@ -940,7 +939,7 @@ inline Long get_id_node_fft(const Coordinate& xl, const Coordinate& node_site,
   return index_from_coordinate(new_coor_node, size_node);
 }
 
-ShufflePlan make_shuffle_plan_fft(const Coordinate& total_site, const int dir);
+ShufflePlan make_shuffle_plan_fft(const Coordinate& total_site, const Int dir);
 
 // reflection shuffle
 
@@ -1081,31 +1080,31 @@ void field_shift(SelectedField<M>& sf, FieldSelection& fsel,
                                                                                \
   QLAT_EXTERN template void shuffle_field_comm<TYPENAME>(                      \
       Vector<TYPENAME> recv_buffer, const Vector<TYPENAME> send_buffer,        \
-      const ShuffleCommPlan& scp, const int multiplicity);                     \
+      const ShuffleCommPlan& scp, const Int multiplicity);                     \
                                                                                \
   QLAT_EXTERN template void shuffle_field_comm_back<TYPENAME>(                 \
       Vector<TYPENAME> send_buffer, const Vector<TYPENAME> recv_buffer,        \
-      const ShuffleCommPlan& scp, const int multiplicity);                     \
+      const ShuffleCommPlan& scp, const Int multiplicity);                     \
                                                                                \
   QLAT_EXTERN template void shuffle_field_pack_send<TYPENAME>(                 \
       Vector<TYPENAME> send_buffer, const Vector<TYPENAME> fdata,              \
       const std::vector<ShufflePlanSendPackInfo>& send_pack_infos,             \
-      const int multiplicity);                                                 \
+      const Int multiplicity);                                                 \
                                                                                \
   QLAT_EXTERN template void shuffle_field_unpack_send<TYPENAME>(               \
       Vector<TYPENAME> fdata, const Vector<TYPENAME> send_buffer,              \
       const std::vector<ShufflePlanSendPackInfo>& send_pack_infos,             \
-      const int multiplicity);                                                 \
+      const Int multiplicity);                                                 \
                                                                                \
   QLAT_EXTERN template void shuffle_field_unpack_recv<TYPENAME>(               \
       vector<Vector<TYPENAME>> & fsdata, const Vector<TYPENAME> recv_buffer,   \
       const std::vector<ShufflePlanRecvPackInfo>& recv_pack_infos,             \
-      const int multiplicity);                                                 \
+      const Int multiplicity);                                                 \
                                                                                \
   QLAT_EXTERN template void shuffle_field_pack_recv<TYPENAME>(                 \
       Vector<TYPENAME> recv_buffer, const vector<Vector<TYPENAME>>& fsdata,    \
       const std::vector<ShufflePlanRecvPackInfo>& recv_pack_infos,             \
-      const int multiplicity);                                                 \
+      const Int multiplicity);                                                 \
                                                                                \
   QLAT_EXTERN template void shuffle_field<TYPENAME>(                           \
       std::vector<Field<TYPENAME>> & fs, const Field<TYPENAME>& f,             \

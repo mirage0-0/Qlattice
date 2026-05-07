@@ -33,12 +33,11 @@ except:
     from expr_arithmetic import mk_sym
 
 class Op:
-
     """
     self.otype
     """
 
-    def __init__(self, otype:str):
+    def __init__(self, otype: str):
         self.otype = otype
 
     def is_commute(self) -> bool:
@@ -82,7 +81,6 @@ class Op:
 ### ------
 
 class Qfield(Op):
-
     """
     self.f
     self.p
@@ -90,7 +88,7 @@ class Qfield(Op):
     self.c
     """
 
-    def __init__(self, otype:str, flavor:str, position:str, spin:str, color:str):
+    def __init__(self, otype: str, flavor: str, position: str, spin: str, color: str):
         Op.__init__(self, otype)
         self.f = flavor
         self.p = position
@@ -107,7 +105,13 @@ class Qfield(Op):
             return f"{self.otype}({self.f!r},{self.p!r},{self.s!r},{self.c!r})"
 
     def list(self):
-        return [ self.otype, self.f, self.p, self.s, self.c, ]
+        return [
+            self.otype,
+            self.f,
+            self.p,
+            self.s,
+            self.c,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -115,7 +119,6 @@ class Qfield(Op):
 ### ------
 
 class Qv(Qfield):
-
     """
     act as d / d Hb
     """
@@ -129,7 +132,6 @@ class Qv(Qfield):
 ### ------
 
 class Qb(Qfield):
-
     """
     act as d / d Hv
     """
@@ -143,35 +145,30 @@ class Qb(Qfield):
 ### ------
 
 class Hv(Qfield):
-
     def __init__(self, f, p, s, c):
         Qfield.__init__(self, "Hv", f, p, s, c)
 
 ### ------
 
 class Hb(Qfield):
-
     def __init__(self, f, p, s, c):
         Qfield.__init__(self, "Hb", f, p, s, c)
 
 ### ------
 
 class SHv(Qfield):
-
     def __init__(self, f, p, s, c):
         Qfield.__init__(self, "SHv", f, p, s, c)
 
 ### ------
 
 class HbS(Qfield):
-
     def __init__(self, f, p, s, c):
         Qfield.__init__(self, "HbS", f, p, s, c)
 
 ### ------
 
 class S(Op):
-
     """
     propagator
     #
@@ -184,7 +181,16 @@ class S(Op):
     self.c2
     """
 
-    def __init__(self, flavor:str, p1:str, p2:str, s1:str="auto", s2:str="auto", c1:str="auto", c2:str="auto"):
+    def __init__(
+        self,
+        flavor: str,
+        p1: str,
+        p2: str,
+        s1: str = "auto",
+        s2: str = "auto",
+        c1: str = "auto",
+        c2: str = "auto",
+    ):
         Op.__init__(self, "S")
         self.f = flavor
         self.p1 = p1
@@ -195,13 +201,27 @@ class S(Op):
         self.c2 = c2
 
     def __repr__(self) -> str:
-        if self.s1 == "auto" and self.s2 == "auto" and self.c1 == "auto" and self.c2 == "auto":
+        if (
+            self.s1 == "auto"
+            and self.s2 == "auto"
+            and self.c1 == "auto"
+            and self.c2 == "auto"
+        ):
             return f"{self.otype}({self.f!r},{self.p1!r},{self.p2!r})"
         else:
             return f"{self.otype}({self.f!r},{self.p1!r},{self.p2!r},{self.s1!r},{self.s2!r},{self.c1!r},{self.c2!r})"
 
     def list(self):
-        return [ self.otype, self.f, self.p1, self.p2, self.s1, self.s2, self.c1, self.c2, ]
+        return [
+            self.otype,
+            self.f,
+            self.p1,
+            self.p2,
+            self.s1,
+            self.s2,
+            self.c1,
+            self.c2,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -210,17 +230,66 @@ class S(Op):
         """
         can also use these fictitious quark field to remove some unwanted disconnected diagrams
         """
-        if self.f in [ "u", "d", "u'", "d'", "u''", "d''", "u'''", "d'''", ]:
+        if self.f in [
+            "u",
+            "d",
+            "u'",
+            "d'",
+            "u''",
+            "d''",
+            "u'''",
+            "d'''",
+            "u''''",
+            "d''''",
+        ]:
             self.f = "l"
-        elif self.f in [ "s", "s'", "s''", "s'''", ]:
+        elif self.f in [
+            "l",
+            "l'",
+            "l''",
+            "l'''",
+            "l''''",
+        ]:
+            self.f = "l"
+        elif self.f in [
+            "s",
+            "s'",
+            "s''",
+            "s'''",
+            "s''''",
+        ]:
             self.f = "s"
-        elif self.f in [ "c", "c'", "c''", "c'''", ]:
+        elif self.f in [
+            "c",
+            "c'",
+            "c''",
+            "c'''",
+            "c''''",
+        ]:
             self.f = "c"
+        elif self.f in [
+            "b",
+            "b'",
+            "b''",
+            "b'''",
+            "b''''",
+        ]:
+            self.f = "b"
+        elif self.f in [
+            "t",
+            "t'",
+            "t''",
+            "t'''",
+            "t''''",
+        ]:
+            self.f = "t"
+        else:
+            fname = q.get_fname()
+            raise Exception(f'{fname}: self.f="{self.f}"')
 
 ### ------
 
 class G(Op):
-
     """
     spin matrix
     #
@@ -231,7 +300,7 @@ class G(Op):
     tag = 0, 1, 2, 3, 5 for gamma matrices
     """
 
-    def __init__(self, tag, s1:str="auto", s2:str="auto"):
+    def __init__(self, tag, s1: str = "auto", s2: str = "auto"):
         Op.__init__(self, "G")
         self.tag = tag
         self.s1 = s1
@@ -244,7 +313,12 @@ class G(Op):
             return f"{self.otype}({self.tag!r},{self.s1!r},{self.s2!r})"
 
     def list(self):
-        return [ self.otype, self.tag, self.s1, self.s2, ]
+        return [
+            self.otype,
+            self.tag,
+            self.s1,
+            self.s2,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -252,7 +326,6 @@ class G(Op):
 ### ------
 
 class U(Op):
-
     """
     color matrix
     #
@@ -263,7 +336,7 @@ class U(Op):
     self.c2
     """
 
-    def __init__(self, tag, p, mu, c1:str="auto", c2:str="auto"):
+    def __init__(self, tag, p, mu, c1: str = "auto", c2: str = "auto"):
         Op.__init__(self, "U")
         self.tag = tag
         self.p = p
@@ -278,7 +351,14 @@ class U(Op):
             return f"{self.otype}({self.tag!r},{self.p!r},{self.mu!r},{self.c1!r},{self.c2!r})"
 
     def list(self):
-        return [ self.otype, self.tag, self.p, self.mu, self.c1, self.c2, ]
+        return [
+            self.otype,
+            self.tag,
+            self.p,
+            self.mu,
+            self.c1,
+            self.c2,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -286,7 +366,6 @@ class U(Op):
 ### ------
 
 class Tr(Op):
-
     """
     a collection of ops taking the trace
     #
@@ -294,7 +373,7 @@ class Tr(Op):
     self.tag
     """
 
-    def __init__(self, ops:list, tag=None):
+    def __init__(self, ops: list, tag=None):
         Op.__init__(self, "Tr")
         if tag is not None:
             # do not perform check if tag is set
@@ -303,13 +382,20 @@ class Tr(Op):
             return
         for op in ops:
             assert op.is_commute()
-            assert op.otype in [ "S", "G", "U", ]
+            assert op.otype in [
+                "S",
+                "G",
+                "U",
+            ]
         s = None
         c = None
         for op in ops + ops:
             if not check_chain_sc(op, s, c):
                 raise Exception(f"ops={ops} tag={tag}")
-            s, c, = update_chain_sc(op, s, c)
+            (
+                s,
+                c,
+            ) = update_chain_sc(op, s, c)
         if s is not None and c is not None:
             self.tag = "sc"
         elif s is not None:
@@ -326,7 +412,11 @@ class Tr(Op):
         return f"{self.otype}({self.ops!r},{self.tag!r})"
 
     def list(self):
-        return [ self.otype, self.tag, self.ops, ]
+        return [
+            self.otype,
+            self.tag,
+            self.ops,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -334,7 +424,7 @@ class Tr(Op):
     def sort(self):
         ops = self.ops
         if len(ops) > 1:
-            self.ops = sorted([ ops[i:] + ops[:i] for i in range(len(ops)) ], key=repr)[0]
+            self.ops = sorted([ops[i:] + ops[:i] for i in range(len(ops))], key=repr)[0]
 
     def isospin_symmetric_limit(self) -> None:
         for op in self.ops:
@@ -343,7 +433,6 @@ class Tr(Op):
 ### ------
 
 class Chain(Op):
-
     """
     a collection of ops multiplying together but do not form a loop
     #
@@ -355,7 +444,15 @@ class Chain(Op):
     self.c2
     """
 
-    def __init__(self, ops:list, tag=None, s1:str="auto", s2:str="auto", c1:str="auto", c2:str="auto"):
+    def __init__(
+        self,
+        ops: list,
+        tag=None,
+        s1: str = "auto",
+        s2: str = "auto",
+        c1: str = "auto",
+        c2: str = "auto",
+    ):
         Op.__init__(self, "Chain")
         if tag is not None:
             # do not perform check if tag is set
@@ -368,7 +465,11 @@ class Chain(Op):
             return
         for op in ops:
             assert op.is_commute()
-            assert op.otype in [ "S", "G", "U", ]
+            assert op.otype in [
+                "S",
+                "G",
+                "U",
+            ]
         self.s1 = None
         self.s2 = None
         self.c1 = None
@@ -378,12 +479,18 @@ class Chain(Op):
         for op in ops:
             if not check_chain_sc(op, s, c):
                 raise Exception(f"ops={ops} tag={tag}")
-            s, c, = update_chain_sc1(op, s, c)
+            (
+                s,
+                c,
+            ) = update_chain_sc1(op, s, c)
             if self.s1 is None:
                 self.s1 = s
             if self.c1 is None:
                 self.c1 = c
-            s, c, = update_chain_sc(op, s, c)
+            (
+                s,
+                c,
+            ) = update_chain_sc(op, s, c)
         self.s2 = s
         self.c2 = c
         if s is not None and c is not None:
@@ -399,13 +506,26 @@ class Chain(Op):
             self.ops.append(copy_op_index_auto(op))
 
     def __repr__(self) -> str:
-        if self.s1 == "auto" and self.s2 == "auto" and self.c1 == "auto" and self.c2 == "auto":
+        if (
+            self.s1 == "auto"
+            and self.s2 == "auto"
+            and self.c1 == "auto"
+            and self.c2 == "auto"
+        ):
             return f"{self.otype}({self.ops!r},{self.tag!r})"
         else:
             return f"{self.otype}({self.ops!r},{self.tag!r},{self.s1!r},{self.s2!r},{self.c1!r},{self.c2!r})"
 
     def list(self):
-        return [ self.otype, self.ops, self.tag, self.s1, self.s2, self.c1, self.c2, ]
+        return [
+            self.otype,
+            self.ops,
+            self.tag,
+            self.s1,
+            self.s2,
+            self.c1,
+            self.c2,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -421,21 +541,34 @@ class Chain(Op):
 
 ### ------
 
-def copy_op_index_auto(op:Op):
-    if op.otype not in [ "S", "G", "U", "Chain", ]:
+def copy_op_index_auto(op: Op):
+    if op.otype not in [
+        "S",
+        "G",
+        "U",
+        "Chain",
+    ]:
         return op
     op = copy.copy(op)
-    if op.otype in [ "S", "Chain", "G", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "G",
+    ]:
         op.s1 = "auto"
         op.s2 = "auto"
-    if op.otype in [ "S", "Chain", "U", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "U",
+    ]:
         op.c1 = "auto"
         op.c2 = "auto"
     return op
 
-def check_chain_spin_index(ops:list, s:str):
+def check_chain_spin_index(ops: list, s: str):
     """
-    for a spin index `s`,
+    for a spin index ``s``,
     return is_having_repeated_index, first_index_of_operator, second_index_of_operator
     """
     count1 = 0
@@ -443,7 +576,10 @@ def check_chain_spin_index(ops:list, s:str):
     i1 = None
     i2 = None
     for i, op in enumerate(ops):
-        if op.otype in [ "S", "G", ]:
+        if op.otype in [
+            "S",
+            "G",
+        ]:
             if op.s1 == s:
                 i1 = i
                 count1 += 1
@@ -454,9 +590,9 @@ def check_chain_spin_index(ops:list, s:str):
     assert count2 < 2
     return count1 == 1 and count2 == 1, i1, i2
 
-def check_chain_color_index(ops:list, c:str):
+def check_chain_color_index(ops: list, c: str):
     """
-    for a color index `s`,
+    for a color index ``s``,
     return is_having_repeated_index, first_index_of_operator, second_index_of_operator
     """
     count1 = 0
@@ -464,7 +600,10 @@ def check_chain_color_index(ops:list, c:str):
     i1 = None
     i2 = None
     for i, op in enumerate(ops):
-        if op.otype in [ "S", "U", ]:
+        if op.otype in [
+            "S",
+            "U",
+        ]:
             if op.c1 == c:
                 i1 = i
                 count1 += 1
@@ -475,28 +614,44 @@ def check_chain_color_index(ops:list, c:str):
     assert count2 < 2
     return count1 == 1 and count2 == 1, i1, i2
 
-def check_chain_op(ops:list, op:Op):
+def check_chain_op(ops: list, op: Op):
     """
-    for a operator `op`,
+    for a operator ``op``,
     return "single" or "begin" or "middle" or "end",
-    if this `op` is part of a (longer) chain of contraction
-    if `op` does not have right type, return `None`.
+    if this ``op`` is part of a (longer) chain of contraction
+    if ``op`` does not have right type, return ``None``.
     """
-    if op.otype not in [ "S", "G", "U", ]:
+    if op.otype not in [
+        "S",
+        "G",
+        "U",
+    ]:
         return None
     b_begin = True
     b_end = True
-    if op.otype in [ "S", ]:
-        if check_chain_spin_index(ops, op.s1)[0] and check_chain_color_index(ops, op.c1)[0]:
+    if op.otype in [
+        "S",
+    ]:
+        if (
+            check_chain_spin_index(ops, op.s1)[0]
+            and check_chain_color_index(ops, op.c1)[0]
+        ):
             b_begin = False
-        if check_chain_spin_index(ops, op.s2)[0] and check_chain_color_index(ops, op.c2)[0]:
+        if (
+            check_chain_spin_index(ops, op.s2)[0]
+            and check_chain_color_index(ops, op.c2)[0]
+        ):
             b_end = False
-    elif op.otype in [ "G", ]:
+    elif op.otype in [
+        "G",
+    ]:
         if check_chain_spin_index(ops, op.s1)[0]:
             b_begin = False
         if check_chain_spin_index(ops, op.s2)[0]:
             b_end = False
-    elif op.otype in [ "U", ]:
+    elif op.otype in [
+        "U",
+    ]:
         if check_chain_color_index(ops, op.c1)[0]:
             b_begin = False
         if check_chain_color_index(ops, op.c2)[0]:
@@ -513,31 +668,58 @@ def check_chain_op(ops:list, op:Op):
         return "middle"
 
 def check_chain_sc(op, s, c):
-    if op.otype in [ "S", "G", ]:
+    if op.otype in [
+        "S",
+        "G",
+    ]:
         if s is not None and s != op.s1:
             return False
-    if op.otype in [ "S", "U", ]:
+    if op.otype in [
+        "S",
+        "U",
+    ]:
         if c is not None and c != op.c1:
             return False
     return True
 
 def update_chain_sc1(op, s, c):
-    if op.otype in [ "S", "Chain", "G", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "G",
+    ]:
         s = op.s1
-    if op.otype in [ "S", "Chain", "U", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "U",
+    ]:
         c = op.c1
     return s, c
 
 def update_chain_sc(op, s, c):
-    if op.otype in [ "S", "Chain", "G", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "G",
+    ]:
         s = op.s2
-    if op.otype in [ "S", "Chain", "U", ]:
+    if op.otype in [
+        "S",
+        "Chain",
+        "U",
+    ]:
         c = op.c2
     return s, c
 
-def pick_chain_op(ops:list, masks:list, s, c, type_list=None):
+def pick_chain_op(ops: list, masks: list, s, c, type_list=None):
     if type_list is None:
-        type_list = [ "single", "begin", "end", "middle", ]
+        type_list = [
+            "single",
+            "begin",
+            "end",
+            "middle",
+        ]
     for i, op in enumerate(ops):
         if masks[i]:
             continue
@@ -548,62 +730,98 @@ def pick_chain_op(ops:list, masks:list, s, c, type_list=None):
         return i, op
     return None
 
-def find_trace(ops:list):
+def find_trace(ops: list):
     """
     return None or (Tr(tr_ops), remaining_op_list,)
     """
-    size = len(ops)
+    len(ops)
     for i, op in enumerate(ops):
-        if check_chain_op(ops, op) not in [ "middle", ]:
+        if check_chain_op(ops, op) not in [
+            "middle",
+        ]:
             continue
-        masks = [ False for op in ops ]
+        masks = [False for op in ops]
         tr_ops = []
         s = None
         c = None
         masks[i] = True
         tr_ops.append(op)
-        s, c, = update_chain_sc(op, s, c)
+        (
+            s,
+            c,
+        ) = update_chain_sc(op, s, c)
         while True:
-            p_op = pick_chain_op(ops, masks, s, c, [ "middle", ])
+            p_op = pick_chain_op(
+                ops,
+                masks,
+                s,
+                c,
+                [
+                    "middle",
+                ],
+            )
             if p_op is None:
                 # trace found
-                return Tr(tr_ops), [ op for i, op in enumerate(ops) if not masks[i] ]
+                return Tr(tr_ops), [op for i, op in enumerate(ops) if not masks[i]]
             i2, op2 = p_op
             masks[i2] = True
             tr_ops.append(op2)
-            s, c, = update_chain_sc(op2, s, c)
+            (
+                s,
+                c,
+            ) = update_chain_sc(op2, s, c)
     return None
 
-def find_chain(ops:list):
+def find_chain(ops: list):
     """
     return None or (Chain(ch_ops), remaining_op_list,)
     """
-    size = len(ops)
+    len(ops)
     for i, op in enumerate(ops):
-        if check_chain_op(ops, op) not in [ "single", "begin", ]:
+        if check_chain_op(ops, op) not in [
+            "single",
+            "begin",
+        ]:
             continue
-        masks = [ False for op in ops ]
+        masks = [False for op in ops]
         ch_ops = []
         s = None
         c = None
         masks[i] = True
         ch_ops.append(op)
-        s, c, = update_chain_sc(op, s, c)
+        (
+            s,
+            c,
+        ) = update_chain_sc(op, s, c)
         while True:
-            p_op = pick_chain_op(ops, masks, s, c, [ "single", "begin", "middle", "end", ])
+            p_op = pick_chain_op(
+                ops,
+                masks,
+                s,
+                c,
+                [
+                    "single",
+                    "begin",
+                    "middle",
+                    "end",
+                ],
+            )
             if p_op is None:
                 # chain found
-                return Chain(ch_ops), [ op for i, op in enumerate(ops) if not masks[i] ]
+                return Chain(ch_ops), [op for i, op in enumerate(ops) if not masks[i]]
             i2, op2 = p_op
             masks[i2] = True
             ch_ops.append(op2)
-            s, c, = update_chain_sc(op2, s, c)
+            (
+                s,
+                c,
+            ) = update_chain_sc(op2, s, c)
     return None
 
 @q.timer
-def collect_traces(ops:list) -> list:
+def collect_traces(ops: list) -> list:
     """
-    First collect all the `Chain`s, then `Tr`s
+    First collect all the ``Chain``s, then ``Tr``s
     """
     chs = []
     while True:
@@ -624,7 +842,7 @@ def collect_traces(ops:list) -> list:
 ### ------
 
 @q.timer
-def baryon_spin_tensor_to_code(spin_tensor:np.ndarray) -> np.ndarray:
+def baryon_spin_tensor_to_code(spin_tensor: np.ndarray) -> np.ndarray:
     """
     return spin_tensor_code
     spin_tensor_code[s1, s2, s3] = spin_coef
@@ -635,26 +853,41 @@ def baryon_spin_tensor_to_code(spin_tensor:np.ndarray) -> np.ndarray:
     psi^Code_2 = -1 * psi^Eucl_3
     psi^Code_3 = +1 * psi^Eucl_2
     """
-    shape = (4, 4, 4,)
+    shape = (
+        4,
+        4,
+        4,
+    )
     assert spin_tensor.shape == shape
     spin_tensor_code = np.zeros(shape, dtype=object)
     sidx_arr = [
-            (1, -1),
-            (0, 1),
-            (3, -1),
-            (2, 1),
-            ]
+        (1, -1),
+        (0, 1),
+        (3, -1),
+        (2, 1),
+    ]
     for s1 in range(4):
-        s1p, fac1, = sidx_arr[s1]
+        (
+            s1p,
+            fac1,
+        ) = sidx_arr[s1]
         for s2 in range(4):
-            s2p, fac2, = sidx_arr[s2]
+            (
+                s2p,
+                fac2,
+            ) = sidx_arr[s2]
             for s3 in range(4):
-                s3p, fac3, = sidx_arr[s3]
-                spin_tensor_code[s1, s2, s3] = fac1 * fac2 * fac3 * spin_tensor[s1p, s2p, s3p]
+                (
+                    s3p,
+                    fac3,
+                ) = sidx_arr[s3]
+                spin_tensor_code[s1, s2, s3] = (
+                    fac1 * fac2 * fac3 * spin_tensor[s1p, s2p, s3p]
+                )
     return spin_tensor_code
 
 @q.timer
-def baryon_spin_tensor_from_code(spin_tensor_code:np.ndarray) -> np.ndarray:
+def baryon_spin_tensor_from_code(spin_tensor_code: np.ndarray) -> np.ndarray:
     """
     return spin_tensor
     spin_tensor[s1, s2, s3] = spin_coef
@@ -665,32 +898,58 @@ def baryon_spin_tensor_from_code(spin_tensor_code:np.ndarray) -> np.ndarray:
     psi^Eucl_2 = +1 * psi^Code_3
     psi^Eucl_3 = -1 * psi^Code_2
     """
-    shape = (4, 4, 4,)
+    shape = (
+        4,
+        4,
+        4,
+    )
     assert spin_tensor_code.shape == shape
     spin_tensor = np.zeros(shape, dtype=object)
     sidx_arr = [
-            (1, 1),
-            (0, -1),
-            (3, 1),
-            (2, -1),
-            ]
+        (1, 1),
+        (0, -1),
+        (3, 1),
+        (2, -1),
+    ]
     for s1 in range(4):
-        s1p, fac1, = sidx_arr[s1]
+        (
+            s1p,
+            fac1,
+        ) = sidx_arr[s1]
         for s2 in range(4):
-            s2p, fac2, = sidx_arr[s2]
+            (
+                s2p,
+                fac2,
+            ) = sidx_arr[s2]
             for s3 in range(4):
-                s3p, fac3, = sidx_arr[s3]
-                spin_tensor[s1, s2, s3] = fac1 * fac2 * fac3 * spin_tensor_code[s1p, s2p, s3p]
+                (
+                    s3p,
+                    fac3,
+                ) = sidx_arr[s3]
+                spin_tensor[s1, s2, s3] = (
+                    fac1 * fac2 * fac3 * spin_tensor_code[s1p, s2p, s3p]
+                )
     return spin_tensor
 
 class BfieldCoef:
-
     """
     self.spin_tensor
+    #
+    baryon_operator =
+    ( spin_tensor[spin_idx1, spin_idx2, spin_idx3]
+    * epsilon[color_idx1, color_idx2, color_idx3]
+    * quark_field_1[spin_idx1, color_idx1]
+    * quark_field_2[spin_idx2, color_idx2]
+    * quark_field_3[spin_idx3, color_idx3]
+    )
     """
 
-    def __init__(self, st_list_code:list|None=None):
-        shape = (4, 4, 4,)
+    def __init__(self, st_list_code: list | None = None):
+        shape = (
+            4,
+            4,
+            4,
+        )
         if st_list_code is None:
             self.spin_tensor = np.zeros(shape, dtype=object)
         else:
@@ -710,9 +969,17 @@ class BfieldCoef:
         Euclidean convention, not the code convention
         """
         if permute is None:
-            permute = (0, 1, 2,)
+            permute = (
+                0,
+                1,
+                2,
+            )
         spin_tensor = q.epsilon_tensor(*permute) * self.spin_tensor.transpose(permute)
-        shape = (4, 4, 4,)
+        shape = (
+            4,
+            4,
+            4,
+        )
         assert spin_tensor.shape == shape
         return spin_tensor
 
@@ -720,7 +987,7 @@ class BfieldCoef:
     def get_spin_tensor_code(self, permute=None) -> np.ndarray:
         """
         return spin_tensor_code
-        See `baryon_spin_tensor_to_code` and `baryon_spin_tensor_from_code`.
+        See ``baryon_spin_tensor_to_code`` and ``baryon_spin_tensor_from_code``.
         """
         spin_tensor = self.get_spin_tensor(permute=permute)
         spin_tensor_code = baryon_spin_tensor_to_code(spin_tensor)
@@ -737,8 +1004,25 @@ class BfieldCoef:
         """
         if spin_coef == 0:
             return self
-        ((c00, c01,), (c10, c11,), (c20, c21,),) = chiral_projection
-        s1, s2, s3, = spin
+        (
+            (
+                c00,
+                c01,
+            ),
+            (
+                c10,
+                c11,
+            ),
+            (
+                c20,
+                c21,
+            ),
+        ) = chiral_projection
+        (
+            s1,
+            s2,
+            s3,
+        ) = spin
         spin_tensor = self.spin_tensor
         spin_tensor[s1, s2, s3] += c00 * c10 * c20 * spin_coef
         spin_tensor[s1, s2, s3 + 2] += c00 * c10 * c21 * spin_coef
@@ -751,11 +1035,13 @@ class BfieldCoef:
         return self
 
     def list(self) -> list:
-        return [ self.spin_tensor, ]
+        return [
+            self.spin_tensor,
+        ]
 
     def __repr__(self) -> str:
         st_list_code = self.get_spin_tensor_list_code()
-        st_str = ",".join([ repr(v) for v in st_list_code ])
+        st_str = ",".join([repr(v) for v in st_list_code])
         return f"BfieldCoef([{st_str}])"
 
 ### ------
@@ -763,69 +1049,824 @@ class BfieldCoef:
 bfield_tag_dict = dict()
 
 bfield_tag_dict["std-u"] = BfieldCoef()
-bfield_tag_dict["std-u"].add(((1, 1,), (1, 0,), (1, 0,),), (0, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["std-u"].add(((1, 1,), (1, 0,), (1, 0,),), (0, 0, 1,), -mk_sym(1)/2)
-bfield_tag_dict["std-u"].add(((1, 1,), (0, 1,), (0, 1,),), (0, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["std-u"].add(((1, 1,), (0, 1,), (0, 1,),), (0, 0, 1,), -mk_sym(1)/2)
+bfield_tag_dict["std-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["std-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
+bfield_tag_dict["std-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["std-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
 
 bfield_tag_dict["std-d"] = BfieldCoef()
-bfield_tag_dict["std-d"].add(((1, 1,), (1, 0,), (1, 0,),), (1, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["std-d"].add(((1, 1,), (1, 0,), (1, 0,),), (1, 0, 1,), -mk_sym(1)/2)
-bfield_tag_dict["std-d"].add(((1, 1,), (0, 1,), (0, 1,),), (1, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["std-d"].add(((1, 1,), (0, 1,), (0, 1,),), (1, 0, 1,), -mk_sym(1)/2)
+bfield_tag_dict["std-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["std-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
+bfield_tag_dict["std-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["std-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
 
 bfield_tag_dict["std3-u3"] = BfieldCoef()
-bfield_tag_dict["std3-u3"].add(((1, 1,), (1, 0,), (0, 1,),), (0, 0, 0,), 1/sympy.sqrt(2))
-bfield_tag_dict["std3-u3"].add(((1, 1,), (0, 1,), (1, 0,),), (0, 0, 0,), 1/sympy.sqrt(2))
+bfield_tag_dict["std3-u3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        0,
+    ),
+    1 / sympy.sqrt(2),
+)
+bfield_tag_dict["std3-u3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        0,
+        0,
+    ),
+    1 / sympy.sqrt(2),
+)
 
 bfield_tag_dict["std3-u1"] = BfieldCoef()
-bfield_tag_dict["std3-u1"].add(((1, 1,), (1, 0,), (0, 1,),), (1, 0, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-u1"].add(((1, 1,), (0, 1,), (1, 0,),), (1, 0, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-u1"].add(((1, 1,), (1, 0,), (0, 1,),), (0, 1, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-u1"].add(((1, 1,), (0, 1,), (1, 0,),), (0, 1, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-u1"].add(((1, 1,), (1, 0,), (0, 1,),), (0, 0, 1,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-u1"].add(((1, 1,), (0, 1,), (1, 0,),), (0, 0, 1,), 1/sympy.sqrt(6))
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        0,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
 
 bfield_tag_dict["std3-d1"] = BfieldCoef()
-bfield_tag_dict["std3-d1"].add(((1, 1,), (1, 0,), (0, 1,),), (1, 1, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-d1"].add(((1, 1,), (0, 1,), (1, 0,),), (1, 1, 0,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-d1"].add(((1, 1,), (1, 0,), (0, 1,),), (0, 1, 1,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-d1"].add(((1, 1,), (0, 1,), (1, 0,),), (0, 1, 1,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-d1"].add(((1, 1,), (1, 0,), (0, 1,),), (1, 0, 1,), 1/sympy.sqrt(6))
-bfield_tag_dict["std3-d1"].add(((1, 1,), (0, 1,), (1, 0,),), (1, 0, 1,), 1/sympy.sqrt(6))
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        0,
+        1,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
+bfield_tag_dict["std3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(6),
+)
 
 bfield_tag_dict["std3-d3"] = BfieldCoef()
-bfield_tag_dict["std3-d3"].add(((1, 1,), (1, 0,), (0, 1,),), (1, 1, 1,), 1/sympy.sqrt(2))
-bfield_tag_dict["std3-d3"].add(((1, 1,), (0, 1,), (1, 0,),), (1, 1, 1,), 1/sympy.sqrt(2))
+bfield_tag_dict["std3-d3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+        (
+            0,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        1,
+    ),
+    1 / sympy.sqrt(2),
+)
+bfield_tag_dict["std3-d3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            0,
+            1,
+        ),
+        (
+            1,
+            0,
+        ),
+    ),
+    (
+        1,
+        1,
+        1,
+    ),
+    1 / sympy.sqrt(2),
+)
 
 bfield_tag_dict["pos-u"] = BfieldCoef()
-bfield_tag_dict["pos-u"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["pos-u"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 0, 1,), -mk_sym(1)/2)
+bfield_tag_dict["pos-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["pos-u"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
 
 bfield_tag_dict["pos-d"] = BfieldCoef()
-bfield_tag_dict["pos-d"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 1, 0,), mk_sym(1)/2)
-bfield_tag_dict["pos-d"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 0, 1,), -mk_sym(1)/2)
+bfield_tag_dict["pos-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    mk_sym(1) / 2,
+)
+bfield_tag_dict["pos-d"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    -mk_sym(1) / 2,
+)
 
 bfield_tag_dict["pos3-u3"] = BfieldCoef()
-bfield_tag_dict["pos3-u3"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 0, 0,), 1)
+bfield_tag_dict["pos3-u3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        0,
+    ),
+    1,
+)
 
 bfield_tag_dict["pos3-u1"] = BfieldCoef()
-bfield_tag_dict["pos3-u1"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 0, 0,), 1/sympy.sqrt(3))
-bfield_tag_dict["pos3-u1"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 1, 0,), 1/sympy.sqrt(3))
-bfield_tag_dict["pos3-u1"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 0, 1,), 1/sympy.sqrt(3))
+bfield_tag_dict["pos3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        0,
+    ),
+    1 / sympy.sqrt(3),
+)
+bfield_tag_dict["pos3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(3),
+)
+bfield_tag_dict["pos3-u1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(3),
+)
 
 bfield_tag_dict["pos3-d1"] = BfieldCoef()
-bfield_tag_dict["pos3-d1"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 1, 0,), 1/sympy.sqrt(3))
-bfield_tag_dict["pos3-d1"].add(((1, 1,), (1, 1,), (1, 1,),), (0, 1, 1,), 1/sympy.sqrt(3))
-bfield_tag_dict["pos3-d1"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 0, 1,), 1/sympy.sqrt(3))
+bfield_tag_dict["pos3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        0,
+    ),
+    1 / sympy.sqrt(3),
+)
+bfield_tag_dict["pos3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        0,
+        1,
+        1,
+    ),
+    1 / sympy.sqrt(3),
+)
+bfield_tag_dict["pos3-d1"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        0,
+        1,
+    ),
+    1 / sympy.sqrt(3),
+)
 
 bfield_tag_dict["pos3-d3"] = BfieldCoef()
-bfield_tag_dict["pos3-d3"].add(((1, 1,), (1, 1,), (1, 1,),), (1, 1, 1,), 1)
+bfield_tag_dict["pos3-d3"].add(
+    (
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+        (
+            1,
+            1,
+        ),
+    ),
+    (
+        1,
+        1,
+        1,
+    ),
+    1,
+)
 
 ### ------
 
 class Bfield(Op):
-
     """
     baryon tensor
     #
@@ -844,7 +1885,7 @@ class Bfield(Op):
         spin_tensor = bfield_tag_dict[self.tag].get_spin_tensor_code()
     """
 
-    def __init__(self, tag:str, s1:str, s2:str, s3:str, c1:str, c2:str, c3:str):
+    def __init__(self, tag: str, s1: str, s2: str, s3: str, c1: str, c2: str, c3: str):
         assert tag in bfield_tag_dict
         Op.__init__(self, "Bfield")
         self.tag = tag
@@ -859,7 +1900,16 @@ class Bfield(Op):
         return f"{self.otype}({self.tag!r},{self.s1!r},{self.s2!r},{self.s3!r},{self.c1!r},{self.c2!r},{self.c3!r})"
 
     def list(self):
-        return [ self.otype, self.tag, self.s1, self.s2, self.s3, self.c1, self.c2, self.c3, ]
+        return [
+            self.otype,
+            self.tag,
+            self.s1,
+            self.s2,
+            self.s3,
+            self.c1,
+            self.c2,
+            self.c3,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -867,26 +1917,45 @@ class Bfield(Op):
 ### ------
 
 @q.timer
-def simplify_bs_elem_list(elem_list:list) -> list:
+def simplify_bs_elem_list(elem_list: list) -> list:
     """
-    Merge `elem_pair` with the same spin settings (combine the `coef`s).
+    Merge ``elem_pair`` with the same spin settings (combine the ``coef``s).
     """
     elem_list = sorted(elem_list, key=repr)
     if len(elem_list) == 0:
         return []
     s_elem_list = []
-    value, coef, = elem_list[0]
+    (
+        value,
+        coef,
+    ) = elem_list[0]
     for v, c in elem_list[1:]:
         if v == value:
             coef += c
         else:
             coef = ea.simplified_ea(coef)
             if coef != 0:
-                s_elem_list.append((value, coef,))
-            value, coef, = v, c,
+                s_elem_list.append(
+                    (
+                        value,
+                        coef,
+                    )
+                )
+            (
+                value,
+                coef,
+            ) = (
+                v,
+                c,
+            )
     coef = ea.simplified_ea(coef)
     if coef != 0:
-        s_elem_list.append((value, coef,))
+        s_elem_list.append(
+            (
+                value,
+                coef,
+            )
+        )
     return s_elem_list
 
 @q.timer
@@ -918,11 +1987,22 @@ def mk_bs_elem_list(tag_v, permute_v, tag_b, permute_b):
                             c = sst[v_s1, b_s1, v_s2, b_s2, v_s3, b_s3]
                             if c == 0:
                                 continue
-                            elem_list.append(((v_s1, b_s1, v_s2, b_s2, v_s3, b_s3,), c,))
+                            elem_list.append(
+                                (
+                                    (
+                                        v_s1,
+                                        b_s1,
+                                        v_s2,
+                                        b_s2,
+                                        v_s3,
+                                        b_s3,
+                                    ),
+                                    c,
+                                )
+                            )
     return elem_list
 
 class BS(Op):
-
     """
     single baryon prop
     #
@@ -931,19 +2011,29 @@ class BS(Op):
     #
     elem_list = [ ((v_s1, b_s1, v_s2, b_s2, v_s3, b_s3,), coef,) ... ]
     chain_list = [ prop_0, prop_1, prop_2, ]
-    tag_v or tag_b in `bfield_tag_dict`
+    tag_v or tag_b in ``bfield_tag_dict``
     permute_v = (spin_color_index_that_prop_0_contract_with,
                  spin_color_index_that_prop_1_contract_with,
                  spin_color_index_that_prop_2_contract_with,)
     """
 
-    def __init__(self, elem_list:list, chain_list:list[Chain]):
+    def __init__(self, elem_list: list, chain_list: list[Chain]):
         assert isinstance(elem_list, list)
         for elem in elem_list:
             assert isinstance(elem, tuple)
             assert len(elem) == 2
             assert isinstance(elem[0], tuple)
-            ((v_s1, b_s1, v_s2, b_s2, v_s3, b_s3,), coef,) = elem
+            (
+                (
+                    v_s1,
+                    b_s1,
+                    v_s2,
+                    b_s2,
+                    v_s3,
+                    b_s3,
+                ),
+                coef,
+            ) = elem
             assert 0 <= v_s1 and v_s1 < 4
             assert 0 <= b_s1 and b_s1 < 4
             assert 0 <= v_s2 and v_s2 < 4
@@ -959,15 +2049,20 @@ class BS(Op):
         self.elem_list = elem_list
         self.chain_list = chain_list
 
-    def add(self, tag:tuple, coef):
+    def add(self, tag: tuple, coef):
         return self.bs_add_tag_coef(tag, coef)
 
     @q.timer
-    def bs_add_tag_coef(self, tag:tuple, coef):
+    def bs_add_tag_coef(self, tag: tuple, coef):
         """
         (tag_v, permute_v, tag_b, permute_b,) = tag
         """
-        (tag_v, permute_v, tag_b, permute_b,) = tag
+        (
+            tag_v,
+            permute_v,
+            tag_b,
+            permute_b,
+        ) = tag
         elem_list = mk_bs_elem_list(tag_v, permute_v, tag_b, permute_b)
         for ss, c in elem_list:
             self.elem_list.append((ss, coef * c))
@@ -978,8 +2073,14 @@ class BS(Op):
             self.elem_list = []
         elem_list = []
         for elem in self.elem_list:
-            (value, coef,) = elem
-            elem = (value, coef * factor,)
+            (
+                value,
+                coef,
+            ) = elem
+            elem = (
+                value,
+                coef * factor,
+            )
             elem_list.append(elem)
         self.elem_list = elem_list
         return self
@@ -988,29 +2089,43 @@ class BS(Op):
         return f"{self.otype}({self.elem_list!r},{self.chain_list!r})"
 
     def list(self):
-        return [ self.otype, self.elem_list, self.chain_list, ]
+        return [
+            self.otype,
+            self.elem_list,
+            self.chain_list,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
 
     def sort(self):
-        sp_chain_list = sorted(list(enumerate(self.chain_list)), key=lambda x: repr(x[1]))
+        sp_chain_list = sorted(
+            list(enumerate(self.chain_list)), key=lambda x: repr(x[1])
+        )
         s_chain_list = []
         i_list = []
         for sp in sp_chain_list:
             i, ch = sp
             i_list.append(i)
             s_chain_list.append(ch)
+        #
         def permute_ss(ss):
             pss = []
             for i in i_list:
                 pss.append(ss[2 * i])
                 pss.append(ss[2 * i + 1])
             return tuple(pss)
+        #
         s_elem_list = []
         for elem in self.elem_list:
-            (ss, coef,) = elem
-            s_elem = (permute_ss(ss), coef,)
+            (
+                ss,
+                coef,
+            ) = elem
+            s_elem = (
+                permute_ss(ss),
+                coef,
+            )
             s_elem_list.append(s_elem)
         s_elem_list = sorted(s_elem_list)
         self.elem_list = s_elem_list
@@ -1020,17 +2135,34 @@ class BS(Op):
         for op in self.chain_list:
             op.isospin_symmetric_limit()
 
-    def get_spin_spin_tensor_code(self) -> np.ndarray|None:
+    def get_spin_spin_tensor_code(self) -> np.ndarray | None:
         """
         return sst or None
         sst[v_s1, b_s1, v_s2, b_s2, v_s3, b_s3] = coef
         """
         if len(self.elem_list) == 0:
             return None
-        shape = (4, 4, 4, 4, 4, 4,)
+        shape = (
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+        )
         sst = np.zeros(shape, dtype=object)
         for elem in self.elem_list:
-            ((v_s1, b_s1, v_s2, b_s2, v_s3, b_s3,), coef,) = elem
+            (
+                (
+                    v_s1,
+                    b_s1,
+                    v_s2,
+                    b_s2,
+                    v_s3,
+                    b_s3,
+                ),
+                coef,
+            ) = elem
             sst[v_s1, b_s1, v_s2, b_s2, v_s3, b_s3] += coef
         return sst
 
@@ -1046,20 +2178,30 @@ class BS(Op):
 
 ### ------
 
-def find_chains_for_bfield_v(bf:Bfield, op_list:list[Op]) -> tuple[list[Chain], list[Op]]|None:
+def find_chains_for_bfield_v(
+    bf: Bfield, op_list: list[Op]
+) -> tuple[list[Chain], list[Op]] | None:
     """
     return chain_list, remaining_op_list
     """
-    s_list = [ bf.s1, bf.s2, bf.s3, ]
-    c_list = [ bf.c1, bf.c2, bf.c3, ]
-    chain_list = [ None for i in range(3) ]
-    masks = [ False for op in op_list ]
+    s_list = [
+        bf.s1,
+        bf.s2,
+        bf.s3,
+    ]
+    c_list = [
+        bf.c1,
+        bf.c2,
+        bf.c3,
+    ]
+    chain_list = [None for i in range(3)]
+    masks = [False for op in op_list]
     for op in op_list:
         if op.otype != "Chain":
             continue
         for i, s in enumerate(s_list):
             if op.s1 == s:
-                assert masks[i] == False
+                assert not masks[i]
                 chain_list[i] = op
                 masks[i] = True
     assert len(chain_list) == 3
@@ -1072,23 +2214,33 @@ def find_chains_for_bfield_v(bf:Bfield, op_list:list[Op]) -> tuple[list[Chain], 
         assert ch.c1 == c_list[i]
     remaining_op_list = []
     for mask, op in zip(masks, op_list):
-        if mask == False:
+        if not mask:
             remaining_op_list.append(op)
     return chain_list, remaining_op_list
 
-def find_bfield_b_from_chains(chain_list:list[Chain], op_list:list[Op]) -> tuple[Bfield, tuple[int], list[Op]]|None:
+def find_bfield_b_from_chains(
+    chain_list: list[Chain], op_list: list[Op]
+) -> tuple[Bfield, tuple[int], list[Op]] | None:
     """
     return (bf_b, permute, remaining_op_list) or None
     """
     assert len(chain_list) == 3
-    s_ch_list = [ ch.s2 for ch in chain_list ]
-    c_ch_list = [ ch.c2 for ch in chain_list ]
+    s_ch_list = [ch.s2 for ch in chain_list]
+    c_ch_list = [ch.c2 for ch in chain_list]
     for idx, op in enumerate(op_list):
         if op.otype != "Bfield":
             continue
         bf = op
-        s_list = [ bf.s1, bf.s2, bf.s3, ]
-        c_list = [ bf.c1, bf.c2, bf.c3, ]
+        s_list = [
+            bf.s1,
+            bf.s2,
+            bf.s3,
+        ]
+        c_list = [
+            bf.c1,
+            bf.c2,
+            bf.c3,
+        ]
         if sorted(s_list) != sorted(s_ch_list):
             continue
         assert sorted(c_list) == sorted(c_ch_list)
@@ -1106,7 +2258,7 @@ def find_bfield_b_from_chains(chain_list:list[Chain], op_list:list[Op]) -> tuple
         return bf, permute, remaining_op_list
     return None
 
-def mk_baryon_prop(bf_v:Bfield, bf_b:Bfield, chain_list:list[Chain]) -> BS:
+def mk_baryon_prop(bf_v: Bfield, bf_b: Bfield, chain_list: list[Chain]) -> BS:
     assert len(chain_list) == 3
     assert chain_list[0].s1 != chain_list[1].s1
     assert chain_list[0].s1 != chain_list[2].s1
@@ -1123,27 +2275,44 @@ def mk_baryon_prop(bf_v:Bfield, bf_b:Bfield, chain_list:list[Chain]) -> BS:
     ch_list, re_op_list = find_chains_for_bfield_v(bf_v, chain_list)
     assert len(re_op_list) == 0
     assert ch_list == chain_list
-    permute_v = (0, 1, 2,)
-    bf, permute_b, re_op_list = find_bfield_b_from_chains(chain_list, [ bf_b, ])
+    permute_v = (
+        0,
+        1,
+        2,
+    )
+    bf, permute_b, re_op_list = find_bfield_b_from_chains(
+        chain_list,
+        [
+            bf_b,
+        ],
+    )
     assert bf == bf_b
     assert len(re_op_list) == 0
     tag_v = bf_v.tag
     tag_b = bf_b.tag
-    chain_list = [ copy_op_index_auto(ch) for ch in chain_list ]
+    chain_list = [copy_op_index_auto(ch) for ch in chain_list]
     bs = BS([], chain_list)
-    bs.add((tag_v, permute_v, tag_b, permute_b,), 1)
+    bs.add(
+        (
+            tag_v,
+            permute_v,
+            tag_b,
+            permute_b,
+        ),
+        1,
+    )
     return bs
 
-def find_baryon_prop(op_list:list) -> tuple[BS,list[Op]]|None:
+def find_baryon_prop(op_list: list) -> tuple[BS, list[Op]] | None:
     """
     return (baryon_prop, remaining_op_list,) or None
     """
-    size = len(op_list)
+    len(op_list)
     for i, op in enumerate(op_list):
         if op.otype != "Bfield":
             continue
         bf_v = op
-        remaining_op_list = op_list[:i] + op_list[i + 1:]
+        remaining_op_list = op_list[:i] + op_list[i + 1 :]
         p = find_chains_for_bfield_v(bf_v, remaining_op_list)
         if p is None:
             continue
@@ -1157,9 +2326,9 @@ def find_baryon_prop(op_list:list) -> tuple[BS,list[Op]]|None:
     return None
 
 @q.timer
-def collect_baryon_props(op_list:list[Op]) -> list[Op]:
+def collect_baryon_props(op_list: list[Op]) -> list[Op]:
     """
-    Collect all the `BS`s.
+    Collect all the ``BS``s.
     """
     bs_list = []
     while True:
@@ -1173,7 +2342,6 @@ def collect_baryon_props(op_list:list[Op]) -> list[Op]:
 ### ------
 
 class Term:
-
     """
     self.coef
     self.c_ops
@@ -1190,7 +2358,11 @@ class Term:
             assert not op.is_commute()
 
     def list(self):
-        return [ self.coef, self.c_ops, self.a_ops, ]
+        return [
+            self.coef,
+            self.c_ops,
+            self.a_ops,
+        ]
 
     def __eq__(self, other) -> bool:
         return self.list() == other.list()
@@ -1232,7 +2404,13 @@ class Term:
         return mk_expr(other) + mk_expr(-1) * self
 
     def show(self, is_multiply=False) -> str:
-        return "*".join([ f"({self.coef})", ] + self.c_ops + self.a_ops)
+        return "*".join(
+            [
+                f"({self.coef})",
+            ]
+            + self.c_ops
+            + self.a_ops
+        )
 
     def __repr__(self) -> str:
         return f"Term({self.c_ops},{self.a_ops},{self.coef})"
@@ -1241,7 +2419,7 @@ class Term:
         """
         only sort commutable factors
         #
-        Important to keep the `BS` factors in front of other factors.
+        Important to keep the ``BS`` factors in front of other factors.
         """
         for op in self.c_ops:
             op.sort()
@@ -1256,7 +2434,7 @@ class Term:
     @q.timer
     def collect_traces(self) -> None:
         """
-        Collect `Chain`s, `Tr`s, `BS`s.
+        Collect ``Chain``s, ``Tr``s, ``BS``s.
         """
         if len(self.a_ops) == 0:
             self.c_ops = collect_traces(self.c_ops)
@@ -1269,13 +2447,12 @@ class Term:
 ### ------
 
 class Expr:
-
     """
     self.description
     self.terms
     """
 
-    def __init__(self, terms, description = None):
+    def __init__(self, terms, description=None):
         self.description = description
         self.terms = terms
 
@@ -1294,7 +2471,7 @@ class Expr:
 
     def __add__(self, other):
         """
-        If other is str, then it is used to set the description of the resulting `expr`.
+        If other is str, then it is used to set the description of the resulting ``expr``.
         Otherwise return self + other.
         """
         if isinstance(other, str):
@@ -1394,13 +2571,12 @@ class Expr:
     def drop_zeros(self) -> None:
         self.terms = drop_zero_terms(self).terms
 
-    def round(self, ndigit:int=20) -> None:
+    def round(self, ndigit: int = 20) -> None:
         """
         interface function
         """
         sexpr = self.copy()
         for term in sexpr.terms:
-            coef = term.coef
             term.coef = term.coef.evalf(ndigit)
         sexpr.terms = drop_zero_terms(sexpr).terms
         return sexpr
@@ -1416,7 +2592,7 @@ class Expr:
             term.isospin_symmetric_limit()
 
     @q.timer
-    def simplify(self, *, is_isospin_symmetric_limit:bool=True) -> None:
+    def simplify(self, *, is_isospin_symmetric_limit: bool = True) -> None:
         """
         interface function
         """
@@ -1439,16 +2615,16 @@ def mk_fac(x) -> Expr:
     interface function
     Stand for "make factor", the result of this function can be used in auto contractor as a factor.
     Make an Expr obj (can be sympy expression).
-    `x` can have type `str`, which will be viewed as code segment.
-    The code segment can use functions and variables defined in `auto_contractor.auto_fac_funcs`, `position_dict`, `base_position_dict`.
-    You can define functions in `position_dict` or `base_position_dict`.
-    `position_dict` is argument in function `eval_cexpr`.
-    `base_position_dict` is argument in function `cache_compiled_cexpr`.
+    ``x`` can have type ``str``, which will be viewed as code segment.
+    The code segment can use functions and variables defined in ``auto_contractor.auto_fac_funcs``, ``position_dict``, ``base_position_dict``.
+    You can define functions in ``position_dict`` or ``base_position_dict``.
+    ``position_dict`` is argument in function ``eval_cexpr``.
+    ``base_position_dict`` is argument in function ``cache_compiled_cexpr``.
     """
     return mk_expr(ea.mk_fac(x))
 
 @q.timer
-def simplified(expr:Expr, *, is_isospin_symmetric_limit:bool=True) -> Expr:
+def simplified(expr: Expr, *, is_isospin_symmetric_limit: bool = True) -> Expr:
     """
     interface function
     does not change expr
@@ -1460,25 +2636,57 @@ def simplified(expr:Expr, *, is_isospin_symmetric_limit:bool=True) -> Expr:
 def mk_expr(x) -> Expr:
     if isinstance(x, Op):
         if x.is_commute():
-            return Expr([Term([x,], [], 1),], f"{x}")
+            return Expr(
+                [
+                    Term(
+                        [
+                            x,
+                        ],
+                        [],
+                        1,
+                    ),
+                ],
+                f"{x}",
+            )
         else:
-            return Expr([Term([], [x,], 1),], f"{x}")
+            return Expr(
+                [
+                    Term(
+                        [],
+                        [
+                            x,
+                        ],
+                        1,
+                    ),
+                ],
+                f"{x}",
+            )
     elif isinstance(x, Term):
-        return Expr([x,], f"x.show()")
+        return Expr(
+            [
+                x,
+            ],
+            "x.show()",
+        )
     elif isinstance(x, Expr):
         return x
     elif isinstance(x, (int, float, complex, sympy.Basic, ea.Expr)):
-        return Expr([Term([], [], x),], f"({x})")
+        return Expr(
+            [
+                Term([], [], x),
+            ],
+            f"({x})",
+        )
     else:
         raise Exception(f"{x}")
 
-def get_op_signature(op:Op, bs_count:int) -> str:
+def get_op_signature(op: Op, bs_count: int) -> str:
     if bs_count == 0:
         if op.otype == "BS":
             return f"{op.otype}(elem_list,{op.chain_list!r})"
     return f"{op!r}"
 
-def get_term_signature(term:Term) -> str:
+def get_term_signature(term: Term) -> str:
     """
     Terms with the same signature can be combined together.
     """
@@ -1489,9 +2697,12 @@ def get_term_signature(term:Term) -> str:
         if op.otype == "BS":
             bs_count += 1
     c_ops_str = ",".join(c_ops_str_list)
-    return (f"[{c_ops_str}],{term.a_ops!r}", bs_count,)
+    return (
+        f"[{c_ops_str}],{term.a_ops!r}",
+        bs_count,
+    )
 
-def get_bs_list_from_op_list(op_list:list[Op]) -> tuple[list[BS], list[Op]]:
+def get_bs_list_from_op_list(op_list: list[Op]) -> tuple[list[BS], list[Op]]:
     bs_list = []
     remaining_op_list = []
     for op in op_list:
@@ -1502,13 +2713,16 @@ def get_bs_list_from_op_list(op_list:list[Op]) -> tuple[list[BS], list[Op]]:
     return bs_list, remaining_op_list
 
 @q.timer
-def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
+def combine_two_terms(t1: Term, t2: Term, t1_sig: str, t2_sig: str) -> Term | None:
     """
     Combine two terms together.
     If not possible, return None.
     """
     if t1_sig == t2_sig:
-        (sig_str, bs_count,) = t1_sig
+        (
+            sig_str,
+            bs_count,
+        ) = t1_sig
         assert t1.a_ops == t2.a_ops
         if bs_count == 0:
             assert t1.c_ops == t2.c_ops
@@ -1520,8 +2734,18 @@ def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
         elif bs_count == 1:
             coef1 = t1.coef
             coef2 = t2.coef
-            [ bs1, ], re_c_ops1, = get_bs_list_from_op_list(t1.c_ops)
-            [ bs2, ], re_c_ops2, = get_bs_list_from_op_list(t2.c_ops)
+            (
+                [
+                    bs1,
+                ],
+                re_c_ops1,
+            ) = get_bs_list_from_op_list(t1.c_ops)
+            (
+                [
+                    bs2,
+                ],
+                re_c_ops2,
+            ) = get_bs_list_from_op_list(t2.c_ops)
             assert re_c_ops1 == re_c_ops2
             assert bs1.chain_list == bs2.chain_list
             bs1 = copy.copy(bs1)
@@ -1530,7 +2754,9 @@ def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
             bs2 *= coef2
             bs = BS(bs1.elem_list + bs2.elem_list, bs1.chain_list)
             bs.simplify_elem_list()
-            c_ops = [ bs, ] + re_c_ops1
+            c_ops = [
+                bs,
+            ] + re_c_ops1
             return Term(c_ops, t1.a_ops, 1)
         else:
             return None
@@ -1538,20 +2764,23 @@ def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
         return None
 
 @q.timer
-def combine_terms_expr(expr:Expr) -> Expr|None:
+def combine_terms_expr(expr: Expr) -> Expr | None:
     """
     Combine terms with the same signatures.
-    Return `None` if not terms are combined.
+    Return ``None`` if not terms are combined.
     """
     if not expr.terms:
         return None
-    signatures = [ get_term_signature(t) for t in expr.terms ]
+    signatures = [get_term_signature(t) for t in expr.terms]
     if len(signatures) == len(set(signatures)):
         return None
     zero_term = Term([], [], 0)
     zero_term_sig = get_term_signature(zero_term)
     s_pairs = sorted(list(zip(expr.terms, signatures)), key=lambda x: x[1])
-    s_terms, s_signatures, = list(zip(*s_pairs))
+    (
+        s_terms,
+        s_signatures,
+    ) = list(zip(*s_pairs))
     terms = []
     term = s_terms[0]
     term_sig = s_signatures[0]
@@ -1575,8 +2804,11 @@ def combine_terms_expr(expr:Expr) -> Expr|None:
         terms.append(term)
     return Expr(terms, expr.description)
 
-def rescale_bs_term(term:Term) -> Term:
-    bs_list, re_op_list, = get_bs_list_from_op_list(term.c_ops)
+def rescale_bs_term(term: Term) -> Term:
+    (
+        bs_list,
+        re_op_list,
+    ) = get_bs_list_from_op_list(term.c_ops)
     if len(bs_list) == 0:
         return term
     scaled_bs_list = []
@@ -1584,7 +2816,10 @@ def rescale_bs_term(term:Term) -> Term:
     for bs in bs_list:
         sst_el = bs.get_spin_spin_tensor_elem_list_code()
         over_all_coef = 0
-        for _, coef, in sst_el:
+        for (
+            _,
+            coef,
+        ) in sst_el:
             if isinstance(coef, ea.Expr):
                 coef = ea.simplified_ea(coef)
             if ea.is_zero(coef):
@@ -1609,7 +2844,7 @@ def rescale_bs_term(term:Term) -> Term:
     return scaled_term
 
 @q.timer
-def drop_zero_terms(expr:Expr) -> Expr:
+def drop_zero_terms(expr: Expr) -> Expr:
     terms = []
     for t in expr.terms:
         if ea.is_zero(t.coef):
@@ -1617,29 +2852,53 @@ def drop_zero_terms(expr:Expr) -> Expr:
         terms.append(t)
     return Expr(terms, expr.description)
 
-def op_derivative_exp(op:Op):
+def op_derivative_exp(op: Op):
     if op.otype == "Qv":
-        return Term([], [SHv(op.f, op.p, op.s, op.c),], -1)
+        return Term(
+            [],
+            [
+                SHv(op.f, op.p, op.s, op.c),
+            ],
+            -1,
+        )
     elif op.otype == "Qb":
-        return Term([], [HbS(op.f, op.p, op.s, op.c),], 1)
+        return Term(
+            [],
+            [
+                HbS(op.f, op.p, op.s, op.c),
+            ],
+            1,
+        )
     else:
         return None
 
-def op_derivative_op(op:Op, op1:Op):
+def op_derivative_op(op: Op, op1: Op):
     if op.otype == "Qv" and op1.otype == "HbS" and op.f == op1.f:
-        return Term([S(op.f, op.p, op1.p, op.s, op1.s, op.c, op1.c),], [], 1)
+        return Term(
+            [
+                S(op.f, op.p, op1.p, op.s, op1.s, op.c, op1.c),
+            ],
+            [],
+            1,
+        )
     elif op.otype == "Qb" and op1.otype == "SHv" and op.f == op1.f:
-        return Term([S(op.f, op1.p, op.p, op1.s, op.s, op1.c, op.c),], [], 1)
+        return Term(
+            [
+                S(op.f, op1.p, op.p, op1.s, op.s, op1.c, op.c),
+            ],
+            [],
+            1,
+        )
     else:
         return None
 
-def flip_sign(i:int) -> int:
+def flip_sign(i: int) -> int:
     if i % 2 == 0:
         return 1
     else:
         return -1
 
-def op_derivative_term(op:Op, term:Term) -> Expr:
+def op_derivative_term(op: Op, term: Term) -> Expr:
     coef = term.coef
     c_ops = term.c_ops
     a_ops = term.a_ops
@@ -1649,14 +2908,20 @@ def op_derivative_term(op:Op, term:Term) -> Expr:
         dop1 = op_derivative_op(op, op1)
         if dop1 is not None:
             sign = flip_sign(i)
-            terms.append(Term(dop1.c_ops + c_ops, a_ops[:i] + dop1.a_ops + a_ops[i+1:], sign * dop1.coef * coef))
+            terms.append(
+                Term(
+                    dop1.c_ops + c_ops,
+                    a_ops[:i] + dop1.a_ops + a_ops[i + 1 :],
+                    sign * dop1.coef * coef,
+                )
+            )
     de = op_derivative_exp(op)
     if de is not None:
         sign = flip_sign(len(a_ops))
         terms.append(Term(de.c_ops + c_ops, a_ops + de.a_ops, sign * de.coef * coef))
     return Expr(terms)
 
-def op_push_term(op:Op, term:Term) -> Expr:
+def op_push_term(op: Op, term: Term) -> Expr:
     if op.otype == "Qv" or op.otype == "Qb":
         return op_derivative_term(op, term)
     else:
@@ -1664,24 +2929,46 @@ def op_push_term(op:Op, term:Term) -> Expr:
         c_ops = term.c_ops
         a_ops = term.a_ops
         if op.is_commute():
-            return Expr([Term([op,] + c_ops, a_ops, coef),])
+            return Expr(
+                [
+                    Term(
+                        [
+                            op,
+                        ]
+                        + c_ops,
+                        a_ops,
+                        coef,
+                    ),
+                ]
+            )
         else:
-            return Expr([Term(c_ops, [op,] + a_ops, coef),])
+            return Expr(
+                [
+                    Term(
+                        c_ops,
+                        [
+                            op,
+                        ]
+                        + a_ops,
+                        coef,
+                    ),
+                ]
+            )
 
-def op_push_expr(op:Op, expr:Expr) -> Expr:
+def op_push_expr(op: Op, expr: Expr) -> Expr:
     terms = []
     for term in expr.terms:
         terms += op_push_term(op, term).terms
     return Expr(terms)
 
-def is_hop(op:Op) -> bool:
+def is_hop(op: Op) -> bool:
     if op.otype == "SHv" or op.otype == "HbS":
         return True
     if op.otype == "Hv" or op.otype == "Hb":
         return True
     return False
 
-def has_hops(term:Term, count_limit:int = 0) -> bool:
+def has_hops(term: Term, count_limit: int = 0) -> bool:
     c = 0
     for op in term.a_ops:
         if is_hop(op):
@@ -1690,26 +2977,30 @@ def has_hops(term:Term, count_limit:int = 0) -> bool:
                 return True
     return False
 
-def remove_hops(expr:Expr, count_limit:int = 0) -> Expr:
+def remove_hops(expr: Expr, count_limit: int = 0) -> Expr:
     terms = []
     for term in expr.terms:
         if not has_hops(term, count_limit):
             terms.append(term)
     return Expr(terms)
 
-def contract_term(term:Term) -> Expr:
+def contract_term(term: Term) -> Expr:
     coef = term.coef
     c_ops = term.c_ops
     a_ops = term.a_ops
     n_a_ops = len(a_ops)
-    expr = Expr([Term(c_ops, [], coef),])
+    expr = Expr(
+        [
+            Term(c_ops, [], coef),
+        ]
+    )
     for idx, op in enumerate(reversed(a_ops)):
         expr = op_push_expr(op, expr)
         expr = remove_hops(expr, n_a_ops - idx - 1)
     return expr
 
 @q.timer
-def contract_expr(expr:Expr) -> Expr:
+def contract_expr(expr: Expr) -> Expr:
     """
     interface function
     does not change expr
@@ -1722,56 +3013,74 @@ def contract_expr(expr:Expr) -> Expr:
 ### ------
 
 def S_l(p1, p2):
-    return mk_expr(S('l', p1, p2)) + f"S_l({p1},{p2})"
+    return mk_expr(S("l", p1, p2)) + f"S_l({p1},{p2})"
 
 def S_s(p1, p2):
-    return mk_expr(S('s', p1, p2)) + f"S_s({p1},{p2})"
+    return mk_expr(S("s", p1, p2)) + f"S_s({p1},{p2})"
 
 def S_c(p1, p2):
-    return mk_expr(S('c', p1, p2)) + f"S_c({p1},{p2})"
+    return mk_expr(S("c", p1, p2)) + f"S_c({p1},{p2})"
 
 def tr(expr):
     if isinstance(expr, Term):
         term = expr
         assert term.a_ops == []
-        return Term([ Tr(term.c_ops), ], [], term.coef)
+        return Term(
+            [
+                Tr(term.c_ops),
+            ],
+            [],
+            term.coef,
+        )
     elif isinstance(expr, Expr):
         return sum(map(tr, expr.terms)) + f"tr( {expr.show()} )"
     else:
         assert False
 
-gamma_x = mk_expr(G(0)) + f"gamma_x"
+gamma_x = mk_expr(G(0)) + "gamma_x"
 
-gamma_y = mk_expr(G(1)) + f"gamma_y"
+gamma_y = mk_expr(G(1)) + "gamma_y"
 
-gamma_z = mk_expr(G(2)) + f"gamma_z"
+gamma_z = mk_expr(G(2)) + "gamma_z"
 
-gamma_t = mk_expr(G(3)) + f"gamma_t"
+gamma_t = mk_expr(G(3)) + "gamma_t"
 
-gamma_5 = mk_expr(G(5)) + f"gamma_5"
+gamma_5 = mk_expr(G(5)) + "gamma_5"
 
 def gamma(tag):
     return mk_expr(G(tag)) + f"gamma({tag})"
 
 def gamma_va(tag):
     assert isinstance(tag, int)
-    if tag in [ 0, 1, 2, 3, ]:
+    if tag in [
+        0,
+        1,
+        2,
+        3,
+    ]:
         return mk_expr(G(tag)) + f"gamma({tag})"
-    elif tag in [ 4, 5, 6, 7, ]:
-        return mk_expr(G(tag - 4)) * mk_expr(G(5)) + f"gamma({tag-4})*gamma_5"
+    elif tag in [
+        4,
+        5,
+        6,
+        7,
+    ]:
+        return mk_expr(G(tag - 4)) * mk_expr(G(5)) + f"gamma({tag - 4})*gamma_5"
     else:
         assert False
 
 ### ------
 
 def mk_test_expr_wick_01():
-    expr = (1
-            * Qb("d", "x1", "s1", "c1")
-            * G(5, "s1", "s2")
-            * Qv("u", "x1", "s2", "c1")
-            * Qb("u", "x2", "s3", "c2")
-            * G(5, "s3", "s4")
-            * Qv("d", "x2", "s4", "c2"))
+    expr = (
+        1
+        * Qb("d", "x1", "s1", "c1")
+        * G(5, "s1", "s2")
+        * Qv("u", "x1", "s2", "c1")
+        * Qb("u", "x2", "s3", "c2")
+        * G(5, "s3", "s4")
+        * Qv("d", "x2", "s4", "c2")
+    )
     return expr
 
 def mk_test_expr_wick_02():
@@ -1813,7 +3122,7 @@ def mk_test_expr_wick_02():
     bf_b = Bfield("std-u", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std-u", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr"
     return expr
 
 def mk_test_expr_wick_03():
@@ -1855,7 +3164,7 @@ def mk_test_expr_wick_03():
     bf_b = Bfield("std-u", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std-u", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr"
     return expr
 
 def mk_test_expr_wick_04():
@@ -1899,7 +3208,7 @@ def mk_test_expr_wick_04():
     #
     ubar_u = Qb(f2, "xx", "s01", "c01") * Qv(f2, "xx", "s01", "c01")
     #
-    expr = ubar_u * bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr"
+    expr = ubar_u * bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr"
     return expr
 
 def mk_test_expr_wick_05():
@@ -1942,7 +3251,7 @@ def mk_test_expr_wick_05():
     # bf_v = Bfield("std-u", s1p, s2p, s3p, c1p, c2p, c3p)
     bf_v = Bfield("std-u", s3p, s2p, s1p, c3p, c2p, c1p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr"
     return expr
 
 def mk_test_expr_wick_06():
@@ -1986,53 +3295,57 @@ def mk_test_expr_wick_06():
     bf_b = Bfield("std3-u3", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std3-u3", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-u3"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-std3-u3"
     expr_list.append(expr)
     #
     bf_b = Bfield("std3-u1", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std3-u1", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-u1"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-std3-u1"
     expr_list.append(expr)
     #
     bf_b = Bfield("std3-d1", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std3-d1", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-d1"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-std3-d1"
     expr_list.append(expr)
     #
     bf_b = Bfield("std3-d3", s1, s2, s3, c1, c2, c3)
     bf_v = Bfield("std3-d3", s1p, s2p, s3p, c1p, c2p, c3p)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-d3"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-std3-d3"
     expr_list.append(expr)
     #
     bf_v = Bfield("std3-u3", s1p, s2p, s3p, c1p, c2p, c3p)
     bf_b = Bfield("std3-u3", s1, s2, s3, c1, c2, c3)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-std3-u3"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-std3-std3-u3"
     expr_list.append(expr)
     #
     bf_v = Bfield("pos3-u3", s1p, s2p, s3p, c1p, c2p, c3p)
     bf_b = Bfield("pos3-u3", s1, s2, s3, c1, c2, c3)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-pos3-pos3-u3"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-pos3-pos3-u3"
     expr_list.append(expr)
     #
     bf_v = Bfield("pos3-u3", s1p, s2p, s3p, c1p, c2p, c3p)
     bf_b = Bfield("std3-u3", s1, s2, s3, c1, c2, c3)
     #
-    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-pos3-std3-u3"
+    expr = bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + "expr-pos3-std3-u3"
     expr_list.append(expr)
     #
     bf_v = Bfield("std3-u3", s1p, s2p, s3p, c1p, c2p, c3p)
     bf_b = Bfield("pos3-u3", s1, s2, s3, c1, c2, c3)
     #
     from operators import mk_j_mu
+    #
     mu = 2
     fac = mk_fac(f"rel_mod_sym(x1[1][{mu}] - x1p[1][{mu}], size[{mu}])")
     #
-    expr = fac * mk_j_mu("xx_1", 3) * bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-pos3-u3"
+    expr = (
+        fac * mk_j_mu("xx_1", 3) * bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b
+        + "expr-std3-pos3-u3"
+    )
     expr_list.append(expr)
     #
     return expr_list
@@ -2079,7 +3392,20 @@ def mk_test_expr_wick_07():
     bf_b = Bfield("std3-u3", s1, s2, s3, c1, c2, c3)
     #
     from operators import mk_j_mu
-    expr = mk_j_mu("xx_1", 3) * mk_j_mu("xx_2", 3) * bf_b * bf_v * q1v * q2v * q3v * q1b * q2b * q3b + f"expr-std3-std3-u3"
+    #
+    expr = (
+        mk_j_mu("xx_1", 3)
+        * mk_j_mu("xx_2", 3)
+        * bf_b
+        * bf_v
+        * q1v
+        * q2v
+        * q3v
+        * q1b
+        * q2b
+        * q3b
+        + "expr-std3-std3-u3"
+    )
     expr_list.append(expr)
     #
     return expr_list
@@ -2088,16 +3414,35 @@ if __name__ == "__main__":
     expr = mk_test_expr_wick_01()
     print(expr)
     c_expr = contract_expr(expr)
-    c_expr.simplify(is_isospin_symmetric_limit = False)
+    c_expr.simplify(is_isospin_symmetric_limit=False)
     print(c_expr)
-    c_expr_check = Expr([Term([Tr([G('5'), S('d','x2','x1'), G('5'), S('u','x1','x2')],'sc')],[],(-1+0j))]) - c_expr
-    c_expr_check.simplify(is_isospin_symmetric_limit = False)
+    c_expr_check = (
+        Expr(
+            [
+                Term(
+                    [
+                        Tr(
+                            [G("5"), S("d", "x2", "x1"), G("5"), S("u", "x1", "x2")],
+                            "sc",
+                        )
+                    ],
+                    [],
+                    (-1 + 0j),
+                )
+            ]
+        )
+        - c_expr
+    )
+    c_expr_check.simplify(is_isospin_symmetric_limit=False)
     print(c_expr_check)
-    c_expr.simplify(is_isospin_symmetric_limit = True)
+    c_expr.simplify(is_isospin_symmetric_limit=True)
     print(c_expr)
-    print(Qb("u", "x2", "s23", "c23") * Qv("u", "x1", "s11", "c11") - Qb("d", "x2", "s23", "c23") * Qv("d", "x1", "s11", "c11"))
-    print(bfield_tag_dict['std-u'].get_spin_tensor_code())
-    print(bfield_tag_dict['std-u'])
+    print(
+        Qb("u", "x2", "s23", "c23") * Qv("u", "x1", "s11", "c11")
+        - Qb("d", "x2", "s23", "c23") * Qv("d", "x1", "s11", "c11")
+    )
+    print(bfield_tag_dict["std-u"].get_spin_tensor_code())
+    print(bfield_tag_dict["std-u"])
     expr = mk_test_expr_wick_02()
     print(expr)
     c_expr = contract_expr(expr)

@@ -1,5 +1,4 @@
 { stdenv
-, fetchFromGitHub
 , mpi
 , qmp
 , qio
@@ -11,18 +10,27 @@
 , gsl
 , which
 , git
+, lib
+, use-gitee ? null
 }:
 
-stdenv.mkDerivation rec {
+let
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+in stdenv.mkDerivation rec {
+
+  env.NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
+    "-Wno-error=int-conversion"
+    "-Wno-error=incompatible-pointer-types"
+    "-Wno-error=implicit-function-declaration"
+    ];
 
   pname = "cps";
   version = "d3c8dd5e8a3ea6a315fd2fba963bf32585ed6331";
 
-  src = fetchFromGitHub {
-    owner = "RBC-UKQCD";
-    repo = "CPS_public";
+  src = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/cps" else "https://github.com/RBC-UKQCD/CPS_public";
+    ref = "master";
     rev = version;
-    hash = "sha256-8+11yToZRcexNuGQHXf5qcl6cs1/Ru9xQGt1MoKzna4=";
   };
 
   enableParallelBuilding = true;

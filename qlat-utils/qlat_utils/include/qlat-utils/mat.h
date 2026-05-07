@@ -7,13 +7,13 @@
 namespace qlat
 {  //
 
-const SpinMatrixT<RealD>& get_gamma_matrix(const int mu);
+const SpinMatrixT<RealD>& get_gamma_matrix(const Int mu);
 
 void benchmark_matrix_functions(const Long count = 128);
 
 qacc WilsonMatrix g5_herm(const WilsonMatrix& m)
 {
-  const box_acc<SpinMatrixConstants>& smc = get_spin_matrix_constants();
+  const box<SpinMatrixConstants>& smc = get_spin_matrix_constants();
   const SpinMatrix& gamma5 = smc().gamma5;
   const WilsonMatrix ret = gamma5 * (WilsonMatrix)matrix_adjoint(m) * gamma5;
   return ret;
@@ -26,44 +26,69 @@ qacc void set_zero(NonRelWilsonMatrix& x) { set_zero<6, ComplexD>(x); }
 qacc void set_zero(IsospinMatrix& x) { set_zero<2, ComplexD>(x); }
 qacc void set_zero(WilsonVector& x) { set_zero<12, ComplexD>(x); }
 
+qacc void set_unit(ColorMatrix& x, const ComplexD& coef = 1.0)
+{
+  set_unit<3, ComplexD>(x, coef);
+}
+qacc void set_unit(SpinMatrix& x, const ComplexD& coef = 1.0)
+{
+  set_unit<4, ComplexD>(x, coef);
+}
+qacc void set_unit(WilsonMatrix& x, const ComplexD& coef = 1.0)
+{
+  set_unit<12, ComplexD>(x, coef);
+}
+qacc void set_unit(NonRelWilsonMatrix& x, const ComplexD& coef = 1.0)
+{
+  set_unit<6, ComplexD>(x, coef);
+}
+qacc void set_unit(IsospinMatrix& x, const ComplexD& coef = 1.0)
+{
+  set_unit<2, ComplexD>(x, coef);
+}
+qacc void set_unit(WilsonVector& x, const ComplexD& coef = 1.0)
+{
+  set_unit<12, ComplexD>(x, coef);
+}
+
 qacc SpinMatrix operator*(const SpinMatrix& m1, const SpinMatrix& m2)
 {
-  return operator*<4, ComplexD>(m1, m2);
+  return operator* <4, ComplexD>(m1, m2);
 }
 
 qacc SpinMatrix operator*(const ComplexD& a, const SpinMatrix& m)
 {
-  return operator*<4, ComplexD>(a, m);
+  return operator* <4, ComplexD>(a, m);
 }
 
 qacc SpinMatrix operator*(const SpinMatrix& m, const ComplexD& a)
 {
-  return operator*<4, ComplexD>(m, a);
+  return operator* <4, ComplexD>(m, a);
 }
 
 qacc WilsonMatrix operator*(const WilsonMatrix& m1, const WilsonMatrix& m2)
 {
-  return operator*<12, ComplexD>(m1, m2);
+  return operator* <12, ComplexD>(m1, m2);
 }
 
 qacc WilsonMatrix operator*(const ComplexD& a, const WilsonMatrix& m)
 {
-  return operator*<12, ComplexD>(a, m);
+  return operator* <12, ComplexD>(a, m);
 }
 
 qacc WilsonMatrix operator*(const WilsonMatrix& m, const ComplexD& a)
 {
-  return operator*<12, ComplexD>(m, a);
+  return operator* <12, ComplexD>(m, a);
 }
 
 qacc WilsonMatrix operator*(const SpinMatrix& m1, const WilsonMatrix& m2)
 {
-  return operator*<Real>(m1, m2);
+  return operator* <Real>(m1, m2);
 }
 
 qacc WilsonMatrix operator*(const WilsonMatrix& m1, const SpinMatrix& m2)
 {
-  return operator*<Real>(m1, m2);
+  return operator* <Real>(m1, m2);
 }
 
 qacc ColorMatrix matrix_adjoint(const ColorMatrix& m)
@@ -86,9 +111,9 @@ qacc IsospinMatrix matrix_adjoint(const IsospinMatrix& m)
   return matrix_adjoint<2, ComplexD>(m);
 }
 
-qacc ComplexD epsilon_contraction(const int v_s1, const int b_s1,
-                                  const int v_s2, const int b_s2,
-                                  const int v_s3, const int b_s3,
+qacc ComplexD epsilon_contraction(const Int v_s1, const Int b_s1,
+                                  const Int v_s2, const Int b_s2,
+                                  const Int v_s3, const Int b_s3,
                                   const WilsonMatrix& wm1,
                                   const WilsonMatrix& wm2,
                                   const WilsonMatrix& wm3)

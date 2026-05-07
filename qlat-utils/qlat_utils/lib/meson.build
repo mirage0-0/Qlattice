@@ -11,11 +11,16 @@ cppsources = files(
   'timer.cpp',
   'lat-io.cpp',
   'mat.cpp',
+  'matrix-hmc.cpp',
   'mpi-auto.cpp',
   'qar.cpp',
+  'qacc.cpp',
+  'utils.cpp',
   'utils-io.cpp',
   'utils-vec.cpp',
   'rng-state.cpp',
+  'vector.cpp',
+  'sha256.cpp',
   )
 py3.install_sources(cppsources, subdir: 'qlat_utils/lib')
 

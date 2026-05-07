@@ -17,14 +17,31 @@ cdef extern from "qlat/mpi.h" namespace "qlat":
     Int bcast(std_string& recv, const Int root) except +
     Int bcast(Coordinate& x, const Int root) except +
     Int bcast(LatData& ld, const Int root) except +
-    Int glb_sum(Long& ld) except +
-    Int glb_sum(RealD& ld) except +
-    Int glb_sum(RealF& ld) except +
-    Int glb_sum(ComplexD& ld) except +
-    Int glb_sum(ComplexF& ld) except +
+    Int bcast_any(Long& x, const bool b) except +
+    Int bcast_any(RealD& x, const bool b) except +
+    Int bcast_any(RealF& x, const bool b) except +
+    Int bcast_any(ComplexD& x, const bool b) except +
+    Int bcast_any(ComplexF& x, const bool b) except +
+    Long f_bcast_any(const Long& x, const bool b) except +
+    RealD f_bcast_any(const RealD& x, const bool b) except +
+    RealF f_bcast_any(const RealF& x, const bool b) except +
+    ComplexD f_bcast_any(const ComplexD& x, const bool b) except +
+    ComplexF f_bcast_any(const ComplexF& x, const bool b) except +
+    std_vector[Int]& get_id_node_list_for_shuffle() except +
+    std_vector[Int]& get_id_node_in_shuffle_list() except +
+    Int glb_sum(Long& x) except +
+    Int glb_sum(RealD& x) except +
+    Int glb_sum(RealF& x) except +
+    Int glb_sum(ComplexD& x) except +
+    Int glb_sum(ComplexF& x) except +
     Int glb_sum(LatData& ld) except +
     bool glb_all(const bool b) except +
     bool glb_any(const bool b) except +
+    Long f_glb_sum(const Long& ld) except +
+    RealD f_glb_sum(const RealD& ld) except +
+    RealF f_glb_sum(const RealF& ld) except +
+    ComplexD f_glb_sum(const ComplexD& ld) except +
+    ComplexF f_glb_sum(const ComplexF& ld) except +
 
 cdef extern from "qlat/geometry.h" namespace "qlat":
 
@@ -37,6 +54,7 @@ cdef extern from "qlat/geometry.h" namespace "qlat":
         GeometryNode()
         void init()
         void init(const Int id_node, const Coordinate& size_node) except +
+        void init(const Coordinate& coor_node, const Coordinate& size_node) except +
     cdef cppclass Geometry:
         bool initialized
         GeometryNode geon
@@ -48,16 +66,25 @@ cdef extern from "qlat/geometry.h" namespace "qlat":
         bool is_only_local
         Geometry()
         void init()
-        void init(Coordinate& total_site) except +
+        void init(const Coordinate& total_site) except +
+        void init(const Coordinate& coor_node, const Coordinate& size_node, const Coordinate& node_site) except +
+        void init(const Int& id_node, const Coordinate& size_node, const Coordinate& node_site) except +
+        void reset_node_site_expanded() except +
         Coordinate total_site()
         Coordinate local_site()
-        Long local_volume()
-        Long total_volume()
+        Long local_volume() except +
+        Long local_volume_expanded() except +
+        Long total_volume() except +
+        Long spatial_volume() except +
         bool is_local(const Coordinate& x)
-        Long index_from_coordinate(const Coordinate& xl)
-        Coordinate coordinate_from_index(const Long index)
         Coordinate coordinate_g_from_l(const Coordinate& xl)
         Coordinate coordinate_l_from_g(const Coordinate& xg)
+        Long index_from_coordinate(const Coordinate& xl)
+        Coordinate coordinate_from_index(const Long index)
+        Long index_from_g_coordinate(const Coordinate& xg)
+        Coordinate g_coordinate_from_index(const Long index)
+    bool operator==(const Geometry& geo1, const Geometry& geo2) except +
+    bool operator!=(const Geometry& geo1, const Geometry& geo2) except +
     std_string show(const Geometry& geo) except +
     Geometry geo_resize(const Geometry& geo, Int thick) except +
     Geometry geo_resize(const Geometry& geo, const Coordinate& expansion_left, const Coordinate& expansion_right) except +
@@ -90,25 +117,30 @@ cdef extern from "qlat/core.h" namespace "qlat":
         Long size()
         Coordinate* data()
         Coordinate& operator[](Long i) except +
+    bool operator==(const PointsSelection& psel1, const PointsSelection& psel2) except +
+    bool operator!=(const PointsSelection& psel1, const PointsSelection& psel2) except +
+    void qswap(PointsSelection& x, PointsSelection& y) except +
     cdef cppclass SelectedPoints[T]:
         bool initialized;
         PointsDistType points_dist_type
         Int multiplicity
         Long n_points
-        vector_acc[T] points
+        vector[T] points
         SelectedPoints()
         void init()
         void init(const Long n_points, const Int multiplicity, const PointsDistType points_dist_type) except +
         void init(const PointsSelection& psel, const Int multiplicity) except +
+    Int bcast(PointsSelection& psel, const Int root) except +
+    Int bcast[T](SelectedPoints[T]& sp, const Int root) except +
     cdef cppclass Field[T]:
         Int multiplicity
-        vector_acc[T] field
+        vector[T] field
         Field()
         void init()
         void init(const Geometry& geo) except +
         void init(const Geometry& geo, Int multiplicity) except +
         void init(const Field[T]& field) except +
-        const Geometry& get_geo() except +
+        Geometry get_geo() except +
         T& get_elem(const Coordinate& x) except +
         T& get_elem(const Coordinate& x, const Int m) except +
         T& get_elem(const Long index) except +
@@ -133,23 +165,26 @@ cdef extern from "qlat/core.h" namespace "qlat":
         Long n_elems
         FieldRank f_rank
         FieldIndex f_local_idx
-        vector_acc[Int64t] ranks
-        vector_acc[Long] indices
+        vector[Int64t] ranks
+        vector[Long] indices
         FieldSelection()
         void init()
-        const Geometry& get_geo()
+        Geometry get_geo() except +
     void set_psel_from_fsel(PointsSelection& psel, const FieldSelection& fsel) except +
+    void set_fsel_from_psel(FieldSelection& fsel, const PointsSelection& psel, const Geometry& geo, const Long rank_psel) except +
+    void set_geo_from_psel(Geometry& geo, const PointsSelection& psel) except +
     cdef cppclass SelectedField[T]:
         Long n_elems;
         Int multiplicity
-        vector_acc[T] field
+        vector[T] field
         SelectedField()
         void init()
         void init(const Geometry& geo, const Long n_elems, const Int multiplicity) except +
         void init(const FieldSelection& fsel, const Int multiplicity) except +
-        const Geometry& get_geo()
+        Geometry get_geo() except +
     Vector[T] get_data[T](const Field[T]& x) except +
     void set_zero[T](Field[T]& x) except +
+    void set_unit[T](Field[T]& f, const ComplexD& coef) except +
     void qswap[T](Field[T]& x, Field[T]& y) except +
     Vector[T] get_data[T](const SelectedField[T]& x) except +
     void set_zero[T](SelectedField[T]& x) except +
@@ -157,16 +192,22 @@ cdef extern from "qlat/core.h" namespace "qlat":
     Vector[T] get_data[T](const SelectedPoints[T]& x) except +
     void set_zero[T](SelectedPoints[T]& x) except +
     void qswap[T](SelectedPoints[T]& x, SelectedPoints[T]& y) except +
+    void qswap_cast[M](PointsSelection& f1, SelectedPoints[M]& f2, Coordinate& total_site2) except +
+    void qswap_cast[M,N](Field[M]& f1, Field[N]& f2) except +
+    void qswap_cast[M,N](SelectedField[M]& f1, SelectedField[N]& f2) except +
+    void qswap_cast[M,N](Field[M]& f1, SelectedPoints[N]& f2, Geometry& geo2) except +
+    void qswap_cast[M,N](SelectedField[M]& f1, SelectedPoints[N]& f2, Geometry& geo2) except +
+    void qswap_cast[M,N](SelectedPoints[M]& f1, SelectedPoints[N]& f2) except +
     cdef cppclass SelProp(SelectedField[WilsonMatrix]):
         pass
     cdef cppclass PselProp(SelectedPoints[WilsonMatrix]):
         pass
+    void set_field_m(Field[Char]& f, const Field[Char]& f1, const Int m, const Int m1, const Int sizeof_m) except +
 
 cdef extern from "qlat/field.h" namespace "qlat":
 
     RealD qnorm[M](const Field[M]& f) except +
     void qnorm_field[M](Field[RealD]& f, const Field[M]& f1) except +
-    void set_unit[M](Field[M]& f, const ComplexD& coef) except +
     void set_u_rand[M](Field[M]& sp, const RngState& rs, const RealD upper, const RealD lower) except +
     void set_g_rand[M](Field[M]& sp, const RngState& rs, const RealD center, const RealD sigma) except +
     void set_xg_field(Field[Int]& f, const Geometry& geo) except +
@@ -190,11 +231,6 @@ cdef extern from "qlat/field-io.h" namespace "qlat":
 
 cdef extern from "qlat/selected-field-io.h" namespace "qlat":
 
-    void save_point_selection_info(const PointsSelection& psel, const std_string& path) except +
-    PointsSelection load_point_selection_info(const std_string& path) except +
-    #
-    PointsSelection mk_random_point_selection(const Coordinate& total_site, const Long num, const RngState& rs) except +
-    #
     Long write_field_selection(const FieldSelection& fsel, const std_string& path) except +
     Long read_field_selection(FieldSelection& fsel, const std_string& path) except +
     #
@@ -208,7 +244,9 @@ cdef extern from "qlat/selected-field-io.h" namespace "qlat":
     PointsSelection psel_from_fsel_local(const FieldSelection& fsel) except +
     bool is_matching_fsel(const FieldSelection& fsel1, const FieldSelection& fsel2) except +
     bool is_containing(const FieldSelection& fsel, const FieldSelection& fsel_small) except +
-    bool is_containing(const FieldSelection& fsel, const PointsSelection& psel) except +
+    bool is_containing(const FieldSelection& fsel, const PointsSelection& psel_small) except +
+    bool is_containing(const PointsSelection& psel, const FieldSelection& fsel_small) except +
+    bool is_containing(const PointsSelection& psel, const PointsSelection& psel_small) except +
     void intersect_with(FieldSelection& fsel, const FieldSelection& fsel1) except +
     PointsSelection intersect(const FieldSelection& fsel, const PointsSelection& psel) except +
 
@@ -217,22 +255,68 @@ cdef extern from "qlat/selected-shuffle.h" namespace "qlat":
     cdef cppclass SelectedShufflePlan:
         PointsDistType points_dist_type_send
         PointsDistType points_dist_type_recv
+        Coordinate total_site
+        vector[Coordinate] size_node_send
+        vector[Coordinate] coor_node_send
+        vector[Coordinate] size_node_recv
+        vector[Coordinate] coor_node_recv
+        Long num_selected_points_send
+        Long num_selected_points_recv
+        vector[Long] n_points_selected_points_send
+        vector[Long] n_points_selected_points_recv
         SelectedPoints[Long] shuffle_idx_points_send
         SelectedPoints[Long] shuffle_idx_points_recv
-        Long total_send_count
-        Long total_recv_count
+        SelectedPoints[Long] shuffle_idx_points_local
+        Long total_count_send
+        Long total_count_recv
+        Long total_count_local
+        vector[Long] sendcounts
+        vector[Long] recvcounts
+        vector[Long] sdispls
+        vector[Long] rdispls
         void init() except +
     #
-    void set_selected_shuffle_plan(SelectedShufflePlan& ssp, const PointsSelection& psel, const RngState& rs) except +
+    void set_selected_shuffle_plan_l_from_g(SelectedShufflePlan& ssp, const PointsSelection& psel, const Int root) except +
+    void set_selected_shuffle_plan_l_from_g(SelectedShufflePlan& ssp, const std_vector[PointsSelection]& psel_vec, const std_vector[Int]& root_vec) except +
+    void set_selected_shuffle_plan_g_from_l(SelectedShufflePlan& ssp, const PointsSelection& psel, const Int root, const Geometry& geo) except +
+    void set_selected_shuffle_plan_g_from_l(SelectedShufflePlan& ssp, const std_vector[PointsSelection]& psel_vec, const std_vector[Int]& root_vec, const std_vector[Geometry]& geo_vec) except +
+    void set_selected_shuffle_plan_r_from_l(SelectedShufflePlan& ssp, const PointsSelection& psel, const Geometry& geo, const RngState& rs) except +
+    void set_selected_shuffle_plan_r_from_l(SelectedShufflePlan& ssp, const std_vector[PointsSelection]& psel_vec, const std_vector[Geometry]& geo_vec, const RngState& rs) except +
+    void set_selected_shuffle_plan_dist_r_from_l(SelectedShufflePlan& ssp, const PointsSelection& psel, const Geometry& geo, const RngState& rs, const std_vector[Int]& id_node_vec) except +
+    void set_selected_shuffle_plan_t_slice_from_l(SelectedShufflePlan& ssp, const std_vector[PointsSelection]& psel_vec, const std_vector[Geometry]& geo_vec) except +
+    void set_selected_shuffle_plan_dist_t_slice_from_l(SelectedShufflePlan& ssp, const PointsSelection& psel, const Geometry& geo, const Int num_field) except +
+    #
     void shuffle_selected_points_char(SelectedPoints[Char]& spc, const SelectedPoints[Char]& spc0, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points_back_char(SelectedPoints[Char]& spc, const SelectedPoints[Char]& spc0, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points_char(std_vector[SelectedPoints[Char]]& spc_vec, const std_vector[SelectedPoints[Char]]& spc0_vec, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points_back_char(std_vector[SelectedPoints[Char]]& spc_vec, const std_vector[SelectedPoints[Char]]& spc0_vec, const SelectedShufflePlan& ssp) except +
+    #
     void shuffle_points_selection(PointsSelection& psel, const PointsSelection& psel0, const SelectedShufflePlan& ssp) except +
-    void shuffle_selected_points[M](SelectedPoints[M]& sp, const SelectedPoints[M]& sf, const SelectedShufflePlan& ssp) except +
+    void shuffle_points_selection_back(PointsSelection& psel, const PointsSelection& psel0, const SelectedShufflePlan& ssp) except +
+    void shuffle_points_selection(std_vector[PointsSelection]& psel_vec, const std_vector[PointsSelection]& psel0_vec, const SelectedShufflePlan& ssp) except +
+    void shuffle_points_selection_back(std_vector[PointsSelection]& psel_vec, const std_vector[PointsSelection]& psel0_vec, const SelectedShufflePlan& ssp) except +
+    #
+    void shuffle_selected_points[M](SelectedPoints[M]& sp, const SelectedPoints[M]& sp0, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points_back[M](SelectedPoints[M]& sp, const SelectedPoints[M]& sp0, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points[M](std_vector[SelectedPoints[M]]& sp_vec, const std_vector[SelectedPoints[M]]& sp0_vec, const SelectedShufflePlan& ssp) except +
+    void shuffle_selected_points_back[M](std_vector[SelectedPoints[M]]& sp_vec, const std_vector[SelectedPoints[M]]& sp0_vec, const SelectedShufflePlan& ssp) except +
     #
     void shuffle_field_selection(PointsSelection& psel, const FieldSelection& fsel0, const SelectedShufflePlan& ssp) except +
     void shuffle_selected_field[M](SelectedPoints[M]& sp, const SelectedField[M]& sf, const SelectedShufflePlan& ssp) except +
 
 cdef extern from "qlat/selected-points.h" namespace "qlat":
 
+    PointsSelection mk_tslice_points_selection(const Coordinate& total_site, const Int t_dir) except +
+    PointsSelection mk_random_points_selection(const Coordinate& total_site, const Long num, const RngState& rs) except +
+    void set_psel_full(PointsSelection& psel, const Geometry& geo) except +
+    void lat_data_from_points_selection(LatDataInt& ld, const PointsSelection& psel) except +
+    void points_selection_from_lat_data(PointsSelection& psel, const LatDataInt& ld) except +
+    void points_selection_from_lat_data(PointsSelection& psel, const LatDataInt& ld, const PointsDistType points_dist_type) except +
+    void save_points_selection(const PointsSelection& psel, const std_string& path) except +
+    void save_points_selection_info(const PointsSelection& psel, const std_string& path) except +
+    PointsSelection load_points_selection(const std_string& path) except +
+    PointsSelection load_points_selection_info(const std_string& path) except +
+    #
     RealD qnorm[M](const SelectedPoints[M]& sp) except +
     void qnorm_field[M](SelectedPoints[RealD]& sp, const SelectedPoints[M]& sp1) except +
     void set_u_rand[M](SelectedPoints[M]& sp, const PointsSelection& psel, const RngState& rs, const RealD upper, const RealD lower) except +
@@ -245,15 +329,16 @@ cdef extern from "qlat/selected-points.h" namespace "qlat":
     void selected_points_from_lat_data[M](SelectedPoints[M]& sp, const LatDataLong& ld) except +
     void lat_data_from_selected_points[M](LatDataInt& ld, const SelectedPoints[M]& sp) except +
     void selected_points_from_lat_data[M](SelectedPoints[M]& sp, const LatDataInt& ld) except +
-    void save_selected_points[M](const SelectedPoints[M]& sp, QFile& qfile) except +
-    void load_selected_points[M](SelectedPoints[M]& sp, QFile& qfile) except +
-    void save_selected_points[M](const SelectedPoints[M]& sp, const std_string& fn) except +
-    void load_selected_points[M](SelectedPoints[M]& sp, const std_string& fn) except +
-    std_string save_selected_points_str[M](const SelectedPoints[M]& sp) except +
-    void load_selected_points_str[M](SelectedPoints[M]& sp, std_string& content) except +
-    PointsSelection mk_tslice_point_selection(const Coordinate& total_site, const Int t_dir) except +
+    void save_selected_points[M](const SelectedPoints[M]& sp, QFile& qfile, const bool is_sync_node) except +
+    void load_selected_points[M](SelectedPoints[M]& sp, QFile& qfile, const bool is_sync_node) except +
+    void save_selected_points[M](const SelectedPoints[M]& sp, const std_string& fn, const bool is_sync_node) except +
+    void load_selected_points[M](SelectedPoints[M]& sp, const std_string& fn, const bool is_sync_node) except +
+    std_string save_selected_points_str[M](const SelectedPoints[M]& sp, const bool is_sync_node) except +
+    void load_selected_points_str[M](SelectedPoints[M]& sp, std_string& content, const bool is_sync_node) except +
     void field_glb_sum[M](SelectedPoints[M]& sp, const Field[M]& f) except +
     void field_glb_sum_tslice[M](SelectedPoints[M]& sp, const Field[M]& f, const Int t_dir) except +
+    void field_glb_max[M](SelectedPoints[M]& sp, const Field[M]& f) except +
+    void field_glb_min[M](SelectedPoints[M]& sp, const Field[M]& f) except +
     void set_sqrt_field(SelectedPoints[RealD]& sp, const SelectedPoints[RealD]& sp1) except +
 
 cdef extern from "qlat/selected-field-io.h" namespace "qlat":
@@ -294,6 +379,8 @@ cdef extern from "qlat/field-shuffle.h" namespace "qlat":
     void field_shift[M](SelectedField[M]& sf, FieldSelection& fsel,
             const SelectedField[M]& sf0, const FieldSelection& fsel0,
             const Coordinate& shift, const bool is_reflect) except +
+    void shuffle_field[M](std_vector[Field[M]]& fs, const Field[M]& f, const Coordinate& new_size_node) except +
+    void shuffle_field_back[M](Field[M]& f, const std_vector[Field[M]]& fs, const Coordinate& new_size_node) except +
 
 cdef extern from "qlat/gauge-action.h" namespace "qlat":
 
@@ -306,55 +393,74 @@ cdef extern from "qlat/gauge-action.h" namespace "qlat":
 
 cdef extern from "qlat/qcd-prop.h" namespace "qlat":
 
-    void set_wall_src(Prop& prop, const Geometry& geo_input,
-                      const Int tslice, const CoordinateD& lmom) except +
-    void set_point_src(Prop& prop, const Geometry& geo_input,
-                       const Coordinate& xg, const ComplexD& value) except +
+    void set_ff_vec_from_prop(std_vector[FermionField4d]& ff_vec, const Prop& prop) except +
+    void set_prop_from_ff_vec(Prop& prop, const std_vector[FermionField4d]& ff_vec) except +
+    void set_wall_src(Prop& prop, const Geometry& geo_input, const Int tslice, const CoordinateD& lmom) except +
+    void set_point_src(Prop& prop, const Geometry& geo_input, const Coordinate& xg, const ComplexD& value) except +
+    void set_rand_vol_u1(Field[ComplexD]& fu1, const Geometry& geo_input, const Int multiplicity, const RngState& rs) except +
+    void set_rand_vol_u1_src(Prop& prop, const Field[ComplexD]& fu1) except +
+    void free_invert(
+        Prop& p_sol, const Prop& p_src,
+        const RealD mass, const RealD m5,
+        const CoordinateD& momtwist) except +
 
 cdef extern from "qlat/qcd-smear.h" namespace "qlat":
 
-    void gf_ape_smear(GaugeField& gf, const GaugeField& gf0,
-                      const RealD alpha, const Long steps) except +
-    void gf_spatial_ape_smear(GaugeField& gf, const GaugeField& gf0,
-                              const RealD alpha, const Long steps) except +
-    void gf_hyp_smear(GaugeField& gf, const GaugeField& gf0,
-                      const RealD alpha1, const RealD alpha2, const RealD alpha3) except +
-    void prop_smear(Prop& prop, const GaugeField& gf1,
-                    const RealD coef, const Int step,
-                    const CoordinateD& mom,
-                    const bool smear_in_time_dir) except +
+    void gf_ape_smear(GaugeField& gf, const GaugeField& gf0, const RealD alpha, const Long steps) except +
+    void gf_spatial_ape_smear(GaugeField& gf, const GaugeField& gf0, const RealD alpha, const Long steps) except +
+    void gf_hyp_smear(GaugeField& gf, const GaugeField& gf0, const RealD alpha1, const RealD alpha2, const RealD alpha3) except +
+    void prop_smear(Prop& prop, const GaugeField& gf1, const RealD coef, const Int step, const CoordinateD& mom, const bool smear_in_time_dir) except +
+    void prop_spatial_smear_no_comm(std_vector[FermionField4d]& ff_vec, const GaugeField& gf, const RealD coef, const Long step, const CoordinateD& mom) except +
+    void gf_reduce_half(GaugeField& hgf, const GaugeField& gf) except +
+    void prop_smear_qlat_convension(Prop& prop, const GaugeField& gf1, const RealD coef, const Int step, const CoordinateD& mom, const bool smear_in_time_dir, const Int mode_smear) except +
 
 cdef extern from "qlat/qcd.h" namespace "qlat":
 
     RealD gf_avg_plaq(const GaugeField& gf) except +
     RealD gf_avg_spatial_plaq(const GaugeField& gf) except +
     RealD gf_avg_link_trace(const GaugeField& gf) except +
+    void gf_plaq_field(Field[RealD]& f_plaq, const GaugeField& gf) except +
+    RealD gf_local_avg_plaq(const GaugeField& gf, const Coordinate& block_site) except +
+    void unitarize(Field[ColorMatrix]& gf) except +
+    void make_tr_less_anti_herm_matrix(Field[ColorMatrix]& fc) except +
+
+cdef extern from "qlat/qcd-utils.h" namespace "qlat":
+
+    void set_left_expanded_gauge_field(GaugeField& gf1, const GaugeField& gf) except +
+
+cdef extern from "qlat/qcd-gauge-transformation.h" namespace "qlat":
+
+    void gt_apply_gauge_transformation(GaugeTransform& gt0, const GaugeTransform& gt1) except +
+    void gt_apply_gauge_transformation(GaugeTransform& gt, const GaugeTransform& gt0, const GaugeTransform& gt1) except +
+    void gf_apply_gauge_transformation(GaugeField& gf, const GaugeField& gf0, const GaugeTransform& gt, const bool is_dagger) except +
+    void gt_invert(GaugeTransform& gt, const GaugeTransform& gt0) except +
+    void ff_apply_gauge_transformation(FermionField4d& ff, const FermionField4d& ff0, const GaugeTransform& gt) except +
+    void prop_apply_gauge_transformation(Prop& prop, const Prop& prop0, const GaugeTransform& gt) except +
+    void prop_apply_gauge_transformation(SelectedField[WilsonMatrix]& prop, const SelectedField[WilsonMatrix]& prop0, const GaugeTransform& gt, const FieldSelection& fsel) except +
+    void prop_apply_gauge_transformation(SelectedPoints[WilsonMatrix]& prop, const SelectedPoints[WilsonMatrix]& prop0, const GaugeTransform& gt, const PointsSelection& psel) except +
 
 cdef extern from "qlat/hmc.h" namespace "qlat":
 
-    bool metropolis_accept(double& accept_prob, const double delta_h, const int traj, const RngState& rs_) except +
+    bool metropolis_accept(RealD& accept_prob, const RealD delta_h, const int traj, const RngState& rs_) except +
     void set_rand_gauge_momentum(GaugeMomentum& gm, const RealD sigma, const RngState& rs) except +
     void set_rand_gauge_momentum(GaugeMomentum& gm, const Field[RealD]& mf, const RngState& rs) except +
     RealD gm_hamilton_node(const GaugeMomentum& gm) except +
     RealD gm_hamilton_node(const GaugeMomentum& gm, const Field[RealD]& mf) except +
-    double gf_hamilton_node(const GaugeField& gf, const GaugeAction& ga) except +
-    double gf_hamilton(const GaugeField& gf, const GaugeAction& ga) except +
-    void gf_evolve(GaugeField& gf, const GaugeMomentum& gm, const double step_size) except +
-    void gf_evolve_dual(GaugeField& gf, const GaugeMomentum& gm_dual, const double step_size) except +
+    RealD gf_hamilton_node(const GaugeField& gf, const GaugeAction& ga) except +
+    RealD gf_hamilton(const GaugeField& gf, const GaugeAction& ga) except +
+    void gf_evolve(GaugeField& gf, const GaugeMomentum& gm, const RealD step_size) except +
+    void gf_evolve_dual(GaugeField& gf, const GaugeMomentum& gm_dual, const RealD step_size) except +
     void gf_evolve(GaugeField& gf, const GaugeMomentum& gm, const Field[RealD]& mf, const RealD step_size) except +
     void gf_evolve_dual(GaugeField& gf, const GaugeMomentum& gm_dual, const Field[RealD]& mf_dual, const RealD step_size) except +
+    void field_color_matrix_exp(Field[ColorMatrix]& fc, const Field[ColorMatrix]& fc1, const ComplexD coef) except +
+    void field_color_matrix_mul(Field[ColorMatrix]& fc, const Field[ColorMatrix]& fc1, const Field[ColorMatrix]& fc2) except +
     void set_gm_force(GaugeMomentum& gm_force, const GaugeField& gf, const GaugeAction& ga) except +
     void set_gm_force_dual(GaugeMomentum& gm_force_dual, const GaugeField& gf, const GaugeMomentum& gm_force) except +
     RealD project_gauge_transform(GaugeMomentum& gm, GaugeMomentum& gm_dual, const Field[RealD]& mf, const Field[RealD]& mf_dual) except +
+    void set_gauge_transform_momentum(GaugeMomentum& gm, GaugeMomentum& gm_dual, const Field[ColorMatrix]& gtm) except +
     void dot_gauge_momentum(Field[RealD]& f, const GaugeMomentum& gm1, const GaugeMomentum& gm2) except +
-
-cdef extern from "qlat/vector_utils/utils_smear_vecs.h" namespace "qlat":
-
-    void prop_smear_qlat_convension(Prop& prop, const GaugeField& gf1,
-                                    const RealD coef, const Int step,
-                                    const CoordinateD& mom,
-                                    const bool smear_in_time_dir,
-                                    const Int mode_smear) except +
+    void set_anti_hermitian_matrix_from_basis(Field[ColorMatrix]& fc, const Field[RealD]& basis) except +
+    void set_basis_from_anti_hermitian_matrix(Field[RealD]& basis, const Field[ColorMatrix]& fc) except +
 
 cdef extern from "qlat/fields-io.h" namespace "qlat":
 
@@ -410,8 +516,14 @@ cdef extern from "qlat/wilson-flow.h" namespace "qlat":
     void set_wilson_flow_z(GaugeMomentum& z, const GaugeField& gf, const RealD c1) except +
     void gf_wilson_flow_step_euler(GaugeField& gf, const RealD epsilon, const RealD c1) except +
     void gf_wilson_flow_step(GaugeField& gf, const RealD epsilon, const RealD c1) except +
+    void gf_energy_density_dir_field(Field[RealD]& fd, const GaugeField& gf) except +
     void gf_energy_density_field(Field[RealD]& fd, const GaugeField& gf) except +
     RealD gf_energy_density(const GaugeField& gf) except +
+    void set_plaq_flow_z(GaugeMomentum& z, const GaugeField& gf, const Field[RealD]& plaq_factor) except +
+    void gf_block_stout_smear(GaugeField& gf, const GaugeField& gf0, const Coordinate& block_site, const RealD step_size) except +
+    void gf_local_stout_smear(GaugeField& gf, const GaugeField& gf0, const Coordinate& block_site, const RealD step_size) except +
+    void set_local_tree_gauge_f_dir(Field[Int]& f_dir, const Geometry& geo, const Coordinate& block_site, const bool is_uniform, const RngState& rs) except +
+    void gt_local_tree_gauge(GaugeTransform& gt_inv, const GaugeField& gf, const Field[Int]& f_dir, const Int num_step) except +
 
 cdef extern from "qlat/qcd-topology.h" namespace "qlat":
 
@@ -501,3 +613,44 @@ cdef extern from "qlat/hlbl-contract.h" namespace "qlat":
     #
     std_vector[SlTable] contract_two_plus_two_pair_no_glb_sum(Long& n_points_selected, Long& n_points_computed, const ComplexD& coef, const Geometry& geo, const PointsSelection& psel, const SelectedPoints[RealD]& psel_prob, const PointsSelection& psel_lps, const SelectedPoints[RealD]& psel_lps_prob, const Long idx_xg_x, const SelectedPoints[ComplexD]& lps_hvp_x, const SelectedPoints[ComplexD]& edl_list_c, const Long r_sq_limit, const RealD muon_mass, const RealD z_v) except +
     #
+
+cdef extern from "qlat/qed.h" namespace "qlat":
+
+    cdef cppclass SpinProp(Field[SpinMatrix]):
+        pass
+    #
+    void free_invert(
+        SpinProp& sp_sol, const SpinProp& sp_src,
+        const RealD mass, const RealD m5,
+        const CoordinateD& momtwist) except +
+    #
+    void invert_qed(
+        SpinProp& sp_sol, const SpinProp& sp_src, const Field[ComplexD]& gf1,
+        const RealD mass, const RealD m5, const Int ls,
+        const vector[ComplexD]& t_wick_phase_factor_vec,
+        const bool is_dagger,
+        const RealD stop_rsd, const Long max_num_iter) except +
+    #
+    Long invert_dwf_qed(
+        Field[ComplexD]& f_out4d, const Field[ComplexD]& f_in4d,
+        const Field[ComplexD]& gf1, const RealD mass,
+        const RealD m5, const Int ls,
+        const vector[ComplexD]& t_wick_phase_factor_vec,
+        const bool is_dagger,
+        const RealD stop_rsd, const Long max_num_iter) except +
+    #
+    Long cg_with_m_dwf_qed(
+        Field[ComplexD]& f_out5d, const Field[ComplexD]& f_in5d,
+        const Field[ComplexD]& gf1, const RealD mass,
+        const RealD m5, const Int ls,
+        const vector[ComplexD]& t_wick_phase_factor_vec,
+        const bool is_dagger,
+        const RealD stop_rsd, const Long max_num_iter) except +
+    #
+    void multiply_m_dwf_qed(
+        Field[ComplexD]& f_out, const Field[ComplexD]& f_in,
+        const Field[ComplexD]& gf1,
+        const RealD mass, const RealD m5, const Int ls,
+        const vector[ComplexD]& t_wick_phase_factor_vec,
+        const bool is_dagger) except +
+

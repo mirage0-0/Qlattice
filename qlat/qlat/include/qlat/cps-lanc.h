@@ -11,7 +11,7 @@ Long lanczosWriteParNode(const Lanczos& lanc, const std::string& path)
     const std::string filename = path + "/eigen-values.txt";
     FILE* file = fopen(filename.c_str(), "w");
     fprintf(file, "%d\n", lanc.size);
-    for (int i = 0; i < lanc.size; i++) {
+    for (Int i = 0; i < lanc.size; i++) {
       double val = lanc.getVal(i);
       fprintf(file, "%.20lE\n", val);
     }
@@ -19,7 +19,7 @@ Long lanczosWriteParNode(const Lanczos& lanc, const std::string& path)
   }
   std::vector<DataSizeNmemb> dsns;
   dsns.resize(lanc.size);
-  for (int k = 0; k < lanc.size; k++) {
+  for (Int k = 0; k < lanc.size; k++) {
     dsns[k].data = (void*)lanc.getVec(k);
     dsns[k].size = lanc.vec_size;
     dsns[k].nmemb = 1;
@@ -34,7 +34,7 @@ Long lanczosReadParNode(Lanczos& lanc, const std::string& path)
 {
   if (!DoesFileExist(path + "/checkpoint")) {
     qlat::DisplayInfo(cname, "lanczosReadParNode", "'%s' do not exist.\n",
-                path.c_str());
+                      path.c_str());
     return 0;
   }
   TIMER_VERBOSE_FLOPS("lanczosReadParNode");
@@ -51,19 +51,20 @@ Long lanczosReadParNode(Lanczos& lanc, const std::string& path)
   timer.flops += lanc.size * lanc.vec_size * getNumNode();
   double vals[lanc.size];
   memset(vals, 0, sizeof(vals));
-  qlat::DisplayInfo(cname, fname.c_str(), "Reading %d eigen-values.\n", lanc.size);
+  qlat::DisplayInfo(cname, fname.c_str(), "Reading %d eigen-values.\n",
+                    lanc.size);
   if (0 == getIdNode()) {
     const std::string filename = path + "/eigen-values.txt";
     FILE* file = fopen(filename.c_str(), "r");
     fscanf(file, "%ld\n", &nvec);
-    for (int i = 0; i < lanc.size; i++) {
+    for (Int i = 0; i < lanc.size; i++) {
       fscanf(file, "%lE\n", &vals[i]);
       std::cout << sqrt(vals[i]) << std::endl;
     }
     fclose(file);
   }
   sumArray(vals, lanc.size);
-  for (int k = 0; k < lanc.size; k++) {
+  for (Int k = 0; k < lanc.size; k++) {
     lanc.getVal(k) = vals[k];
   }
   std::vector<DataSizeNmemb> dsns;
@@ -71,11 +72,11 @@ Long lanczosReadParNode(Lanczos& lanc, const std::string& path)
   {
     TIMER_VERBOSE_FLOPS("lanczosReadParNode-alloc");
     timer.flops += lanc.size * lanc.vec_size;
-    for (int k = 0; k < lanc.size; k++) {
+    for (Int k = 0; k < lanc.size; k++) {
       lanc.alloc(k);
     }
   }
-  for (int k = 0; k < lanc.size; k++) {
+  for (Int k = 0; k < lanc.size; k++) {
     dsns[k].data = lanc.getVec(k);
     dsns[k].size = lanc.vec_size;
     dsns[k].nmemb = 1;
@@ -85,16 +86,16 @@ Long lanczosReadParNode(Lanczos& lanc, const std::string& path)
   return total_bytes;
 }
 
-void lanczosFill(Lanczos& lanc, const int size)
+void lanczosFill(Lanczos& lanc, const Int size)
 {
   TIMER_VERBOSE_FLOPS("lanczosFill");
   timer.flops += size * lanc.vec_size;
   lanc.resize(size);
-  for (int k = 0; k < size; k++) {
+  for (Int k = 0; k < size; k++) {
     lanc.alloc(k);
     lanc.getVal(k) = k;
-    float* vec = lanc.getVec(k);
-    for (int i = 0; i < lanc.vec_size / sizeof(float); i++) {
+    RealF* vec = lanc.getVec(k);
+    for (Int i = 0; i < lanc.vec_size / sizeof(float); i++) {
       vec[i] = i;
     }
   }

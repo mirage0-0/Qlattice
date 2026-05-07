@@ -1,13 +1,26 @@
 {
-  nixpkgs ? import ./nixpkgs.nix {},
+  nixpkgs ? null, # nixpkgs. E.g. (fetchTarball "https://channels.nixos.org/nixos-25.11/nixexprs.tar.xz")
+  version ? null, # version of the nixpkgs. E.g. "25.11"
   ngpu ? null, # adjust with desired number of GPUs. E.g. "2"
   cudaCapability ? null, # adjust with desired cudaCapability. E.g. "8.6"
   cudaForwardCompat ? null, # adjust with desired cudaForwardCompat. E.g. false
+  use-gitee ? null, # true or false (default false)
 }:
 
 let
 
-  o-pkgs = nixpkgs {
+  version-wd = if version == null then "" else version;
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+  nixpkgs-default = import ./nixpkgs.nix {
+    version = version-wd;
+    use-gitee = use-gitee-wd;
+  };
+  nixpkgs-wd = if nixpkgs == null then nixpkgs-default else nixpkgs;
+  import-nixpkgs-wd = import nixpkgs-wd;
+
+  version-pypi = "1.02";
+
+  o-pkgs = import-nixpkgs-wd {
     config.allowUnfree = true;
   };
 
@@ -19,11 +32,21 @@ let
 
   runCommand = o-pkgs.runCommand;
 
-  version-pypi = "0.76";
+  # n-pkgs-src = builtins.fetchTarball "https://channels.nixos.org/nixos-unstable-small/nixexprs.tar.xz";
 
-  nixgl-src = builtins.fetchTarball "https://github.com/jinluchang/nixGL/archive/0666d975fb80a7e8bedb4caafff8f113c5b14072.tar.gz";
+  # n-pkgs = import n-pkgs-src {
+  #   config.allowUnfree = true;
+  # };
+
+  nixgl-src = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/nixGL" else "https://github.com/jinluchang/nixGL";
+    ref = "main";
+    rev = "f72374ff8c0dccef46b7b02e7cde09f91007aac6";
+  };
 
   nixgl = (import nixgl-src {}).auto.nixGLDefault;
+
+  is-linux = lib.lists.elem builtins.currentSystem lib.platforms.linux;
 
   cpuinfo-sys = builtins.readFile (runCommandLocal
   "impure-cpuinfo-file"
@@ -52,11 +75,13 @@ let
   ''
   )));
 
+  nvidia_x11_bin = if ngpu-sys == "0"
+  then null
+  else o-pkgs.linuxPackages.nvidia_x11.bin;
+
   cudaCapability-sys = if ngpu-sys == "0"
   then null
-  else let
-    nvidia_x11 = o-pkgs.linuxPackages.nvidia_x11;
-  in builtins.head (builtins.match
+  else builtins.head (builtins.match
   "(.*)\n"
   (builtins.readFile (runCommandLocal
   "impure-cuda-capability-file"
@@ -64,7 +89,7 @@ let
     time = builtins.currentTime;
   }
   ''
-    ${nixgl}/bin/nixGL ${nvidia_x11.bin}/bin/nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null \
+    ${nixgl}/bin/nixGL ${nvidia_x11_bin}/bin/nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null \
       | head -n 1 >$out 2>/dev/null \
       || echo >$out
     echo "cudaCapability=$(cat $out)"
@@ -119,6 +144,7 @@ let
     };
     corrections-3 = opts: opts // {
       ${if opts.use-cuda then "use-cuda-software" else null} = true;
+      ${if opts.use-cuda then "use-clang" else null} = false;
     };
     corrections-4 = opts: opts // {
       ${if ! opts.use-cuda-software then "ngpu" else null} = 0;
@@ -130,10 +156,7 @@ let
       ${if opts.ngpu == "0" then "use-cuda" else null} = false;
       ${if opts.ngpu == "0" then "use-cudasupport" else null} = false;
     };
-    corrections-6 = opts: opts // {
-      ${if nixpkgs-release == "24.05" then "use-cudasupport" else null} = false;
-    };
-    opts = corrections-6 (corrections-5 (corrections-4 (corrections-3 (corrections-2 (corrections-1 opts-0)))));
+    opts = corrections-5 (corrections-4 (corrections-3 (corrections-2 (corrections-1 opts-0))));
     opts-1 =
       assert (opts.use-cudasupport -> opts.use-cuda);
       assert (opts.use-cuda -> opts.use-cuda-software);
@@ -167,26 +190,33 @@ let
     call-pkg = prev.callPackage;
     py-call-pkg = python3.pkgs.callPackage;
     #
+    use-gitee = use-gitee-wd;
+    #
     qlat-name = mk-qlat-name opts;
     #
-    qlat-stdenv = if ! opts.use-clang
-    then pkgs.stdenv
-    else pkgs.clangStdenv;
+    qlat-stdenv = if opts.use-clang
+    then pkgs.clangStdenv
+    else if opts.use-cuda
+    then pkgs.cudaPackages.backendStdenv
+    else pkgs.gccStdenv;
     #
-    openmp = if ! opts.use-clang
-    then null
-    else pkgs.llvmPackages.openmp;
+    openmp = if qlat-stdenv.cc.isClang
+    then pkgs.llvmPackages.openmp
+    else null;
     #
     qlat-eigen = if opts.use-grid-gpt
     then grid-lehner
     else pkgs.eigen;
     #
-    qlat-cc = (if ! opts.use-clang
-    then { inherit (pkgs) gcc; }
-    else { inherit (pkgs) clang; inherit openmp; }
-    )
+    qlat-cc = {
+      cc = qlat-stdenv.cc;
+      cc-c = qlat-stdenv.cc.libc;
+      cc-cc = qlat-stdenv.cc.cc;
+    }
     //
     { inherit (pkgs) pkg-config; }
+    //
+    (if opts.use-clang then { inherit openmp; } else {})
     //
     (if opts.use-cuda-software then {
       inherit (pkgs.cudaPackages)
@@ -198,39 +228,64 @@ let
       libcublas
       libnpp
       cudnn
+      nccl
       cudatoolkit
+      fabricmanager
       ;
     } else {}
     );
     #
-    ucx = (pkgs.ucx.overrideAttrs (final: prev: {
+    ucx-mt = (pkgs.ucx.overrideAttrs (final: prev: {
       configureFlags = prev.configureFlags ++ [
         "--enable-mt"
       ];
-    })).override { enableCuda = opts.use-cuda-software; };
-    ucx-dev = pkgs.buildEnv {
-      name = "ucx-dev";
-      paths = [ ucx ];
-      extraOutputsToInstall = [ "out" "bin" "dev" "static" "man" "doc" "info" ];
+    })).override {
+      enableCuda = opts.use-cuda-software;
     };
-    mpi = (pkgs.mpi.overrideAttrs (final: prev: {
-      configureFlags = prev.configureFlags ++
-      (let
+    ucx-mt-dev = pkgs.buildEnv {
+      name = "ucx-mt-dev";
+      paths = [ ucx-mt ];
+      extraOutputsToInstall = [ "out" "bin" "dev" "lib" "static" "man" "doc" "info" ];
+    };
+    mpi = if ! opts.use-ucx && ! opts.use-cuda-software
+    then pkgs.mpi
+    else if ! opts.use-cuda-software
+    then pkgs.mpi.overrideAttrs (final: prev: {
+      configureFlags = prev.configureFlags
+      ++ lib.optionals opts.use-ucx [ "--with-ucx=${lib.getDev ucx-mt-dev}" ];
+    })
+    else (pkgs.mpi.overrideAttrs (final: prev: {
+      configureFlags = prev.configureFlags
+      ++ (let
         cudaPackages = pkgs.cudaPackages;
-      in lib.optionals opts.use-ucx [ "--with-ucx=${lib.getDev ucx-dev}" ]
-      ++ lib.optionals opts.use-cuda-software [ "--with-cuda-libdir=${cudaPackages.cuda_cudart.stubs}/lib" ]
+        cudaSupport = opts.use-cuda-software;
+        use-ucx = opts.use-ucx;
+      in [
+        (lib.withFeatureAs use-ucx "with-ucx" "${lib.getDev ucx-mt-dev}")
+        (lib.withFeatureAs cudaSupport "cuda-libdir" "${lib.getLib cudaPackages.cuda_cudart}/lib/stubs")
+      ]
       );
-    })).override { cudaSupport = opts.use-cuda-software; };
+      env.NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
+        "-Wno-error=int-conversion"
+        "-Wno-error=incompatible-pointer-types"
+        "-Wno-error=implicit-function-declaration"
+      ];
+    })).override {
+      cudaSupport = opts.use-cuda-software;
+    };
     python3 = pkgs.python3.override {
       packageOverrides = final: prev: rec {
-        mpi4py = prev.mpi4py.overridePythonAttrs (py-prev: {
-          doCheck = true;
-          nativeBuildInputs = (py-prev.nativeBuildInputs or [])
-          ++ lib.optionals opts.use-cuda-software [
+        mpi4py = if ! opts.use-cuda-software
+        then prev.mpi4py
+        else prev.mpi4py.overridePythonAttrs (py-prev: {
+          doCheck = if lib.lists.elem version-wd [ "24.11" "25.05" ]
+          then true
+          else false;
+          nativeBuildInputs = (py-prev.nativeBuildInputs or []) ++ [
             qlat-nixgl
             pkgs.which
           ];
-          preInstallCheck = lib.optionalString opts.use-cuda-software ''
+          preInstallCheck = ''
             which nixGL
             echo
             echo "run with nixGL"
@@ -244,20 +299,63 @@ let
             echo $LD_LIBRARY_PATH
           '';
         });
-        jax = prev.jax.overridePythonAttrs (py-prev: {
-          doCheck = ! opts.use-cudasupport;
-          nativeBuildInputs = (py-prev.nativeBuildInputs or [])
-          ++ lib.optionals opts.use-cudasupport [
+        jax = if ! opts.use-cudasupport
+        then prev.jax
+        else prev.jax.overridePythonAttrs (py-prev: {
+          doCheck = false;
+          nativeBuildInputs = (py-prev.nativeBuildInputs or []) ++ [
             prev.jaxlib
+            qlat-nixgl
+            pkgs.which
           ];
+          preInstallCheck = ''
+            which nixGL
+            echo
+            echo "run with nixGL"
+            echo
+            cat $(which nixGL) | grep -v 'exec ' | grep -v '^#!' > nix-gl.sh
+            echo
+            echo cat nix-gl.sh
+            cat nix-gl.sh
+            source nix-gl.sh
+            echo
+            echo $LD_LIBRARY_PATH
+          '';
         });
-        accelerate = prev.accelerate.overridePythonAttrs (py-prev: {
-          doCheck = ! opts.use-cudasupport;
+        accelerate = if ! opts.use-cudasupport
+        then prev.accelerate
+        else prev.accelerate.overridePythonAttrs (py-prev: {
+          doCheck = false;
+          nativeBuildInputs = (py-prev.nativeBuildInputs or []) ++ [
+            qlat-nixgl
+            pkgs.which
+          ];
+          preInstallCheck = ''
+            which nixGL
+            echo
+            echo "run with nixGL"
+            echo
+            cat $(which nixGL) | grep -v 'exec ' | grep -v '^#!' > nix-gl.sh
+            echo
+            echo cat nix-gl.sh
+            cat nix-gl.sh
+            source nix-gl.sh
+            echo
+            echo $LD_LIBRARY_PATH
+          '';
         });
         gvar = pkgs.python3.pkgs.callPackage ./gvar.nix {};
         vegas = pkgs.python3.pkgs.callPackage ./vegas.nix { gvar = gvar; };
         lsqfit = pkgs.python3.pkgs.callPackage ./lsqfit.nix { gvar = gvar; vegas = vegas; };
         corrfitter = pkgs.python3.pkgs.callPackage ./corrfitter.nix { lsqfit = lsqfit; gvar = gvar; };
+        qcd_ml = pkgs.python3.pkgs.callPackage ./qcd_ml.nix {};
+        # diffusers = pkgs.python3.pkgs.callPackage
+        # (import "${n-pkgs-src}/pkgs/development/python-modules/diffusers/default.nix") {
+        #   jax = jax; diffusers = diffusers;
+        # };
+        # ollama = pkgs.python3.pkgs.callPackage
+        # (import "${n-pkgs-src}/pkgs/development/python-modules/ollama/default.nix") {
+        # };
       };
     };
     #
@@ -392,17 +490,26 @@ let
     #
     qlat-py = python3.withPackages (ps: builtins.attrValues qlat-py-pkgs);
     qlat-pkgs = {
-      inherit qlat-py;
-    } // qlat-dep-pkgs // qlat-dep-pkgs-extra;
+      inherit
+      qlat-py
+      qlat-nixgl
+      qlat-stdenv
+      mpi
+      nvidia_x11_bin
+      ;
+    }
+    // qlat-dep-pkgs
+    // qlat-dep-pkgs-extra;
     qlat-tests = pkgs.buildEnv {
       name = "qlat-tests${qlat-name}";
       paths = builtins.attrValues qlat-tests-pkgs;
-      extraOutputsToInstall = [ "out" "bin" "dev" "static" "man" "doc" "info" ];
+      extraOutputsToInstall = [ "out" "bin" "dev" "lib" "static" "man" "doc" "info" ];
     };
     qlat-env = pkgs.buildEnv {
       name = "qlat-env${qlat-name}";
       paths = builtins.attrValues qlat-pkgs;
-      extraOutputsToInstall = [ "out" "bin" "dev" "static" "man" "doc" "info" ];
+      extraOutputsToInstall = [ "out" "bin" "dev" "lib" "static" "man" "doc" "info" ];
+      ignoreCollisions = true;
     };
     qlat-sh = pkgs.mkShell rec {
       name = "qlat-sh${qlat-name}";
@@ -421,7 +528,7 @@ let
         qlat-env
       ] ++ builtins.attrValues qlat-cc;
       runScript = "bash";
-      extraOutputsToInstall = [ "bin" "dev" "static" "man" "doc" "info" ];
+      extraOutputsToInstall = [ "bin" "dev" "lib" "static" "man" "doc" "info" ];
       profile=''
         # PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
       '';
@@ -437,11 +544,13 @@ let
       jaxlib
       gvar
       vegas
+      qcd_ml
       lsqfit
       corrfitter
       meson
       ninja
       mpi4py
+      openai
       psutil
       cython
       pybind11
@@ -461,54 +570,95 @@ let
       flit-core
       virtualenv
       h5py
-      pandas
-      scikit-learn
-      xarray
-      matplotlib
-      plotly
-      seaborn
-      jupyter-server-mathjax
-      numba
-      transformers
-      ipywidgets
-      accelerate
-      ollama
-      torch
+      sentencepiece
       sphinx
       linkify-it-py
       myst-parser
+      pytest
       pytools
       lz4
-      torchvision
-      torchaudio
-      xformers
+      soundfile
+      pypdf
+      reportlab
+      pdfminer-six
+      awkward
+      uproot
+      iminuit
+      hepunits
+      networkx
+      joblib
+      dask
+      tables
+      zarr
+      tqdm
+      pyarrow
+      bokeh
+      ipython
+      mypy
+      black
+      memory-profiler
+      tabulate
+      pyyaml
+      click
+      tiktoken
+      ;
+    }
+    // (if is-linux then {
+      inherit (ps)
+      xarray
+      numba
+      torch
+      matplotlib
+      ipywidgets
+      scikit-learn
+      accelerate
+      jupyter-server-mathjax
       jupyterlab
       jupyterhub
       jupyterhub-systemdspawner
+      xformers
+      rich
+      transformers
+      plotly
+      seaborn
+      pandas
+      torchvision
+      torchaudio
+      tensorboard
+      optuna
+      datasets
+      tokenizers
+      safetensors
       ;
-    }
+    } else {}
+    )
     // (if opts.use-cuda-software then {
       inherit (ps)
       pycuda
-      diffusers
       bitsandbytes
+      diffusers
       ;
     } else {}
     )
     // qlat-py-pkgs
     ));
-    qlat-jhub-env = pkgs.buildEnv {
-      name = "qlat-jhub-env${qlat-name}";
-      paths = builtins.attrValues ({
-        inherit qlat-jhub-py mpi;
+    qlat-lib-set = ({
+        inherit
+        qlat-jhub-py
+        qlat-nixgl
+        mpi
+        nvidia_x11_bin
+        ;
         inherit (pkgs)
         bashInteractive
         bash-completion
+        stdenvNoCC
         coreutils
         openssh
-        linux-pam
         findutils
         clang-tools
+        ruff
+        m4
         git
         gnumake
         zlib
@@ -525,21 +675,100 @@ let
         fftwFloat
         openssl
         gnuplot
-        texliveFull
         pipx
         twine
-        poppler_utils
         file
         zip
         unzip
-        ollama
+        bzip2
+        curl
+        expat
+        icu
+        libsodium
+        libssh
+        nspr
+        nss
+        zstd
+        pdftk
+        qpdf
+        ghostscript
         ;
-      }
-      // qlat-cc
-      // qlat-dep-pkgs
-      // qlat-dep-pkgs-extra
-      );
-      extraOutputsToInstall = [ "out" "bin" "dev" "static" "man" "doc" "info" ];
+    }
+    // (if lib.lists.elem version-wd [ "24.11" "25.05" ]
+    then {
+      inherit (pkgs)
+      poppler_utils
+      ;
+    }
+    else {
+      inherit (pkgs)
+      poppler-utils
+      ;
+    }
+    )
+    // (if is-linux
+    then {
+      inherit (pkgs)
+      linux-pam
+      util-linux
+      fuse3
+      pipewire
+      cups
+      dbus
+      acl
+      alsa-lib
+      at-spi2-atk
+      at-spi2-core
+      attr
+      gdk-pixbuf
+      glib
+      atk
+      gtk3
+      pango
+      cairo
+      libappindicator-gtk3
+      libdrm
+      libGL
+      libglvnd
+      libnotify
+      libpulseaudio
+      libunwind
+      libusb1
+      libuuid
+      libxkbcommon
+      mesa
+      vulkan-loader
+      texliveFull
+      fontconfig
+      freetype
+      ;
+      inherit (pkgs.xorg)
+      libX11
+      libXScrnSaver
+      libXcomposite
+      libXcursor
+      libXdamage
+      libXext
+      libXfixes
+      libXi
+      libXrandr
+      libXrender
+      libXtst
+      libxcb
+      libxkbfile
+      libxshmfence
+      ;
+    }
+    else {}
+    )
+    // qlat-cc
+    // qlat-dep-pkgs
+    // qlat-dep-pkgs-extra
+    );
+    qlat-jhub-env = pkgs.buildEnv {
+      name = "qlat-jhub-env${qlat-name}";
+      paths = builtins.attrValues qlat-lib-set;
+      extraOutputsToInstall = [ "out" "bin" "dev" "lib" "static" "man" "doc" "info" ];
       ignoreCollisions = true;
     };
     qlat-jhub-sh = pkgs.mkShell rec {
@@ -559,7 +788,7 @@ let
         qlat-jhub-env
       ] ++ builtins.attrValues qlat-cc;
       runScript = "bash";
-      extraOutputsToInstall = [ "bin" "dev" "static" "man" "doc" "info" ];
+      extraOutputsToInstall = [ "bin" "dev" "lib" "static" "man" "doc" "info" ];
       profile=''
         # PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
       '';
@@ -573,8 +802,9 @@ let
     #
   in {
     inherit qlat-name;
-    inherit qlat-nixgl;
-    inherit python3 mpi openmp ucx;
+    inherit use-gitee;
+    inherit qlat-nixgl qlat-stdenv;
+    inherit python3 mpi openmp ucx-mt ucx-mt-dev;
     inherit c-lime qmp qio cps cuba-quad grid-lehner gpt-lehner;
     inherit qlat_utils qlat qlat_grid qlat_cps;
     inherit qlat-examples-cpp qlat-examples-cpp-grid qlat-examples-py qlat-examples-py-gpt qlat-examples-py-cps;
@@ -582,6 +812,7 @@ let
     inherit qlat-py qlat-tests qlat-env qlat-sh qlat-fhs;
     inherit qlat-jhub-py qlat-jhub-env qlat-jhub-sh qlat-jhub-fhs;
     inherit qlat-pkgs q-pkgs;
+    inherit qlat-lib-set;
     qlat-options = opts;
     qlat-use-pypi = opts.use-pypi;
   };
@@ -589,7 +820,7 @@ let
   mk-q-pkgs = options: let
     opts = mk-options options;
     qlat-name = mk-qlat-name opts;
-    pkgs = nixpkgs {
+    pkgs = import-nixpkgs-wd {
       config = {
         allowUnfree = opts.use-cuda-software;
         cudaSupport = opts.use-cudasupport;
@@ -611,32 +842,34 @@ let
 
   options-list = [
     {}
-    { use-grid-gpt = false; use-cps = false; }
-    { use-grid-gpt = false; }
+    { use-cps = false; use-grid-gpt = false; }
     { use-cps = false; }
+    { use-grid-gpt = false; }
     { use-cuda-software = true; }
     { use-cuda = true; }
     { use-cudasupport = true; }
-    { use-grid-gpt = false; use-cubaquad = false; }
-    { use-grid-gpt = false; use-clang = true; }
     { use-ucx = false; }
+    { use-clang = true; }
     { use-pypi = version-pypi; }
     #
-    { use-grid-gpt = false; use-cps = false; use-ucx = false; }
-    { use-grid-gpt = false; use-cps = false; use-clang = true; use-ucx = false; }
-    #
-    # { use-clang = true; } # not working yet
-    # { use-clang = true; use-ucx = false; } # not working yet
-    # { use-cps = false; use-clang = true; use-ucx = false; } # not working yet
-    # { use-cps = false; use-clang = true; } # not working yet
-    #
+    { use-clang = true; use-ucx = false; }
     { use-cuda = true; use-ucx = false; }
-    { use-grid-gpt = false; use-cps = false; use-cuda-software = true; }
-    { use-grid-gpt = false; use-cps = false; use-cuda = true; }
-    { use-grid-gpt = false; use-cps = false; use-cudasupport = true; }
+    { use-grid-gpt = false; use-cubaquad = false; }
+    { use-grid-gpt = false; use-clang = true; }
+    #
+    { use-cps = false; use-grid-gpt = false; use-ucx = false; }
+    { use-cps = false; use-grid-gpt = false; use-clang = true; use-ucx = false; }
+    #
+    { use-cps = false; use-ucx = false; }
+    { use-cps = false; use-clang = true; use-ucx = false; }
+    { use-cps = false; use-clang = true; }
+    #
+    { use-cps = false; use-grid-gpt = false; use-cuda-software = true; }
+    { use-cps = false; use-grid-gpt = false; use-cuda = true; }
+    { use-cps = false; use-grid-gpt = false; use-cudasupport = true; }
   ];
 
-  qlat-name-list = lib.lists.unique (map mk-qlat-name (map mk-options options-list));
+  qlat-name-list = lib.lists.unique (builtins.map mk-qlat-name (builtins.map mk-options options-list));
 
   qlat-name-list-file-from-str = builtins.toFile "qlat-name-list"
   (builtins.foldl' (s: v: s + "${v}\n") "" qlat-name-list);
@@ -648,13 +881,18 @@ let
     cp -v ${qlat-name-list-file-from-str} $out
   '';
 
-  q-pkgs = (builtins.foldl' (s: v: s // v) {}
-  (builtins.map mk-q-pkgs options-list))
-  // {
-    inherit mk-q-pkgs;
-    inherit mk-overlay;
-    inherit options-list qlat-name-list qlat-name-list-file-from-str;
-    inherit qlat-name-list-file;
-  };
+  q-pkgs-list = builtins.map mk-q-pkgs options-list;
 
-in q-pkgs
+  all-q-pkgs = builtins.foldl' (s: v: s // v) {} q-pkgs-list;
+
+  all-qlat-env = builtins.foldl' (s: v: s // { "qlat-env${v}" = all-q-pkgs."qlat-env${v}"; }) {} qlat-name-list;
+
+  all-qlat-tests = builtins.foldl' (s: v: s // { "qlat-tests${v}" = all-q-pkgs."qlat-tests${v}"; }) {} qlat-name-list;
+
+in all-q-pkgs // {
+  inherit mk-q-pkgs;
+  inherit mk-overlay;
+  inherit options-list qlat-name-list qlat-name-list-file-from-str;
+  inherit qlat-name-list-file;
+  inherit all-qlat-env all-qlat-tests;
+}

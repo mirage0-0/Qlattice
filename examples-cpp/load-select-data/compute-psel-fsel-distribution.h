@@ -36,7 +36,7 @@ inline void compute_psel_fsel_distribution_type(const std::string& job_tag,
     return;
   }
   TIMER_VERBOSE("compute_psel_fsel_distribution_type");
-  const PointsSelection& psel = get_point_selection(job_tag, traj);
+  const PointsSelection& psel = get_points_selection(job_tag, traj);
   const Long n_points = psel.size();
   const FieldSelection& fsel = get_field_selection(job_tag, traj);
   FieldM<ComplexD, 1> pos;
@@ -69,7 +69,8 @@ inline void compute_psel_fsel_distribution_type(const std::string& job_tag,
   write_field_double(avg, fn_avg);
 }
 
-inline void compute_psel_fsel_distribution(const std::string& job_tag, const int traj)
+inline void compute_psel_fsel_distribution(const std::string& job_tag,
+                                           const int traj)
 {
   check_sigterm();
   Timer::autodisplay();
@@ -84,12 +85,14 @@ inline void compute_psel_fsel_distribution(const std::string& job_tag, const int
   }
   check_sigterm();
   check_time_limit();
-  if (not obtain_lock(ssprintf("lock-psel-fsel-distribution-%s-%d", job_tag.c_str(), traj))) {
+  if (not obtain_lock(ssprintf("lock-psel-fsel-distribution-%s-%d",
+                               job_tag.c_str(), traj))) {
     return;
   }
   setup(job_tag, traj);
   qmkdir_info("analysis/field-psel-fsel-distribution");
-  qmkdir_info(ssprintf("analysis/field-psel-fsel-distribution/%s", job_tag.c_str()));
+  qmkdir_info(
+      ssprintf("analysis/field-psel-fsel-distribution/%s", job_tag.c_str()));
   qmkdir_info(path);
   compute_psel_fsel_distribution_type(job_tag, traj, 0);
   compute_psel_fsel_distribution_type(job_tag, traj, 1);

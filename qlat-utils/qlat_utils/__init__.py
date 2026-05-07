@@ -23,15 +23,13 @@ from .qplot import *
 
 from .parallel import *
 
-from .get_include_dir import *
-
 from .json import *
 
 from .lru_cache import *
 
-from . import q_fit_corr
+from . import q_fit_corr as q_fit_corr
 
-from . import q_fit_corr_2
+from . import q_fit_corr_2 as q_fit_corr_2
 
 set_verbose_level()
 

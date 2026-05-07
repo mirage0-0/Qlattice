@@ -1,5 +1,5 @@
 project('qlat-utils', 'cpp', 'cython',
-  version: '0.77',
+  version: '1.02',
   license: 'GPL-3.0-or-later',
   default_options: [
     'warning_level=3',
@@ -52,5 +52,6 @@ endif
 
 deps = [ py3.dependency().as_system(), numpy, eigen, omp, zlib, math, quadmath, ]
 
+subdir('qlat_utils_config')
 subdir('qlat_utils')
 subdir('bin')

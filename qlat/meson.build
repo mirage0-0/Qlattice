@@ -1,5 +1,5 @@
 project('qlat', 'cpp', 'cython',
-  version: '0.77',
+  version: '1.02',
   license: 'GPL-3.0-or-later',
   default_options: [
     'warning_level=3',
@@ -47,6 +47,7 @@ deps = [ qlat_utils, mpic, fftw_all, cuba, gsl, ]
 
 py3.install_sources('qlat_gpt.py')
 
+subdir('qlat_config')
 subdir('qlat')
 subdir('cqlat')
 subdir('auto_contractor')

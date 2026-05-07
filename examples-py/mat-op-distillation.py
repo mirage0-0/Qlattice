@@ -12,17 +12,37 @@ nn_s = 4
 nn_c = 3
 
 def make_rnd_sm(rs: q.RngState):
-    x = np.zeros((nn_s, nn_s,), dtype = np.complex128)
+    x = np.zeros(
+        (
+            nn_s,
+            nn_s,
+        ),
+        dtype=np.complex128,
+    )
     rs.u_rand_fill(x, 1.0, -1.0)
     return x
 
 def make_rnd_cm(rs: q.RngState):
-    x = np.zeros((nn_c, nn_c,), dtype = np.complex128)
+    x = np.zeros(
+        (
+            nn_c,
+            nn_c,
+        ),
+        dtype=np.complex128,
+    )
     rs.u_rand_fill(x, 1.0, -1.0)
     return x
 
 def make_rnd_wm(rs: q.RngState):
-    x = np.zeros((nn_s, nn_c, nn_s, nn_c,), dtype = np.complex128)
+    x = np.zeros(
+        (
+            nn_s,
+            nn_c,
+            nn_s,
+            nn_c,
+        ),
+        dtype=np.complex128,
+    )
     rs.u_rand_fill(x, 1.0, -1.0)
     return x
 
@@ -130,4 +150,4 @@ q.timer_display()
 
 q.end_with_mpi()
 
-q.displayln_info(f"CHECK: finished successfully.")
+q.displayln_info("CHECK: finished successfully.")

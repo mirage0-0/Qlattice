@@ -31,8 +31,8 @@ source qcore/set-prefix.sh $name
     export CC=
     export CXX=nvcc
     export CFLAGS=
-    export CXXFLAGS="-Xcompiler -fPIC -ccbin MPICXX.sh -arch=$NVCC_ARCH -w"
-    export LDFLAGS="-Xcompiler -fopenmp -ccbin MPICXX.sh"
+    export CXXFLAGS="-Xcompiler -fPIC -ccbin $(which MPICXX.sh) -arch=$NVCC_ARCH -w"
+    export LDFLAGS="-Xcompiler -fopenmp -ccbin $(which MPICXX.sh)"
     export LIBS=
     export MPICXX=
     export MPICC=
@@ -82,8 +82,11 @@ source qcore/set-prefix.sh $name
         $opts \
         --prefix="$prefix"
 
-    time-run make -j$num_proc
-    time-run make install
+    time-run make -j$num_proc -C Grid
+    time-run make -j$num_proc -C benchmarks Benchmark_dwf_fp32
+    time-run make install -C Grid
+    time-run install -D -m755 grid-config "$prefix"/bin/grid-config
+    time-run install -D -m755 benchmarks/Benchmark_dwf_fp32 "$prefix"/bin/Benchmark_dwf_fp32
 
     mk-setenv.sh
     echo "!!!! $name build !!!!"

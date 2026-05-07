@@ -3,6 +3,50 @@
 namespace qlat
 {  //
 
+Long lat_dim_idx(const LatDim& dim, const std::string& idx)
+// return the Long idx_int that dim.indices[idx_int] contains the std::string&
+// idx. Will check if the idx_int is unique.
+//
+// For dim.indices does not cover the entire range, will require exact match or
+// (- read_long(idx) - 1). Default index being -idx-1.
+{
+  if ((Long)dim.indices.size() == 0) {
+    Long i = read_long(idx);
+    if (i >= 0) {
+      Qassert(i < dim.size);
+      return i;
+    } else {
+      i = -i - 1;
+      Qassert(i < dim.size);
+      return i;
+    }
+  } else if ((Long)dim.indices.size() == dim.size) {
+    for (Long i = 0; i < (Long)dim.indices.size(); ++i) {
+      if (idx == dim.indices[i]) {
+        return i;
+      }
+    }
+    std::vector<Long> possible_i_vec;
+    for (Long i = 0; i < (Long)dim.indices.size(); ++i) {
+      if (dim.indices[i].find(idx) != std::string::npos) {
+        possible_i_vec.push_back(i);
+      }
+    }
+    Qassert(possible_i_vec.size() == 1);
+    return possible_i_vec[0];
+  } else {
+    Qassert((Long)dim.indices.size() <= dim.size);
+    for (Long i = 0; i < (Long)dim.indices.size(); ++i) {
+      if (idx == dim.indices[i]) {
+        return i;
+      }
+    }
+    const Long i = -read_long(idx) - 1;
+    Qassert((Long)dim.indices.size() <= i and i < dim.size);
+    return i;
+  }
+}
+
 bool is_lat_info_complex(const LatInfo& info)
 {
   if ((Long)info.size() < 1) {
@@ -12,10 +56,10 @@ bool is_lat_info_complex(const LatInfo& info)
   if (dim.name != "re-im") {
     return false;
   } else {
-    qassert(dim.size == 2);
-    qassert(dim.indices.size() == 2);
-    qassert(dim.indices[0] == "re");
-    qassert(dim.indices[1] == "im");
+    Qassert(dim.size == 2);
+    Qassert(dim.indices.size() == 2);
+    Qassert(dim.indices[0] == "re");
+    Qassert(dim.indices[1] == "im");
     return true;
   }
 }
@@ -55,7 +99,7 @@ std::string show(const LatInfo& info)
 {
   std::ostringstream out;
   out << ssprintf("ndim: %ld\n", info.size());
-  for (int i = 0; i < (int)info.size(); ++i) {
+  for (Int i = 0; i < (Int)info.size(); ++i) {
     out << show(info[i]) << "\n";
   }
   return out.str();
@@ -79,10 +123,10 @@ LatDim read_lat_dim(const std::string& str)
   } else {
     while (parse_char(c, cur, str)) {
       if (c == '\n') {
-        qassert(cur == (Long)str.size());
+        Qassert(cur == (Long)str.size());
         break;
       }
-      qassert(c == ' ');
+      Qassert(c == ' ');
       std::string index;
       if (!parse_string(index, cur, str)) {
         qerr("read_lat_dim: string");
@@ -97,12 +141,12 @@ LatInfo read_lat_info(const std::string& str)
 {
   LatInfo info;
   const std::vector<std::string> infos = split_into_lines(str);
-  qassert(infos.size() >= 1);
+  Qassert(infos.size() >= 1);
   const std::string ndim_prop = "ndim: ";
-  qassert(infos[0].compare(0, ndim_prop.size(), ndim_prop) == 0);
+  Qassert(infos[0].compare(0, ndim_prop.size(), ndim_prop) == 0);
   const Long ndim = read_long(std::string(infos[0], ndim_prop.size()));
-  qassert(ndim == (Long)infos.size() - 1);
-  for (int i = 1; i < (int)infos.size(); ++i) {
+  Qassert(ndim == (Long)infos.size() - 1);
+  for (Int i = 1; i < (Int)infos.size(); ++i) {
     info.push_back(read_lat_dim(infos[i]));
   }
   return info;
@@ -116,7 +160,7 @@ const std::string& get_lat_data_header();
 template <class T>
 void lat_data_load(LatDataT<T>& ld, QFile& qfile)
 {
-  qassert(not qfile.null());
+  Qassert(not qfile.null());
   std::vector<char> check_line(get_lat_data_header<T>().size(), 0);
   const Long fread_check_len =
       qfread(check_line.data(), get_lat_data_header<T>().size(), 1, qfile);
@@ -124,8 +168,8 @@ void lat_data_load(LatDataT<T>& ld, QFile& qfile)
     ld.init();
     return;
   }
-  qassert(fread_check_len == 1);
-  qassert(std::string(check_line.data(), check_line.size()) ==
+  Qassert(fread_check_len == 1);
+  Qassert(std::string(check_line.data(), check_line.size()) ==
           get_lat_data_header<T>());
   std::vector<std::string> infos;
   infos.push_back(get_lat_data_header<T>());
@@ -133,21 +177,21 @@ void lat_data_load(LatDataT<T>& ld, QFile& qfile)
     infos.push_back(qgetline(qfile));
   }
   std::ostringstream out;
-  for (int i = 3; i < (int)infos.size() - 2; ++i) {
+  for (Int i = 3; i < (Int)infos.size() - 2; ++i) {
     out << infos[i];
   }
   const std::string info_str = out.str();
   ld.info = read_lat_info(info_str);
   const std::string& crc_str = infos[infos.size() - 2];
   const std::string crc_prop = "crc32: ";
-  qassert(crc_str.compare(0, crc_prop.size(), crc_prop) == 0);
+  Qassert(crc_str.compare(0, crc_prop.size(), crc_prop) == 0);
   const crc32_t crc = read_crc32(std::string(crc_str, crc_prop.size()));
   lat_data_alloc(ld);
-  qassert((Long)ld.res.size() == lat_info_size(ld.info));
-  qassert((Long)ld.res.size() * (Long)sizeof(T) == read_long(infos[2]));
+  Qassert((Long)ld.res.size() == lat_info_size(ld.info));
+  Qassert((Long)ld.res.size() * (Long)sizeof(T) == read_long(infos[2]));
   const Long fread_res_len =
       qfread(ld.res.data(), sizeof(T), ld.res.size(), qfile);
-  qassert(fread_res_len == (Long)ld.res.size());
+  Qassert(fread_res_len == (Long)ld.res.size());
   const crc32_t crc_computed =
       crc32_par(ld.res.data(), ld.res.size() * sizeof(T));
   if (crc != crc_computed) {
@@ -160,11 +204,11 @@ void lat_data_load(LatDataT<T>& ld, QFile& qfile)
 template <class T>
 void lat_data_save(const LatDataT<T>& ld, QFile& qfile)
 {
-  qassert(not qfile.null());
+  Qassert(not qfile.null());
   std::vector<T> res_copy;
   if (!is_little_endian()) {
     res_copy = ld.res;
-    qassert(res_copy.size() == ld.res.size());
+    Qassert(res_copy.size() == ld.res.size());
     to_from_little_endian(get_data(res_copy));
   }
   const std::string data_size =
@@ -175,7 +219,8 @@ void lat_data_save(const LatDataT<T>& ld, QFile& qfile)
                crc32_par(is_little_endian() ? ld.res.data() : res_copy.data(),
                          ld.res.size() * sizeof(T)));
   const std::string end_header = "END_HEADER\n";
-  qfwrite(get_lat_data_header<T>().data(), get_lat_data_header<T>().size(), 1, qfile);
+  qfwrite(get_lat_data_header<T>().data(), get_lat_data_header<T>().size(), 1,
+          qfile);
   qfwrite(data_size.data(), data_size.size(), 1, qfile);
   qfwrite(info_str.data(), info_str.size(), 1, qfile);
   qfwrite(checksum_str.data(), checksum_str.size(), 1, qfile);
@@ -299,7 +344,7 @@ std::string show_real(const LatData& ld)
   std::ostringstream out;
   const LatInfo& info = ld.info;
   out << "# ";
-  for (int a = 0; a < (int)info.size(); ++a) {
+  for (Int a = 0; a < (Int)info.size(); ++a) {
     if (0 == a) {
       out << ssprintf("%10s ", info[a].name.c_str());
     } else {
@@ -309,13 +354,13 @@ std::string show_real(const LatData& ld)
   out << ssprintf("%24s\n", "VALUE");
   std::vector<Long> idx(info.size(), 0);
   for (Long k = 0; k < lat_data_size(ld); ++k) {
-    for (int a = 0; a < (int)info.size(); ++a) {
+    for (Int a = 0; a < (Int)info.size(); ++a) {
       out << ssprintf("%12s ", idx_name(info[a], idx[a]).c_str());
     }
     const Vector<RealD> ldv = lat_data_get_const(ld, idx);
     out << ssprintf("%24.17E\n", ldv[0]);
-    idx[(int)info.size() - 1] += 1;
-    for (int a = (int)info.size() - 1; a > 0; --a) {
+    idx[(Int)info.size() - 1] += 1;
+    for (Int a = (Int)info.size() - 1; a > 0; --a) {
       if (idx[a] == info[a].size) {
         idx[a] = 0;
         idx[a - 1] += 1;
@@ -330,7 +375,7 @@ std::string show_complex(const LatData& ld)
   std::ostringstream out;
   const LatInfo& info = ld.info;
   out << "# ";
-  for (int a = 0; a < (int)info.size() - 1; ++a) {
+  for (Int a = 0; a < (Int)info.size() - 1; ++a) {
     if (0 == a) {
       out << ssprintf("%10s ", info[a].name.c_str());
     } else {
@@ -338,17 +383,17 @@ std::string show_complex(const LatData& ld)
     }
   }
   out << ssprintf("%24s %24s\n", "RE-VALUE", "IM-VALUE");
-  std::vector<Long> idx((int)info.size() - 1, 0);
+  std::vector<Long> idx((Int)info.size() - 1, 0);
   for (Long k = 0; k < lat_data_size(ld) / 2; ++k) {
-    for (int a = 0; a < (int)info.size() - 1; ++a) {
+    for (Int a = 0; a < (Int)info.size() - 1; ++a) {
       out << ssprintf("%12s ", idx_name(info[a], idx[a]).c_str());
     }
     const Vector<ComplexD> ldv = lat_data_cget_const(ld, idx);
     out << ssprintf("%24.17E %24.17E\n", ldv[0].real(), ldv[0].imag());
-    if ((int)info.size() - 2 >= 0) {
-      idx[(int)info.size() - 2] += 1;
+    if ((Int)info.size() - 2 >= 0) {
+      idx[(Int)info.size() - 2] += 1;
     }
-    for (int a = (int)info.size() - 2; a > 0; --a) {
+    for (Int a = (Int)info.size() - 2; a > 0; --a) {
       if (idx[a] == info[a].size) {
         idx[a] = 0;
         idx[a - 1] += 1;
@@ -374,13 +419,13 @@ void print(const LatData& ld)
   display(ssprintf("%s", show(info).c_str()));
   std::vector<Long> idx(info.size(), 0);
   for (Long k = 0; k < lat_data_size(ld); ++k) {
-    for (int a = 0; a < (int)info.size(); ++a) {
+    for (Int a = 0; a < (Int)info.size(); ++a) {
       display(ssprintf("%s[%8s] ", info[a].name.c_str(),
                        idx_name(info[a], idx[a]).c_str()));
     }
     display(ssprintf("%24.17E\n", ld.res[lat_data_offset(ld, idx)]));
     idx[info.size() - 1] += 1;
-    for (int a = info.size() - 1; a > 0; --a) {
+    for (Int a = info.size() - 1; a > 0; --a) {
       if (idx[a] == info[a].size) {
         idx[a] = 0;
         idx[a - 1] += 1;
@@ -414,10 +459,7 @@ LatData operator*(const LatData& ld, const RealD factor)
   return ret;
 }
 
-LatData operator*(const RealD factor, const LatData& ld)
-{
-  return ld * factor;
-}
+LatData operator*(const RealD factor, const LatData& ld) { return ld * factor; }
 
 LatData operator*(const LatData& ld, const ComplexD& factor)
 {
@@ -439,7 +481,7 @@ const LatData& operator+=(LatData& ld, const LatData& ld1)
     if (not is_matching(ld, ld1)) {
       displayln("operator+=(ld,ld1): ld.info: " + show(ld.info));
       displayln("operator+=(ld,ld1): ld1.info: " + show(ld1.info));
-      qassert(false);
+      Qassert(false);
     }
     for (Long i = 0; i < (Long)ld.res.size(); ++i) {
       ld.res[i] += ld1.res[i];
@@ -460,7 +502,7 @@ const LatData& operator-=(LatData& ld, const LatData& ld1)
     if (not is_matching(ld, ld1)) {
       displayln("operator-=(ld,ld1): ld.info: " + show(ld.info));
       displayln("operator-=(ld,ld1): ld1.info: " + show(ld1.info));
-      qassert(false);
+      Qassert(false);
     }
     for (Long i = 0; i < (Long)ld.res.size(); ++i) {
       ld.res[i] -= ld1.res[i];

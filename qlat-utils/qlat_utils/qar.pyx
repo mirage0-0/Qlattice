@@ -144,9 +144,6 @@ cdef class QFile:
     def getlines(self):
         return cc.qgetlines(self.xx)
 
-    def getlines(self):
-        return cc.qgetlines(self.xx)
-
     def qcat(self):
         return <str>cc.qcat(self.xx)
 
@@ -308,6 +305,7 @@ cdef class QarFile:
 
 ### ----------------------------------------------------------
 
+@timer
 def open_qar(const cc.std_string& path, const cc.std_string& mode):
     """
     Call QarFile(path, mode) with kwargs
@@ -473,11 +471,16 @@ def does_regular_file_exist_qar_sync_node(const cc.std_string& path):
     return cc.does_regular_file_exist_qar_sync_node(path)
 
 def does_file_exist_qar_sync_node(const cc.std_string& path):
+    """
+    Return True if file or directory exists.
+    """
     return cc.does_file_exist_qar_sync_node(path)
 
 @timer
-def qar_create_sync_node(const cc.std_string& path_qar, const cc.std_string& path_folder,
-        *, const cc.Bool is_remove_folder_after=False):
+def qar_create_sync_node(
+    const cc.std_string& path_qar, const cc.std_string& path_folder,
+    *, const cc.Bool is_remove_folder_after=False,
+):
     return cc.qar_create_sync_node(path_qar, path_folder, is_remove_folder_after)
 
 @timer

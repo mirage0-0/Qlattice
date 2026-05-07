@@ -2,15 +2,16 @@ SHELL=/usr/bin/env bash
 
 mpi_options ?= --oversubscribe --bind-to none
 
-tests_grid = grid-with-qlat
+tests = \
+		grid-with-qlat
 
 all: run-grid
 
-compile-grid: $(patsubst %, %.compile, $(tests_grid))
+compile-grid: $(patsubst %, %.compile, $(tests))
 
-run-grid: $(patsubst %, %.run, $(tests_grid))
+run-grid: $(patsubst %, %.run, $(tests))
 
-clean: $(patsubst %, %.clean, $(tests_grid))
+clean: $(patsubst %, %.clean, $(tests))
 
 compile-proj:
 	-mkdir -p build
@@ -21,9 +22,9 @@ run-proj: compile-proj
 	-mkdir build
 	-touch build/log build/log.full
 	-time meson compile -C build run
-	-cat build/log | grep -a '^CHECK: \|^INFO: \|WARNING' >build/log.txt
-	-cat build/log.txt | grep -a '^CHECK: ' >build/log.check.txt.new
-	-cat log | grep -a '^CHECK: ' >build/log.check.txt
+	-cat build/log | grep -a 'CHECK: \|INFO: \|WARNING' >build/log.txt
+	-cat build/log.txt | grep -a 'CHECK: ' >build/log.check.txt.new
+	-cat log | grep -a 'CHECK: ' >build/log.check.txt
 	-if diff build/log.check.txt build/log.check.txt.new ; then echo passed ; else cat build/log.full ; fi
 	-rm -rfv log
 	-touch log

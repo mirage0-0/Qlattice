@@ -154,17 +154,20 @@ def get_data_sig(x, RngState rs):
     """
     Return a signature (a floating point number, real or complex) of data viewed as a 1-D array of numbers.\n
     Result only depends on the value of the data, not the structure.
-    ``x`` can be an instance of ``LatData`` or ``np.ndarray``.
+    ``x`` can be an instance of ``LatData``, ``np.ndarray``, etc.
     """
     if isinstance(x, np.ndarray):
+        rs = rs.copy()
         arr = x.ravel()
         arr_rand = rs.u_rand_arr(arr.shape) * 2.0 - 1.0
         return np.sum(arr * arr_rand)
-    elif isinstance(x, LatData):
+    elif isinstance(x, (LatData, LatDataInt, LatDataRealF, LatDataLong)):
         return get_data_sig(np.asarray(x), rs)
     elif isinstance(x, (SpinMatrix, ColorMatrix, WilsonMatrix,)):
         return get_data_sig(np.asarray(x), rs)
-    elif isinstance(x, (int, float, complex,)):
+    elif isinstance(x, (int, float,)):
+        return float(x)
+    elif isinstance(x, (complex,)):
         return complex(x)
     elif hasattr(x, "get_data_sig"):
         return x.get_data_sig(rs)

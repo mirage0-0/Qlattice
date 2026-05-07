@@ -10,17 +10,27 @@
 # dependencies
 , scipy
 # tests
+#
+, use-gitee ? null
 }:
 
-buildPythonPackage rec {
+let
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+in buildPythonPackage rec {
+
+  env.NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
+    "-Wno-error=int-conversion"
+    "-Wno-error=incompatible-pointer-types"
+    "-Wno-error=implicit-function-declaration"
+    ];
 
   pname = "gvar";
-  version = "13.1";
+  version = "13.1.6";
   pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-CGKB/NvBLhEF7VA6uSjt4irxaqBfu2z97vVOIOLwTts=";
+  src = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/${pname}" else "https://github.com/gplepage/${pname}";
+    ref = "refs/tags/v${version}";
   };
 
   build-system = [

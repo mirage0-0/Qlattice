@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+
+import qlat as q
+
+q.begin_with_mpi()
+
+q.default_g_jk_kwargs["jk_type"] = "super"
+q.default_g_jk_kwargs["eps"] = 1
+q.default_g_jk_kwargs["is_hash_jk_idx"] = True
+q.default_g_jk_kwargs["jk_idx_hash_size"] = 1024
+q.default_g_jk_kwargs["block_size"] = 1
+q.default_g_jk_kwargs["block_size_dict"] = {
+    "job_tag_1": 1,
+    "job_tag_2": 4,
+}
+q.default_g_jk_kwargs["rng_state"] = q.RngState("rejk")
+q.default_g_jk_kwargs["all_jk_idx"] = None
+q.default_g_jk_kwargs["get_all_jk_idx"] = None
+q.default_g_jk_kwargs["all_jk_idx_set"] = set()
+
+rs = q.RngState("seed1")
+job_tag = "job_tag_1"
+traj_list = list(range(20))
+
+data_arr = rs.g_rand_arr(
+    (
+        len(traj_list),
+        5,
+    )
+)  # can be list or np.array
+jk_arr_1 = q.g_mk_jk(data_arr, [(job_tag, traj) for traj in traj_list])
+avg, err = q.g_jk_avg_err(jk_arr_1)
+
+for i in range(len(avg)):
+    q.json_results_append(f"avg[{i}]", avg[i])
+    q.json_results_append(f"err[{i}]", err[i])
+
+rs = q.RngState("seed2")
+job_tag = "job_tag_2"
+traj_list = list(range(30))
+
+data_arr = rs.g_rand_arr(
+    (
+        len(traj_list),
+        5,
+    )
+)  # can be list or np.array
+jk_arr_2 = q.g_mk_jk(data_arr, [(job_tag, traj) for traj in traj_list])
+avg, err = q.g_jk_avg_err(jk_arr_2)
+
+for i in range(len(avg)):
+    q.json_results_append(f"avg[{i}]", avg[i])
+    q.json_results_append(f"err[{i}]", err[i])
+
+jk_arr = jk_arr_1 + jk_arr_2
+avg, err = q.g_jk_avg_err(jk_arr)
+
+for i in range(len(avg)):
+    q.json_results_append(f"avg[{i}]", avg[i])
+    q.json_results_append(f"err[{i}]", err[i])
+
+jk_val_arr = q.g_mk_jk_val("val-tag", 1.0, 0.5)
+avg, err = q.g_jk_avg_err(jk_val_arr)
+
+q.json_results_append("avg", avg)
+q.json_results_append("err", err)
+
+jk_diff_arr = jk_arr - jk_val_arr[:, None]
+avg, err = q.g_jk_avg_err(jk_diff_arr)
+
+for i in range(len(avg)):
+    q.json_results_append(f"avg[{i}]", avg[i])
+    q.json_results_append(f"err[{i}]", err[i])
+
+q.check_log_json(__file__, check_eps=1e-10)
+q.end_with_mpi()
+q.displayln_info("CHECK: finished successfully.")

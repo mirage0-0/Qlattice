@@ -13,7 +13,8 @@ def save_gm_force_magnitudes_list(fn):
     c.save_gm_force_magnitudes_list(fn)
 
 def display_gauge_field_info_table_with_wilson_flow(
-        fn_gf_info, fn_wilson_flow_energy, gf, flow_time, flow_steps, steps, c1 = 0.0):
+    fn_gf_info, fn_wilson_flow_energy, gf, flow_time, flow_steps, steps, c1=0.0
+):
     c.display_gauge_field_info_table_with_wilson_flow(
-            fn_gf_info, fn_wilson_flow_energy, gf, flow_time, flow_steps, steps, c1)
-
+        fn_gf_info, fn_wilson_flow_energy, gf, flow_time, flow_steps, steps, c1
+    )

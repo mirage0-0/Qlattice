@@ -4,8 +4,26 @@ from qlat_utils.all cimport *
 from . cimport everything as cc
 from .geometry cimport Geometry
 from .field_types cimport (
-        FieldColorMatrix,
-        )
+    FieldRealD,
+    FieldColorMatrix,
+    FieldComplexD,
+)
+from .propagator cimport (
+    Prop,
+    SelProp,
+    PselProp,
+    FermionField4d,
+    SpinProp,
+)
+from .field_selection cimport (
+    FieldSelection,
+    PointsSelection,
+)
+
+from .field_utils import (
+    field_expanded,
+    refresh_expanded_1,
+)
 
 from cpython cimport Py_buffer
 from cpython.buffer cimport PyBUF_FORMAT
@@ -14,11 +32,6 @@ import cqlat as c
 import qlat_utils as q
 import numpy as np
 
-from .field_utils import (
-        field_expanded,
-        refresh_expanded_1,
-        )
-
 cdef class GaugeField(FieldColorMatrix):
 
     def __init__(self, Geometry geo=None, multiplicity=4):
@@ -26,7 +39,7 @@ cdef class GaugeField(FieldColorMatrix):
         super().__init__(geo, 4)
 
     cdef cc.Handle[cc.GaugeField] xxx(self):
-        assert self.xx.multiplicity == 4
+        assert self.xx.multiplicity == 4 or self.xx.multiplicity == 0
         return cc.Handle[cc.GaugeField](<cc.GaugeField&>self.xx)
 
     @q.timer
@@ -47,7 +60,7 @@ cdef class GaugeField(FieldColorMatrix):
         set_g_rand_color_matrix_field(self, rng, sigma, n_step)
 
     def unitarize(self):
-        c.unitarize_color_matrix_field(self)
+        cc.unitarize(self.xx)
 
     def plaq(self):
         return gf_avg_plaq(self)
@@ -73,20 +86,20 @@ cdef class GaugeTransform(FieldColorMatrix):
         super().__init__(geo, 1)
 
     cdef cc.Handle[cc.GaugeTransform] xxx(self):
-        assert self.xx.multiplicity == 1
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
         return cc.Handle[cc.GaugeTransform](<cc.GaugeTransform&>self.xx)
 
     @q.timer
     def save(self, path):
         """
-        Save as double precision with the generic Field format ``save_double``
+        Save as RealD precision with the generic Field format ``save_double``
         """
         return self.save_double(path)
 
     @q.timer
     def load(self, path):
         """
-        Load as double precision with the generic Field format ``load_double``
+        Load as RealD precision with the generic Field format ``load_double``
         """
         return self.load_double(path)
 
@@ -108,42 +121,61 @@ cdef class GaugeTransform(FieldColorMatrix):
         set_g_rand_color_matrix_field(self, rng, sigma, n_step)
 
     def unitarize(self):
-        c.unitarize_color_matrix_field(self)
+        cc.unitarize(self.xx)
 
     def __mul__(self, other):
         """
         other can be GaugeTransform, GaugeField, Prop, SelProp, PselProp, list
         """
-        from qlat.propagator import Prop, SelProp, PselProp
+        cdef GaugeTransform gt, gt1
+        cdef GaugeField gf, gf1
+        cdef Prop prop, prop1
+        cdef SelProp s_prop, s_prop1
+        cdef PselProp ps_prop, ps_prop1
+        cdef FermionField4d ff, ff1
+        cdef FieldSelection fsel
+        cdef PointsSelection psel
         if isinstance(other, GaugeTransform):
+            gt1 = other
             gt = GaugeTransform()
-            c.apply_gt_gt(gt, self, other)
+            cc.gt_apply_gauge_transformation(gt.xxx().val(), gt1.xxx().val(), self.xxx().val())
             return gt
         elif isinstance(other, GaugeField):
+            gf1 = other
             gf = GaugeField()
-            c.apply_gt_gf(gf, self, other)
+            cc.gf_apply_gauge_transformation(gf.xxx().val(), gf1.xxx().val(), self.xxx().val(), False)
             return gf
         elif isinstance(other, Prop):
+            prop1 = other
             prop = Prop()
-            c.apply_gt_prop(prop, self, other)
+            cc.prop_apply_gauge_transformation(prop.xxx().val(), prop1.xxx().val(), self.xxx().val())
             return prop
         elif isinstance(other, SelProp):
-            prop = SelProp(other.fsel)
-            c.apply_gt_sprop(prop, self, other)
-            return prop
+            s_prop1 = other
+            fsel = other.fsel
+            s_prop = SelProp(fsel)
+            cc.prop_apply_gauge_transformation(s_prop.xx, s_prop1.xx, self.xxx().val(), fsel.xx)
+            return s_prop
         elif isinstance(other, PselProp):
-            prop = PselProp(other.psel)
-            c.apply_gt_psprop(prop, self, other)
-            return prop
+            ps_prop1 = other
+            psel = other.psel
+            ps_prop = PselProp(psel)
+            cc.prop_apply_gauge_transformation(ps_prop.xx, ps_prop1.xx, self.xxx().val(), psel.xx)
+            return ps_prop
+        elif isinstance(other, FermionField4d):
+            ff1 = other
+            ff = FermionField4d()
+            cc.ff_apply_gauge_transformation(ff.xxx().val(), ff1.xxx().val(), self.xxx().val())
+            return ff
         elif isinstance(other, list):
             return [ self * p for p in other ]
         else:
             raise Exception("GaugeTransform.__mul__")
 
     def inv(self):
-        gt = GaugeTransform()
-        c.gt_invert(gt, self)
-        return gt
+        cdef GaugeTransform gt_inv = GaugeTransform()
+        cc.gt_invert(gt_inv.xxx().val(), self.xxx().val())
+        return gt_inv
 
 ###
 
@@ -163,6 +195,16 @@ def gf_avg_spatial_plaq(GaugeField gf):
 def gf_avg_link_trace(GaugeField gf):
     assert gf is not None
     return cc.gf_avg_link_trace(gf.xxx().val())
+
+def gf_plaq_field(GaugeField gf):
+    assert gf is not None
+    cdef FieldRealD f_plaq = FieldRealD()
+    cc.gf_plaq_field(f_plaq.xx, gf.xxx().val())
+    return f_plaq
+
+@q.timer
+def set_tr_less_anti_herm_matrix(FieldColorMatrix fc):
+    cc.make_tr_less_anti_herm_matrix(fc.xx)
 
 def gf_wilson_line_no_comm(wlf, m, gf_ext, path, path_n=None):
     """
@@ -206,14 +248,114 @@ def set_g_rand_color_matrix_field(fc, rng, sigma, n_steps=1):
     assert isinstance(rng, RngState)
     return c.set_g_rand_color_matrix_field(fc, rng, sigma, n_steps)
 
-def gf_twist_boundary_at_boundary(GaugeField gf, double lmom=-0.5, int mu=3):
+def gf_twist_boundary_at_boundary(GaugeField gf, cc.RealD lmom=-0.5, int mu=3):
     """
     modify gf in place
     """
     c.gf_twist_boundary_at_boundary(gf, lmom, mu)
 
-def mk_left_expanded_gauge_field(GaugeField gf):
-    cdef GaugeField gf1 = field_expanded(gf, 1, 0)
+def mk_left_expanded_field(gf):
+    """
+    Return left expanded field.
+    Similar to ``set_left_expanded_gauge_field`` in C++
+    """
+    gf1 = field_expanded(gf, 1, 0)
     refresh_expanded_1(gf1)
     return gf1
 
+def gf_reduce_half(GaugeField gf):
+    """
+    return hgf with half of the size in all directions
+    Do not modify `gf`.
+    Can perform some shift before call this function, e.g.
+    `gf_reduce_half(gf.shift())`
+    """
+    cdef GaugeField hgf = GaugeField()
+    cc.gf_reduce_half(hgf.xxx().val(), gf.xxx().val())
+    return hgf
+
+###
+
+@q.timer
+def invert_dwf_qed(
+        FieldComplexD f_in4d, FieldComplexD gf1,
+        cc.RealD mass, cc.RealD m5, cc.Int ls,
+        *,
+        t_wick_phase_factor_arr=None,
+        cc.Bool is_dagger=False,
+        cc.RealD stop_rsd=1e-8, cc.Long max_num_iter=50000,
+        ):
+    """
+    properly project to 4d fermion field
+    if is_dagger is false (default), then M out = in
+    if is_dagger is true, then M^dag out = in
+    #
+    gf1 = q.mk_left_expanded_field(gf)
+    """
+    cdef FieldComplexD f_out4d = FieldComplexD()
+    cdef cc.vector[cc.ComplexD] t_wick_phase_factor_vec = cc.vector[cc.ComplexD]()
+    cdef cc.Int t_size
+    cdef cc.Int i
+    if t_wick_phase_factor_arr is not None:
+        t_size = len(t_wick_phase_factor_arr)
+        t_wick_phase_factor_vec.resize(t_size)
+        for i in range(t_size):
+            t_wick_phase_factor_vec[i] = cc.ccpy_d(t_wick_phase_factor_arr[i])
+    cc.invert_dwf_qed(
+        f_out4d.xx, f_in4d.xx, gf1.xx,
+        mass, m5, ls, t_wick_phase_factor_vec, is_dagger, stop_rsd, max_num_iter)
+    return f_out4d
+
+@q.timer
+def cg_with_m_dwf_qed(
+        FieldComplexD f_in5d, FieldComplexD gf1,
+        cc.RealD mass, cc.RealD m5, cc.Int ls,
+        *,
+        t_wick_phase_factor_arr=None,
+        cc.Bool is_dagger=False,
+        cc.RealD stop_rsd=1e-8, cc.Long max_num_iter=50000,
+        ):
+    """
+    if is_dagger is false, then M^dag M out = in
+    if is_dagger is true, then M M^dag out = in
+    #
+    gf1 = q.mk_left_expanded_field(gf)
+    """
+    cdef FieldComplexD f_out5d = FieldComplexD()
+    cdef cc.vector[cc.ComplexD] t_wick_phase_factor_vec = cc.vector[cc.ComplexD]()
+    cdef cc.Int t_size
+    cdef cc.Int i
+    if t_wick_phase_factor_arr is not None:
+        t_size = len(t_wick_phase_factor_arr)
+        t_wick_phase_factor_vec.resize(t_size)
+        for i in range(t_size):
+            t_wick_phase_factor_vec[i] = cc.ccpy_d(t_wick_phase_factor_arr[i])
+    cc.cg_with_m_dwf_qed(
+        f_out5d.xx, f_in5d.xx, gf1.xx,
+        mass, m5, ls, t_wick_phase_factor_vec, is_dagger, stop_rsd, max_num_iter)
+    return f_out5d
+
+@q.timer
+def multiply_m_dwf_qed(
+        FieldComplexD f_in5d, FieldComplexD gf1,
+        cc.RealD mass, cc.RealD m5, cc.Int ls,
+        *,
+        t_wick_phase_factor_arr=None,
+        cc.Bool is_dagger=False,
+        ):
+    """
+    gf1 = q.mk_left_expanded_field(gf)
+    """
+    cdef FieldComplexD f_out5d = FieldComplexD()
+    cdef cc.vector[cc.ComplexD] t_wick_phase_factor_vec = cc.vector[cc.ComplexD]()
+    cdef cc.Int t_size
+    cdef cc.Int i
+    if t_wick_phase_factor_arr is not None:
+        t_size = len(t_wick_phase_factor_arr)
+        t_wick_phase_factor_vec.resize(t_size)
+        for i in range(t_size):
+            t_wick_phase_factor_vec[i] = cc.ccpy_d(t_wick_phase_factor_arr[i])
+    cc.multiply_m_dwf_qed(f_out5d.xx, f_in5d.xx, gf1.xx, mass, m5, ls, t_wick_phase_factor_vec, is_dagger)
+    return f_out5d
+
+###

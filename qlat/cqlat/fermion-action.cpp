@@ -2,33 +2,34 @@
 
 EXPORT(mk_fermion_action_mobius, {
   using namespace qlat;
-  double mass = 0.0;
-  int ls = 0;
-  double m5 = 0.0;
-  double mobius_scale = 0.0;
+  RealD mass = 0.0;
+  Int ls = 0;
+  RealD m5 = 0.0;
+  RealD mobius_scale = 0.0;
   if (!PyArg_ParseTuple(args, "didd", &mass, &ls, &m5, &mobius_scale)) {
     return NULL;
   }
-  FermionAction* pfa = new FermionAction(mass, ls, m5, mobius_scale, true, true);
+  FermionAction* pfa =
+      new FermionAction(mass, ls, m5, mobius_scale, true, true);
   return py_convert((void*)pfa);
 })
 
 EXPORT(mk_fermion_action_zmobius, {
   using namespace qlat;
-  double mass = 0.0;
-  double m5 = 0.0;
+  RealD mass = 0.0;
+  RealD m5 = 0.0;
   PyObject* p_omega = NULL;
   if (!PyArg_ParseTuple(args, "ddO", &mass, &m5, &p_omega)) {
     return NULL;
   }
   std::vector<ComplexD> omega;
   py_convert(omega, p_omega);
-  const int ls = omega.size();
+  const Int ls = omega.size();
   FermionAction* pfa = new FermionAction(mass, ls, m5, 0.0, true, true);
   FermionAction& fa = *pfa;
   qassert(fa.bs.size() == omega.size());
   qassert(fa.cs.size() == omega.size());
-  for (int i = 0; i < (int)omega.size(); ++i) {
+  for (Int i = 0; i < (int)omega.size(); ++i) {
     fa.bs[i] = 0.5 * (1.0 / omega[i] + 1.0);
     fa.cs[i] = fa.bs[i] - 1.0;
   }
@@ -84,7 +85,7 @@ EXPORT(get_omega_fermion_action, {
   const FermionAction& fa = py_convert_type<FermionAction>(p_fa);
   if (fa.is_using_zmobius) {
     std::vector<ComplexD> omega(fa.bs.size());
-    for (int i = 0; i < (int)omega.size(); ++i) {
+    for (Int i = 0; i < (int)omega.size(); ++i) {
       omega[i] = 1.0 / (fa.bs[i] + fa.cs[i]);
     }
     return py_convert(omega);

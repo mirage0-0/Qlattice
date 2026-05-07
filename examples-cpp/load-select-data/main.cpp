@@ -49,9 +49,9 @@ inline void compute_traj(const std::string& job_tag, const int traj)
 inline void compute(const std::string& job_tag)
 {
   TIMER_VERBOSE("compute");
-  const std::vector<int> trajs = get_data_trajs(job_tag);
-  for (int i = 0; i < (int)trajs.size(); ++i) {
-    const int traj = trajs[i];
+  const std::vector<int> traj_list = get_data_traj_list(job_tag);
+  for (int i = 0; i < (int)traj_list.size(); ++i) {
+    const int traj = traj_list[i];
     compute_traj(job_tag, traj);
     if (get_total_time() > 1.0) {
       Timer::display();
@@ -99,18 +99,18 @@ int main(int argc, char* argv[])
   //
   // test();
   //
-  std::vector<std::string> job_tags;
+  std::vector<std::string> job_tag_list;
   // SADJUST ME
-  job_tags.push_back("test-4nt16");
-  job_tags.push_back("24D");
-  job_tags.push_back("32D");
-  job_tags.push_back("24DH");
-  job_tags.push_back("32Dfine");
-  job_tags.push_back("48I");
-  job_tags.push_back("64I");
+  job_tag_list.push_back("test-4nt16");
+  job_tag_list.push_back("24D");
+  job_tag_list.push_back("32D");
+  job_tag_list.push_back("24DH");
+  job_tag_list.push_back("32Dfine");
+  job_tag_list.push_back("48I");
+  job_tag_list.push_back("64I");
   //
-  for (int k = 0; k < (int)job_tags.size(); ++k) {
-    const std::string& job_tag = job_tags[k];
+  for (int k = 0; k < (int)job_tag_list.size(); ++k) {
+    const std::string& job_tag = job_tag_list[k];
     compute(job_tag);
   }
   end();

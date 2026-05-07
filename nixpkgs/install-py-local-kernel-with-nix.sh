@@ -9,15 +9,18 @@ Usage:
     name='-cu' ./install-py-local-kernel-with-nix.sh
     # Install a local kernel with some CUDA utilities. Qlattice and Grid/GPT are NOT compiled with CUDA.
 
-    name='-cuda' ./install-py-local-kernel-with-nix.s
+    name='-cuda' ./install-py-local-kernel-with-nix.sh
     # Install a local kernel with some CUDA utilities. Qlattice and Grid/GPT are compiled with CUDA.
 
     name='-cudasupport' ./install-py-local-kernel-with-nix.sh
     # Install a local kernel with full CUDA support when possible.
 
+    name='-clang' ./install-py-local-kernel-with-nix.sh
+    # Install a local kernel with clang.
+
 EOF
 
-script_path="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+script_path="$( cd -- "$(dirname -- "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 if [ -f "$script_path"/q-pkgs.nix ]; then
     :
@@ -26,13 +29,15 @@ else
     exit 1
 fi
 
+set -ex
+
 if [ -z "${name+x}" ] ; then
-    name=""
-    echo "You can use 'export name=-cuda' to compile Qlattice with CUDA."
+    echo "name is not set."
+    echo "name='' (use default)."
 else
-    echo "name='$name'"
-    echo "Trying to build 'pkgs$name.qlat-jhub-env'."
+    echo "name='$name'."
 fi
+echo "Trying to build 'pkgs$name.qlat-jhub-env'."
 
 py_kernel_name=py-local$name
 
@@ -44,15 +49,38 @@ if [ ! -e "$dst"/result/bin/python3 ] ; then
     rmdir "$dst"
     exit 1
 fi
+rm -fv result-$py_kernel_name
+ln -sv "$dst"/result result-$py_kernel_name
 ls -l "$dst"
-"$dst"/result/bin/python3 -m ipykernel \
-    install --user \
-    --env "PATH" "$dst/result/bin:/run/current-system/sw/bin" \
-    --env "PYTHONPATH" "" \
-    --env "LD_LIBRARY_PATH" "$dst/result/lib" \
-    --env "LIBRARY_PATH" "$dst/result/lib" \
-    --env "CPATH" "$dst/result/include" \
-    --env "PKG_CONFIG_PATH" "$dst/result/lib/pkgconfig" \
-    --env "CUBACORES" "0" \
-    --env "OMP_NUM_THREADS" "2" \
-    --name=$py_kernel_name
+if [ "$name" == "-cudasupport" ] ; then
+    "$dst"/result/bin/python3 -m ipykernel \
+        install --user \
+        --env "SHELL" "$dst/result/bin/bash" \
+        --env "LOCALE_ARCHIVE" "/run/current-system/sw/lib/locale/locale-archive" \
+        --env "PATH" "$dst/result/bin:/run/current-system/sw/bin" \
+        --env "PKG_CONFIG_PATH" "$dst/result/lib/pkgconfig" \
+        --env "LD_LIBRARY_PATH" "/run/opengl-driver/lib:$dst/result/lib" \
+        --env "LIBRARY_PATH" "$dst/result/lib" \
+        --env "CPATH" "$dst/result/include" \
+        --env "PYTHONPATH" "" \
+        --env "CUBACORES" "0" \
+        --env "OMP_NUM_THREADS" "2" \
+        --env "JAX_ENABLE_X64" "True" \
+        --name=$py_kernel_name
+else
+    "$dst"/result/bin/python3 -m ipykernel \
+        install --user \
+        --env "SHELL" "$dst/result/bin/bash" \
+        --env "LOCALE_ARCHIVE" "/run/current-system/sw/lib/locale/locale-archive" \
+        --env "PATH" "$dst/result/bin:/run/current-system/sw/bin" \
+        --env "PKG_CONFIG_PATH" "$dst/result/lib/pkgconfig" \
+        --env "LD_LIBRARY_PATH" "/run/opengl-driver/lib:$dst/result/lib" \
+        --env "LIBRARY_PATH" "$dst/result/lib" \
+        --env "CPATH" "$dst/result/include" \
+        --env "PYTHONPATH" "" \
+        --env "CUBACORES" "0" \
+        --env "OMP_NUM_THREADS" "2" \
+        --env "JAX_ENABLE_X64" "True" \
+        --env "JAX_PLATFORMS" "cpu" \
+        --name=$py_kernel_name
+fi

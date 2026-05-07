@@ -38,11 +38,11 @@ inline void compute_chvp_type(const std::string& job_tag, const int traj,
     return;
   }
   TIMER_VERBOSE("compute_chvp_type");
-  const PointsSelection& psel = get_point_selection(job_tag, traj);
+  const PointsSelection& psel = get_points_selection(job_tag, traj);
   const Long n_points = psel.size();
   const FieldSelection& fsel = get_field_selection(job_tag, traj);
   const int tsep = tsep_op_wall_src(job_tag);
-  std::map<std::string, FieldM<ComplexD, 8 * 8> > cache;
+  std::map<std::string, FieldM<ComplexD, 8 * 8>> cache;
   std::map<std::string, Long> counts;
   for (Long n = 0; n < n_points; ++n) {
     const Long xg_y_psel_idx = n;

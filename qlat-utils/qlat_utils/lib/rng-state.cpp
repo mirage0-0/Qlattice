@@ -16,11 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <qlat-utils/assert.h>
 #include <qlat-utils/config.h>
+#include <qlat-utils/qassert.h>
 #include <qlat-utils/rng-state.h>
 #include <qlat-utils/sha256.h>
 #include <qlat-utils/show.h>
+#include <qlat-utils/timer.h>
 #include <stdint.h>
 
 #include <climits>
@@ -34,7 +35,7 @@
 namespace qlat
 {  //
 
-void set_type(RngState& rs, const unsigned long type)
+void set_type(RngState& rs, const uint64_t type)
 {
   qassert(ULONG_MAX == rs.type);
   qassert(ULONG_MAX != type);
@@ -61,16 +62,16 @@ void exportRngState(uint32_t* v, const RngState& rs)
 {
   qassert(24 == RNG_STATE_NUM_OF_INT32);
   splitTwoUint32(v[0], v[1], rs.numBytes);
-  for (int i = 0; i < 8; ++i) {
+  for (Int i = 0; i < 8; ++i) {
     v[2 + i] = rs.hash[i];
   }
   splitTwoUint32(v[10], v[11], rs.type);
   splitTwoUint32(v[12], v[13], rs.index);
-  for (int i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
     splitTwoUint32(v[14 + i * 2], v[14 + i * 2 + 1], rs.cache[i]);
   }
   union {
-    double d;
+    RealD d;
     uint64_t l;
   } g;
   g.d = rs.gaussian;
@@ -83,16 +84,16 @@ void importRngState(RngState& rs, const uint32_t* v)
 {
   qassert(24 == RNG_STATE_NUM_OF_INT32);
   rs.numBytes = patchTwoUint32(v[0], v[1]);
-  for (int i = 0; i < 8; ++i) {
+  for (Int i = 0; i < 8; ++i) {
     rs.hash[i] = v[2 + i];
   }
   rs.type = patchTwoUint32(v[10], v[11]);
   rs.index = patchTwoUint32(v[12], v[13]);
-  for (int i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
     rs.cache[i] = patchTwoUint32(v[14 + i * 2], v[14 + i * 2 + 1]);
   }
   union {
-    double d;
+    RealD d;
     uint64_t l;
   } g;
   g.l = patchTwoUint32(v[20], v[21]);
@@ -148,7 +149,7 @@ bool operator!=(const RngState& rs1, const RngState& rs2)
 
 void reset(RngState& rs)
 {
-  std::memset((void*)&rs, 0, sizeof(RngState));
+  memset((void*)&rs, 0, sizeof(RngState));
   rs.numBytes = 0;
   sha256::setInitialHash(rs.hash);
   rs.type = ULONG_MAX;
@@ -170,7 +171,7 @@ void reset(RngState& rs, const std::string& seed)
 void reset(RngState& rs, const Long seed) { reset(rs, show(seed)); }
 
 void split_rng_state(RngState& rs, const RngState& rs0,
-                            const std::string& sindex)
+                     const std::string& sindex)
 // produce a new rng ``rs'' uniquely identified by ``rs0'' and ``sindex''
 // will not affect old rng ``rs0''
 // the function should behave correctly even if ``rs'' is actually ``rs0''
@@ -181,10 +182,10 @@ void split_rng_state(RngState& rs, const RngState& rs0,
   } else {
     data = ssprintf("[%lu,%lu] {%s}", rs0.type, rs0.index, sindex.c_str());
   }
-  const int nBlocks = (data.length() - 1) / 64 + 1;
+  const Int nBlocks = (data.length() - 1) / 64 + 1;
   data.resize(nBlocks * 64, ' ');
   sha256::processBlock(rs.hash, rs0.hash, (const uint8_t*)data.c_str());
-  for (int i = 1; i < nBlocks; ++i) {
+  for (Int i = 1; i < nBlocks; ++i) {
     sha256::processBlock(rs.hash, rs.hash,
                          (const uint8_t*)data.c_str() + i * 64);
   }
@@ -199,14 +200,13 @@ void split_rng_state(RngState& rs, const RngState& rs0,
   rs.gaussianAvail = false;
 }
 
-void split_rng_state(RngState& rs, const RngState& rs0,
-                            const Long sindex)
+void split_rng_state(RngState& rs, const RngState& rs0, const Long sindex)
 {
   split_rng_state(rs, rs0, show(sindex));
 }
 
 void compute_hash_with_input(uint32_t hash[8], const RngState& rs,
-                                    const std::string& input)
+                             const std::string& input)
 {
   sha256::processInput(hash, rs.hash, rs.numBytes,
                        (const uint8_t*)input.c_str(), input.length());
@@ -237,15 +237,15 @@ uint64_t rand_gen(RngState& rs)
   }
 }
 
-double u_rand_gen(RngState& rs, const double upper, const double lower)
+RealD u_rand_gen(RngState& rs, const RealD upper, const RealD lower)
 {
   uint64_t u = rand_gen(rs);
-  const double fac =
+  const RealD fac =
       1.0 / (256.0 * 256.0 * 256.0 * 256.0) / (256.0 * 256.0 * 256.0 * 256.0);
   return u * fac * (upper - lower) + lower;
 }
 
-double g_rand_gen(RngState& rs, const double center, const double sigma)
+RealD g_rand_gen(RngState& rs, const RealD center, const RealD sigma)
 {
   rs.index += 1;
   if (rs.gaussianAvail) {
@@ -255,8 +255,8 @@ double g_rand_gen(RngState& rs, const double center, const double sigma)
     // pick 2 uniform numbers in the square extending from
     // -1 to 1 in each direction, see if they are in the
     // unit circle, and try again if they are not.
-    int num_try = 1;
-    double v1, v2, rsq;
+    Int num_try = 1;
+    RealD v1, v2, rsq;
     do {
       v1 = u_rand_gen(rs, 1.0, -1.0);
       v2 = u_rand_gen(rs, 1.0, -1.0);
@@ -273,7 +273,7 @@ double g_rand_gen(RngState& rs, const double center, const double sigma)
           "returning ridiculous numbers (1e+10)\n");
       return 1e+10;
     }
-    double fac = std::sqrt(-2.0 * std::log(rsq) / rsq);
+    RealD fac = std::sqrt(-2.0 * std::log(rsq) / rsq);
     rs.gaussian = v1 * fac;
     rs.gaussianAvail = true;
     return v2 * fac * sigma + center;

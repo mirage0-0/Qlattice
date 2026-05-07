@@ -91,10 +91,10 @@ void mk_grid_field_selection(FieldRank& f_rank, const Coordinate& total_site,
     Field<int64_t>& nf = fs[0];
     const Geometry& ngeo = nf.geo();
     qassert(new_size_node == ngeo.geon.size_node);
-    const int t_start = ngeo.node_site[3] * ngeo.geon.coor_node[3];
-    const int t_end = t_start + ngeo.node_site[3];
+    const Int t_start = ngeo.node_site[3] * ngeo.geon.coor_node[3];
+    const Int t_end = t_start + ngeo.node_site[3];
 #pragma omp parallel for
-    for (int t = t_start; t < t_end; ++t) {
+    for (Int t = t_start; t < t_end; ++t) {
       RngState rst = rs.split(t);
       std::vector<Long> ranks(n_per_tslice);
       for (Long i = 0; i < n_per_tslice; ++i) {
@@ -247,7 +247,7 @@ void select_t_range(FieldRank& f_rank, const Long t_start, const Long t_stop)
   qacc_for(index, geo.local_volume(), {
     const Coordinate xl = geo.coordinate_from_index(index);
     const Coordinate xg = geo.coordinate_g_from_l(xl);
-    const int t = xg[3];
+    const Int t = xg[3];
     if (not((t_start <= t) and ((t < t_stop) or (t_stop == -1)))) {
       int64_t& rank = f_rank.get_elem(index);
       rank = -1;
@@ -374,8 +374,8 @@ bool is_matching_fsel(const FieldSelection& fsel1, const FieldSelection& fsel2)
     return false;
   }
   bool is_same = true;
-  const vector_acc<Long>& indices1 = fsel1.indices;
-  const vector_acc<Long>& indices2 = fsel2.indices;
+  const vector<Long>& indices1 = fsel1.indices;
+  const vector<Long>& indices2 = fsel2.indices;
   qassert(indices1.size() == n_elems);
   qassert(indices2.size() == n_elems);
   qthread_for(idx, n_elems, {
@@ -384,6 +384,85 @@ bool is_matching_fsel(const FieldSelection& fsel1, const FieldSelection& fsel2)
     }
   });
   return is_same;
+}
+
+bool is_containing(const PointsSelection& psel,
+                   const FieldSelection& fsel_small)
+// local checking
+{
+  TIMER("is_containing(psel,fsel_small)");
+  const Geometry& geo = fsel_small.f_rank.geo();
+  const Long n_points0 = psel.size();
+  Long n_missing_points = 0;
+  Long idx_last = -1;
+  qfor(idx, fsel_small.indices.size(), {
+    const Long index = fsel_small.indices[idx];
+    const Coordinate xl = geo.coordinate_from_index(index);
+    const Coordinate xg = geo.coordinate_g_from_l(xl);
+    bool is_found = false;
+    for (Long i = 0; i < n_points0; ++i) {
+      idx_last += 1;
+      if (idx_last >= n_points0) {
+        idx_last = idx_last % n_points0;
+      }
+      const Coordinate& xg0 = psel[idx_last];
+      if (xg0 == xg) {
+        is_found = true;
+        break;
+      }
+    }
+    if (not is_found) {
+      n_missing_points += 1;
+      break;
+    }
+  });
+  glb_sum(n_missing_points);
+  if (n_missing_points == 0) {
+    return true;
+  } else {
+    qassert(n_missing_points > 0);
+    return false;
+  }
+}
+
+bool is_containing(const PointsSelection& psel,
+                   const PointsSelection& psel_small)
+// local checking
+{
+  TIMER("is_containing(psel,psel_small)");
+  if (psel.points_dist_type != psel_small.points_dist_type) {
+    return false;
+  }
+  const Long n_points = psel_small.size();
+  const Long n_points0 = psel.size();
+  Long n_missing_points = 0;
+  Long idx_last = -1;
+  qfor(idx, n_points, {
+    const Coordinate& xg = psel_small[idx];
+    bool is_found = false;
+    for (Long i = 0; i < n_points0; ++i) {
+      idx_last += 1;
+      if (idx_last >= n_points0) {
+        idx_last = idx_last % n_points0;
+      }
+      const Coordinate& xg0 = psel[idx_last];
+      if (xg0 == xg) {
+        is_found = true;
+        break;
+      }
+    }
+    if (not is_found) {
+      n_missing_points += 1;
+      break;
+    }
+  });
+  glb_sum(n_missing_points);
+  if (n_missing_points == 0) {
+    return true;
+  } else {
+    qassert(n_missing_points > 0);
+    return false;
+  }
 }
 
 bool is_containing(const FieldSelection& fsel, const FieldSelection& fsel_small)
@@ -404,15 +483,16 @@ bool is_containing(const FieldSelection& fsel, const FieldSelection& fsel_small)
   return n_missing_points == 0;
 }
 
-bool is_containing(const FieldSelection& fsel, const PointsSelection& psel)
+bool is_containing(const FieldSelection& fsel,
+                   const PointsSelection& psel_small)
 // local checking
 {
-  TIMER("is_containing(fsel,psel)");
+  TIMER("is_containing(fsel,psel_small)");
   const Geometry& geo = fsel.f_rank.geo();
   qassert(geo.is_only_local);
   Long n_missing_points = 0;
-  qthread_for(i, (Long)psel.size(), {
-    const Coordinate xl = geo.coordinate_l_from_g(psel[i]);
+  qthread_for(i, (Long)psel_small.size(), {
+    const Coordinate xl = geo.coordinate_l_from_g(psel_small[i]);
     if (geo.is_local(xl)) {
       const int64_t rank = fsel.f_rank.get_elem(xl);
       if (rank < 0) {
@@ -430,7 +510,7 @@ void intersect_with(FieldSelection& fsel, const FieldSelection& fsel1)
 {
   TIMER("intersect_with(fsel,fsel1)");
   const Geometry& geo = fsel.f_rank.geo();
-  qassert(geo == fsel1.f_rank.geo());
+  Qassert(geo == fsel1.f_rank.geo());
   qthread_for(idx, fsel.indices.size(), {
     const Long index = fsel.indices[idx];
     const int64_t rank = fsel1.f_rank.get_elem(index);
@@ -449,7 +529,8 @@ PointsSelection intersect(const FieldSelection& fsel,
   qassert(geo.is_only_local);
   qassert(geo.total_site() == psel.total_site);
   qassert(psel.points_dist_type == PointsDistType::Global);
-  vector<Int> is_psel_in_fsel(psel.size(), 0);
+  vector<Int> is_psel_in_fsel(psel.size());
+  set_zero(is_psel_in_fsel);
   qthread_for(i, (Long)psel.size(), {
     const Coordinate xl = geo.coordinate_l_from_g(psel[i]);
     if (geo.is_local(xl)) {
@@ -486,16 +567,18 @@ PointsSelection psel_from_fsel(const FieldSelection& fsel)
   const Long n_elems = fsel.n_elems;
   Long total_n_elems = n_elems;
   glb_sum(total_n_elems);
-  // const int num_node = geo.geon.num_node;
+  // const Int num_node = geo.geon.num_node;
   const Int id_node = geo.geon.id_node;
-  vector<Long> vec(geo.geon.num_node, 0);
+  vector<Long> vec(geo.geon.num_node);
+  set_zero(vec);
   all_gather(get_data(vec), get_data_one_elem(n_elems));
   Long idx_offset = 0;
   for (Int i = 0; i < id_node; ++i) {
     idx_offset += vec[i];
   }
   qassert(idx_offset <= total_n_elems);
-  vector<Long> vec_gindex(total_n_elems, 0);
+  vector<Long> vec_gindex(total_n_elems);
+  set_zero(vec_gindex);
   qthread_for(idx, n_elems, {
     const Long index = fsel.indices[idx];
     const Coordinate xl = geo.coordinate_from_index(index);
@@ -601,7 +684,7 @@ Long read_selected_geo_info(Coordinate& total_site, int& multiplicity,
           while (infos.back() != "END_HEADER\n" && infos.back() != "") {
             infos.push_back(qgetline(fp));
           }
-          for (int m = 0; m < 4; ++m) {
+          for (Int m = 0; m < 4; ++m) {
             reads(total_site[m],
                   info_get_prop(infos, ssprintf("total_site[%d] = ", m)));
           }

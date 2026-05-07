@@ -4,7 +4,7 @@
 
   Program finish time in seconds since epoch.
 
-  Used when `check_time_limit()`. Possible setting can be: `export q_end_time="$(($(date +%s) + 12 * 60 * 60))"` for jobs run for at most 12 hours.
+  Used when `check_time_limit()`. Possible setting can be: `export q_end_time="$(($(date +%s) + 12 * 60 * 60))"` or `export q_end_time=$SLURM_JOB_END_TIME` for jobs run for at most 12 hours.
 
   Default is empty.
 
@@ -12,7 +12,7 @@
 
   Total running time of program in seconds.
 
-  Used when `check_time_limit()`, but will be override if `q_end_time` is set.
+  Used when `check_time_limit()`, but will be overrided if `q_end_time` is set.
 
   Default is `43200`.
 
@@ -36,9 +36,9 @@
 
   Default is `512` MB.
 
-- `q_mem_cache_acc_max_size`
+- `q_mem_cache_max_size_acc`
 
-  Memory cache size in MB (per processes) for `qlat::vector_acc` allocation.
+  Memory cache size in MB (per processes) for `qlat::vector` allocation with `mem_type=MemType::Acc`.
 
   Default is the same as `q_mem_cache_max_size`.
 
@@ -48,9 +48,15 @@
 
   Default is `256 * 1024` MB.
 
+- `q_mem_type_comm_use_acc`
+
+  If value is `true`, then the `MemType::CommAcc` memory will be allocated as the type `MemType::Acc`.
+
+  Default is `true`.
+
 - `q_num_threads`
 
-  Number of OpenMP threads (will be override by `OMP_NUM_THREADS`). Possible setting can be `export OMP_NUM_THREADS=16` number should be adjusted by number of cores.
+  Number of OpenMP threads (will be overrided by `OMP_NUM_THREADS`). Possible setting can be `export OMP_NUM_THREADS=16` number should be adjusted by number of cores.
 
   Default is `2`.
 
@@ -82,13 +88,13 @@
 
   Maximum number of times to always show function start or stop.
 
-  Default is `10`.
+  Default is `2`.
 
 - `q_timer_max_func_name_len`
 
   Maximum length for a function name before truncation.
 
-  Default is `50`.
+  Default is `75`.
 
 - `q_malloc_mmap_threshold`
 
@@ -109,6 +115,30 @@
   Default is `500L * 1000L * 1000L * 1000L` (500 GB). If `q_qar_multi_vol_max_size` is negative, the size is unlimited.
 
   Note, `qar` never splits a single file into multiple `qar` volume. The limit may be exceeded due to the header size or a single file being too large.
+
+- `q_write_par_limit`
+
+  Default is `16`.
+
+- `q_read_par_limit`
+
+  Default is `16`.
+
+- `q_fftw_plan_flag`
+
+  Default is `estimate`. Possible values include `estimate`, `measure`.
+
+- `q_mpi_alltoallv_type`
+
+  Default is `custom`. Possible values include `native`, `custom`.
+
+- `q_mpi_alltoallv_max_parallel_transfer`
+
+  Default is `128`. Number of maximum parallel transfer in `mpi_alltoallv`.
+
+- `q_default_mem_type`
+
+  Default is `uvm`. Possible values include `cpu`, `acc`, `comm`, `uvm`.
 
 ## Useful options
 

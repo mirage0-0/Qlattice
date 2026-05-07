@@ -1,37 +1,36 @@
 #pragma once
 
-#include "utils.h"
-#include "function.h"
-
+#include <gsl/gsl_integration.h>
 #include <qlat/qlat.h>
 
-#include <gsl/gsl_integration.h>
-
-#include <iostream>
 #include <cmath>
+#include <iostream>
+
+#include "function.h"
+#include "utils.h"
 
 namespace qlat
 {  //
 
 template <class F>
-int integrate(double& result, double& abserr, const F& f, const double a,
-              const double b, const double epsabs, const double epsrel)
+Int integrate(RealD& result, RealD& abserr, const F& f, const RealD a,
+              const RealD b, const RealD epsabs, const RealD epsrel)
 {
-  const int limit = 1000;
-  const int key = 2;
+  const Int limit = 1000;
+  const Int key = 2;
   gsl_function gf = make_gsl_function(f);
   gsl_integration_workspace* w = gsl_integration_workspace_alloc(limit);
-  int ret = gsl_integration_qag(&gf, a, b, epsabs, epsrel, limit, key, w,
+  Int ret = gsl_integration_qag(&gf, a, b, epsabs, epsrel, limit, key, w,
                                 &result, &abserr);
   gsl_integration_workspace_free(w);
   return ret;
 }
 
 template <class F>
-double integrate(const F& f, const double a, const double b,
-                 const double epsabs = 0.0, const double epsrel = 1.0e-8)
+RealD integrate(const F& f, const RealD a, const RealD b,
+                const RealD epsabs = 0.0, const RealD epsrel = 1.0e-8)
 {
-  double result = 0.0, abserr = 0.0;
+  RealD result = 0.0, abserr = 0.0;
   integrate(result, abserr, f, a, b, epsabs, epsrel);
   return result;
 }

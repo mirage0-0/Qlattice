@@ -18,17 +18,18 @@
 
 #pragma once
 
-#include <qlat-utils/config.h>
-#include <qlat-utils/qcd-setting.h>
-#include <qlat-utils/qacc.h>
-#include <qlat-utils/assert.h>
 #include <qlat-utils/array.h>
-#include <qlat-utils/rng-state.h>
+#include <qlat-utils/config.h>
 #include <qlat-utils/core.h>
+#include <qlat-utils/qacc.h>
+#include <qlat-utils/qassert.h>
+#include <qlat-utils/qcd-setting.h>
+#include <qlat-utils/rng-state.h>
+#include <qlat-utils/timer.h>
 
-#include <vector>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 namespace qlat
 {
@@ -36,7 +37,7 @@ namespace qlat
 qacc Long modl(const Long x, const Long len)
 {
   qassert(0 < len);
-  const int m = x % len;
+  const Int m = x % len;
   if (0 <= m) {
     return m;
   } else {
@@ -44,10 +45,10 @@ qacc Long modl(const Long x, const Long len)
   }
 }
 
-qacc int mod(const int x, const int len)
+qacc Int mod(const Int x, const Int len)
 {
   qassert(0 < len);
-  const int m = x % len;
+  const Int m = x % len;
   if (0 <= m) {
     return m;
   } else {
@@ -66,10 +67,10 @@ qacc double mod(const double x, const double len)
   }
 }
 
-qacc int smod(const int x, const int len)
+qacc Int smod(const Int x, const Int len)
 {
   qassert(0 < len);
-  const int m = mod(x, len);
+  const Int m = mod(x, len);
   if (m * 2 < len) {
     return m;
   } else {
@@ -88,11 +89,11 @@ qacc double smod(const double x, const double len)
   }
 }
 
-qacc int smod_sym(const int x, const int len)
+qacc Int smod_sym(const Int x, const Int len)
 {
   qassert(0 < len);
-  const int m = smod(x, len);
-  if (abs(m * 2) == len) {
+  const Int m = smod(x, len);
+  if (std::abs(m * 2) == len) {
     return 0;
   } else {
     return m;
@@ -103,23 +104,23 @@ qacc double smod_sym(const double x, const double len,
                      const double eps = 1.0e-8)
 {
   const double m = smod(x, len);
-  if (abs(abs(m * 2) - len) < eps) {
+  if (std::abs(std::abs(m * 2) - len) < eps) {
     return 0;
   } else {
     return m;
   }
 }
 
-qacc int middle_mod(const int x, const int y, const int len)
+qacc Int middle_mod(const Int x, const Int y, const Int len)
 {
   qassert(0 < len);
-  const int xm = mod(x, len);
-  const int ym = mod(y, len);
+  const Int xm = mod(x, len);
+  const Int ym = mod(y, len);
   if (xm <= ym) {
-    const int r = smod(ym - xm, len);
+    const Int r = smod(ym - xm, len);
     return mod(xm + r / 2, len);
   } else {
-    const int r = smod(xm - ym, len);
+    const Int r = smod(xm - ym, len);
     return mod(ym + r / 2, len);
   }
 }
@@ -145,10 +146,21 @@ inline std::string show(const Coordinate& x)
   return ssprintf("%dx%dx%dx%d", x[0], x[1], x[2], x[3]);
 }
 
-qacc Long product(const Coordinate& coor)
+qacc Long volume(const Coordinate& coor)
 {
+  qassert(coor.size() == 4);
   Long ret = 1;
-  for (int i = 0; i < (int)coor.size(); i++) {
+  for (Int i = 0; i < 4; i++) {
+    ret *= coor[i];
+  }
+  return ret;
+}
+
+qacc Long spatial_volume(const Coordinate& coor)
+{
+  qassert(coor.size() == 4);
+  Long ret = 1;
+  for (Int i = 0; i < 3; i++) {
     ret *= coor[i];
   }
   return ret;
@@ -175,7 +187,7 @@ qacc Long index_from_coordinate(const Coordinate& x, const Coordinate& size)
          (Long)x[0];
 }
 
-qacc int eo_from_coordinate(const Coordinate& xl)
+qacc Int eo_from_coordinate(const Coordinate& xl)
 {
   return 2 - (xl[0] + xl[1] + xl[2] + xl[3] + 16 * 1024 * 1024) % 2;
 }
@@ -208,13 +220,13 @@ qacc Coordinate operator-(const Coordinate& coor)
   return Coordinate(-coor[0], -coor[1], -coor[2], -coor[3]);
 }
 
-qacc Coordinate operator*(const int integer, const Coordinate& coor)
+qacc Coordinate operator*(const Int integer, const Coordinate& coor)
 {
   return Coordinate(integer * coor[0], integer * coor[1], integer * coor[2],
                     integer * coor[3]);
 }
 
-qacc Coordinate operator*(const Coordinate& coor, const int integer)
+qacc Coordinate operator*(const Coordinate& coor, const Int integer)
 {
   return integer * coor;
 }
@@ -231,10 +243,22 @@ qacc Coordinate operator%(const Coordinate& coor1, const Coordinate& coor2)
                     coor1[2] % coor2[2], coor1[3] % coor2[3]);
 }
 
-qacc Coordinate operator%(const Coordinate& coor, const int integer)
+qacc Coordinate operator%(const Coordinate& coor, const Int integer)
 {
   return Coordinate(coor[0] % integer, coor[1] % integer, coor[2] % integer,
                     coor[3] % integer);
+}
+
+qacc Coordinate operator/(const Coordinate& coor, const Int integer)
+{
+  return Coordinate(coor[0] / integer, coor[1] / integer, coor[2] / integer,
+                    coor[3] / integer);
+}
+
+qacc Coordinate operator/(const Coordinate& coor1, const Coordinate& coor2)
+{
+  return Coordinate(coor1[0] / coor2[0], coor1[1] / coor2[1],
+                    coor1[2] / coor2[2], coor1[3] / coor2[3]);
 }
 
 qacc Coordinate mod(const Coordinate& x, const Coordinate& size)
@@ -280,7 +304,7 @@ qacc Coordinate middle_mod(const Coordinate& x, const Coordinate& y,
 
 qacc Coordinate c_rand_gen(RngState& rs, const Coordinate& size)
 {
-  const Long total_vol = product(size);
+  const Long total_vol = volume(size);
   const Long ri = rand_gen(rs) % total_vol;
   return coordinate_from_index(ri, size);
 }
@@ -300,28 +324,16 @@ qacc Long sqr(const Coordinate& xg)
          sqr((Long)xg[3]);
 }
 
-qacc Coordinate operator/(const Coordinate& coor, const int integer)
+qacc Int sum(const Coordinate& coor)
 {
-  return Coordinate(coor[0] / integer, coor[1] / integer, coor[2] / integer,
-                    coor[3] / integer);
-}
-
-qacc Coordinate operator/(const Coordinate& coor1, const Coordinate& coor2)
-{
-  return Coordinate(coor1[0] / coor2[0], coor1[1] / coor2[1],
-                    coor1[2] / coor2[2], coor1[3] / coor2[3]);
-}
-
-qacc int sum(const Coordinate& coor)
-{
-  int ret = 0;
-  for (int i = 0; i < (int)coor.size(); i++) {
+  Int ret = 0;
+  for (Int i = 0; i < (Int)coor.size(); i++) {
     ret += coor[i];
   }
   return ret;
 }
 
-qacc int parity(const Coordinate& coor)
+qacc Int parity(const Coordinate& coor)
 {
   return 2 - sum(coor) % 2;  // 2 for even, 1 for odd
 }
@@ -331,14 +343,14 @@ inline void regularize(Coordinate& coor, const Coordinate& regularizer)
 #ifndef SUPPRESS_REG_COOR
   warn("use regular_coordinate");
 #endif
-  for (int mu = 0; mu < DIMN; mu++) {
+  for (Int mu = 0; mu < DIMN; mu++) {
     coor[mu] = (coor[mu] % regularizer[mu] + regularizer[mu]) % regularizer[mu];
   }
 }
 
 qacc Coordinate coordinate_shifts(const Coordinate& x) { return x; }
 
-qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir)
+qacc Coordinate coordinate_shifts(const Coordinate& x, const Int dir)
 {
   Coordinate xsh = x;
   qassert(-DIMN <= dir && dir < DIMN);
@@ -350,8 +362,8 @@ qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir)
   return xsh;
 }
 
-qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir1,
-                                  const int dir2)
+qacc Coordinate coordinate_shifts(const Coordinate& x, const Int dir1,
+                                  const Int dir2)
 {
   Coordinate xsh = x;
   qassert(-DIMN <= dir1 && dir1 < DIMN);
@@ -369,8 +381,8 @@ qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir1,
   return xsh;
 }
 
-qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir1,
-                                  const int dir2, const int dir3)
+qacc Coordinate coordinate_shifts(const Coordinate& x, const Int dir1,
+                                  const Int dir2, const Int dir3)
 {
   Coordinate xsh = x;
   qassert(-DIMN <= dir1 && dir1 < DIMN);
@@ -394,9 +406,9 @@ qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir1,
   return xsh;
 }
 
-qacc Coordinate coordinate_shifts(const Coordinate& x, const int dir1,
-                                  const int dir2, const int dir3,
-                                  const int dir4)
+qacc Coordinate coordinate_shifts(const Coordinate& x, const Int dir1,
+                                  const Int dir2, const Int dir3,
+                                  const Int dir4)
 {
   Coordinate xsh = x;
   qassert(-DIMN <= dir1 && dir1 < DIMN);
@@ -430,8 +442,8 @@ inline Coordinate coordinate_shifts(const Coordinate& x,
                                     const std::vector<Int>& path)
 {
   Coordinate ret = x;
-  for (int i = 0; i < (int)path.size(); ++i) {
-    const int dir = path[i];
+  for (Int i = 0; i < (Int)path.size(); ++i) {
+    const Int dir = path[i];
     qassert(-DIMN <= dir && dir < DIMN);
     ret = coordinate_shifts(ret, dir);
   }

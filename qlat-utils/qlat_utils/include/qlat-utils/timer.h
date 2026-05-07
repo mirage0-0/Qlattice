@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <qlat-utils/assert.h>
 #include <qlat-utils/env.h>
+#include <qlat-utils/qassert.h>
 #include <qlat-utils/rng-state.h>
 #include <qlat-utils/show.h>
 #include <sys/time.h>
@@ -41,6 +41,8 @@
 
 #ifdef _OPENMP
 #include <omp.h>
+#else
+#include <qlat-utils/compatible-omp.h>
 #endif
 
 #define TIMER(FNAME)                     \
@@ -66,40 +68,40 @@
 namespace qlat
 {  //
 
-inline double get_time()
+inline RealD get_time()
 {
   struct timeval tp;
   gettimeofday(&tp, NULL);
-  return ((double)tp.tv_sec + (double)tp.tv_usec * 1e-6);
+  return ((RealD)tp.tv_sec + (RealD)tp.tv_usec * 1e-6);
 }
 
-API inline double& get_actual_start_time()
+API inline RealD& get_actual_start_time()
 // not affected by Timer::reset()
 {
-  static double time = get_time();
+  static RealD time = get_time();
   return time;
 }
 
-inline double get_actual_total_time()
+inline RealD get_actual_total_time()
 {
   return get_time() - get_actual_start_time();
 }
 
-API inline double& get_start_time()
+API inline RealD& get_start_time()
 // will be reset by Timer::reset()
 {
-  static double time = get_actual_start_time();
+  static RealD time = get_actual_start_time();
   return time;
 }
 
-inline double get_remaining_time()
+inline RealD get_remaining_time()
 {
   return get_time_limit() - get_actual_total_time();
 }
 
-inline double get_total_time() { return get_time() - get_start_time(); }
+inline RealD get_total_time() { return get_time() - get_start_time(); }
 
-inline int get_num_thread()
+inline Int get_num_thread()
 {
 #ifdef _OPENMP
   return omp_get_max_threads();
@@ -108,7 +110,7 @@ inline int get_num_thread()
 #endif
 }
 
-inline int get_id_thread()
+inline Int get_id_thread()
 {
 #ifdef _OPENMP
   return omp_get_thread_num();
@@ -117,35 +119,35 @@ inline int get_id_thread()
 #endif
 }
 
-API inline int& get_id_node_in_shuffle_internal()
+API inline Int& get_id_node_in_shuffle_internal()
 // initialized in begin_comm in qlat/mpi.h
 {
-  static int id_node_in_shuffle = 0;
+  static Int id_node_in_shuffle = 0;
   return id_node_in_shuffle;
 }
 
-inline int get_id_node_in_shuffle()
+inline Int get_id_node_in_shuffle()
 {
   return get_id_node_in_shuffle_internal();
 }
 
-API inline int& get_num_node_internal()
+API inline Int& get_num_node_internal()
 // initialized in begin_comm in qlat/mpi.h
 {
-  static int num_node = 1;
+  static Int num_node = 1;
   return num_node;
 }
 
-API inline int& get_id_node_internal()
+API inline Int& get_id_node_internal()
 // initialized in begin_comm in qlat/mpi.h
 {
-  static int id_node = 0;
+  static Int id_node = 0;
   return id_node;
 }
 
-inline int get_num_node() { return get_num_node_internal(); }
+inline Int get_num_node() { return get_num_node_internal(); }
 
-inline int get_id_node() { return get_id_node_internal(); }
+inline Int get_id_node() { return get_id_node_internal(); }
 
 inline void display(const std::string& str)
 {
@@ -211,16 +213,16 @@ inline Long get_total_flops()
 {
   Long flops = 0;
 #ifdef USE_PAPI
-  const int n_threads = omp_get_max_threads();
+  const Int n_threads = omp_get_max_threads();
   Long flopses[n_threads];
-  std::memset(flopses, 0, n_threads * sizeof(Long));
+  memset(flopses, 0, n_threads * sizeof(Long));
 #pragma omp parallel
   {
-    float rtime, ptime, mflops;
-    int i = omp_get_thread_num();
+    RealF rtime, ptime, mflops;
+    Int i = omp_get_thread_num();
     PAPI_flops(&rtime, &ptime, &flopses[i], &mflops);
   }
-  for (int i = 0; i < n_threads; i++) {
+  for (Int i = 0; i < n_threads; i++) {
     flops += flopses[i];
   }
 #endif
@@ -250,7 +252,7 @@ API inline void initialize_papi()
   }
   displayln_info(0, "PAPI::initialize_papi Start.");
   PAPI_library_init(PAPI_VER_CURRENT);
-  PAPI_thread_init((unsigned long (*)(void))(omp_get_thread_num));
+  PAPI_thread_init((uint64_t (*)(void))(omp_get_thread_num));
   initialized = true;
   displayln_info(0, "PAPI::initialize_papi Finish.");
 #endif
@@ -258,11 +260,11 @@ API inline void initialize_papi()
 
 struct API TimerInfo {
   std::string fname;
-  double dtime;
-  double accumulated_time;
+  RealD dtime;
+  RealD accumulated_time;
   Long dflops;
   Long accumulated_flops;
-  int call_times;
+  Int call_times;
   //
   TimerInfo() { init(); }
   //
@@ -276,13 +278,13 @@ struct API TimerInfo {
   //
   void merge(const TimerInfo& x);
   //
-  void show_start(const int fname_len) const;
+  void show_start(const Int fname_len) const;
   //
-  void show_stop(const int fname_len) const;
+  void show_stop(const Int fname_len) const;
   //
-  void show_avg_always(const std::string& info, const int fname_len) const;
+  void show_avg_always(const std::string& info, const Int fname_len) const;
   //
-  void show_avg(const std::string& info, const int fname_len) const;
+  void show_avg(const std::string& info, const Int fname_len) const;
 };
 
 struct API Timer {
@@ -290,8 +292,8 @@ struct API Timer {
   Long info_index;
   bool is_using_total_flops;
   Long is_running;
-  double start_time;
-  double stop_time;
+  RealD start_time;
+  RealD stop_time;
   Long start_flops;
   Long stop_flops;
   Long flops;
@@ -314,9 +316,9 @@ struct API Timer {
     return timer_database_history;
   }
   //
-  API static std::vector<double>& get_start_time_history()
+  API static std::vector<RealD>& get_start_time_history()
   {
-    static std::vector<double> history;
+    static std::vector<RealD> history;
     return history;
   }
   //
@@ -339,27 +341,27 @@ struct API Timer {
   //
   API static void merge();
   //
-  API static double& minimum_autodisplay_interval()
+  API static RealD& minimum_autodisplay_interval()
   // qlat parameter
   {
-    static double time =
+    static RealD time =
         get_env_double_default("q_timer_mini_auto_display", 5.0 * 60.0);
     return time;
   }
   //
-  API static double& minimum_duration_for_show_info()
+  API static RealD& minimum_duration_for_show_info()
   // qlat parameter
   {
-    static double time = get_env_double_default("q_timer_mini_auto_show", 1.0);
+    static RealD time = get_env_double_default("q_timer_mini_auto_show", 1.0);
     return time;
   }
   //
-  API static double& minimum_duration_for_show_stop_info()
+  API static RealD& minimum_duration_for_show_stop_info()
   {
     return minimum_duration_for_show_info();
   }
   //
-  API static double& minimum_duration_for_show_start_info()
+  API static RealD& minimum_duration_for_show_start_info()
   {
     return minimum_duration_for_show_info();
   }
@@ -368,14 +370,14 @@ struct API Timer {
   // qlat parameter
   {
     static Long max_call_times =
-        get_env_long_default("q_timer_max_always_show", 10);
+        get_env_long_default("q_timer_max_always_show", 2);
     return max_call_times;
   }
   //
   API static Long& max_function_name_length_shown()
   // qlat parameter
   {
-    static Long max_len = get_env_long_default("q_timer_max_func_name_len", 50);
+    static Long max_len = get_env_long_default("q_timer_max_func_name_len", 75);
     return max_len;
   }
   //
@@ -411,7 +413,7 @@ struct API Timer {
   //
   API static void display(const std::string& tag = "");
   //
-  API static void autodisplay(const double time = get_time());
+  API static void autodisplay(const RealD time = get_time());
   //
   API static void display_stack_always();
   //
@@ -464,7 +466,8 @@ inline void Display(const char* cname, const char* fname, const char* format,
   va_list args;
   va_start(args, format);
   char* str;
-  qassert(vasprintf(&str, format, args) >= 0);
+  const Int ret = vasprintf(&str, format, args);
+  Qassert(ret >= 0);
   display(ssprintf("%s::%s : %s", cname, fname, str));
   std::free(str);
 }
@@ -472,14 +475,15 @@ inline void Display(const char* cname, const char* fname, const char* format,
 inline void DisplayInfo(const char* cname, const char* fname,
                         const char* format, ...)
 {
-  int rank = get_id_node();
+  Int rank = get_id_node();
   if (0 != rank) {
     return;
   }
   va_list args;
   va_start(args, format);
   char* str;
-  qassert(vasprintf(&str, format, args) >= 0);
+  const Int ret = vasprintf(&str, format, args);
+  Qassert(ret >= 0);
   display_info(ssprintf("%s::%s : %s", cname, fname, str));
   std::free(str);
 }

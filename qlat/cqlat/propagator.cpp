@@ -21,7 +21,7 @@ EXPORT(set_wall_src_prop, {
   using namespace qlat;
   PyObject* p_prop = NULL;
   PyObject* p_geo = NULL;
-  int tslice = -1;
+  Int tslice = -1;
   PyObject* p_lmom = NULL;
   if (!PyArg_ParseTuple(args, "OOi|O", &p_prop, &p_geo, &tslice, &p_lmom)) {
     return NULL;
@@ -41,7 +41,8 @@ EXPORT(set_rand_u1_src_psel, {
   PyObject* p_psel = NULL;
   PyObject* p_geo = NULL;
   PyObject* p_rs = NULL;
-  if (!PyArg_ParseTuple(args, "OOOOO", &p_prop, &p_fu1, &p_psel, &p_geo, &p_rs)) {
+  if (!PyArg_ParseTuple(args, "OOOOO", &p_prop, &p_fu1, &p_psel, &p_geo,
+                        &p_rs)) {
     return NULL;
   }
   Propagator4d& prop = py_convert_type<Propagator4d>(p_prop);
@@ -65,7 +66,7 @@ EXPORT(set_rand_u1_sol_psel, {
     return NULL;
   }
   SelectedPoints<WilsonMatrix>& sp_prop =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_sp_prop);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_sp_prop);
   const Propagator4d& prop = py_convert_type<Propagator4d>(p_prop);
   const FieldM<ComplexD, 1>& fu1 = py_convert_type_field<ComplexD, 1>(p_fu1);
   qassert(fu1.multiplicity == 1);
@@ -105,7 +106,7 @@ EXPORT(set_rand_u1_sol_fsel, {
     return NULL;
   }
   SelectedField<WilsonMatrix>& sf_prop =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_sf_prop);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_sf_prop);
   const Propagator4d& prop = py_convert_type<Propagator4d>(p_prop);
   const FieldM<ComplexD, 1>& fu1 = py_convert_type_field<ComplexD, 1>(p_fu1);
   qassert(fu1.multiplicity == 1);
@@ -120,8 +121,8 @@ EXPORT(free_invert_prop, {
   using namespace qlat;
   PyObject* p_prop_sol = NULL;
   PyObject* p_prop_src = NULL;
-  double mass = 0.0;
-  double m5 = 1.0;
+  RealD mass = 0.0;
+  RealD m5 = 1.0;
   PyObject* p_momtwist = NULL;
   if (!PyArg_ParseTuple(args, "OOd|dO", &p_prop_sol, &p_prop_src, &mass, &m5,
                         &p_momtwist)) {
@@ -169,9 +170,9 @@ EXPORT(convert_wm_from_mspincolor_sp_prop, {
     return NULL;
   }
   SelectedPoints<WilsonMatrix>& prop_wm =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop_wm);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop_wm);
   const SelectedPoints<WilsonMatrix>& prop_msc =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop_msc);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop_msc);
   convert_wm_from_mspincolor(prop_wm, prop_msc);
   Py_RETURN_NONE;
 })
@@ -184,9 +185,9 @@ EXPORT(convert_mspincolor_from_wm_sp_prop, {
     return NULL;
   }
   SelectedPoints<WilsonMatrix>& prop_msc =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop_msc);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop_msc);
   const SelectedPoints<WilsonMatrix>& prop_wm =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop_wm);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop_wm);
   convert_mspincolor_from_wm(prop_msc, prop_wm);
   Py_RETURN_NONE;
 })
@@ -199,9 +200,9 @@ EXPORT(convert_wm_from_mspincolor_s_prop, {
     return NULL;
   }
   SelectedField<WilsonMatrix>& prop_wm =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop_wm);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop_wm);
   const SelectedField<WilsonMatrix>& prop_msc =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop_msc);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop_msc);
   convert_wm_from_mspincolor(prop_wm, prop_msc);
   Py_RETURN_NONE;
 })
@@ -214,9 +215,9 @@ EXPORT(convert_mspincolor_from_wm_s_prop, {
     return NULL;
   }
   SelectedField<WilsonMatrix>& prop_msc =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop_msc);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop_msc);
   const SelectedField<WilsonMatrix>& prop_wm =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop_wm);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop_wm);
   convert_mspincolor_from_wm(prop_msc, prop_wm);
   Py_RETURN_NONE;
 })
@@ -224,7 +225,7 @@ EXPORT(convert_mspincolor_from_wm_s_prop, {
 EXPORT(free_scalar_invert_mom_cfield, {
   using namespace qlat;
   PyObject* p_field = NULL;
-  double mass = 0.0;
+  RealD mass = 0.0;
   if (!PyArg_ParseTuple(args, "Od", &p_field, &mass)) {
     return NULL;
   }
@@ -238,7 +239,7 @@ EXPORT(free_scalar_invert_mom_cfield, {
 EXPORT(flip_tpbc_with_tslice_sp_prop, {
   using namespace qlat;
   PyObject* p_sp_prop = NULL;
-  int tslice_flip_tpbc = -1;
+  Int tslice_flip_tpbc = -1;
   if (!PyArg_ParseTuple(args, "Oi", &p_sp_prop, &tslice_flip_tpbc)) {
     return NULL;
   }
@@ -249,7 +250,7 @@ EXPORT(flip_tpbc_with_tslice_sp_prop, {
       py_convert_type<PointsSelection>(p_sp_prop, "psel");
   const Geometry& geo = py_convert_type<Geometry>(p_sp_prop, "psel", "geo");
   QLAT_DIAGNOSTIC_POP;
-  const int t_size = geo.total_site()[3];
+  const Int t_size = geo.total_site()[3];
   flip_tpbc_with_tslice(sp_prop, psel, tslice_flip_tpbc, t_size);
   Py_RETURN_NONE;
 })
@@ -257,7 +258,7 @@ EXPORT(flip_tpbc_with_tslice_sp_prop, {
 EXPORT(flip_tpbc_with_tslice_s_prop, {
   using namespace qlat;
   PyObject* p_s_prop = NULL;
-  int tslice_flip_tpbc = -1;
+  Int tslice_flip_tpbc = -1;
   if (!PyArg_ParseTuple(args, "Oi", &p_s_prop, &tslice_flip_tpbc)) {
     return NULL;
   }

@@ -4,7 +4,7 @@ namespace qlat
 {  //
 
 template <class M>
-PyObject* mk_field_ctype(PyObject* p_geo, const int multiplicity)
+PyObject* mk_field_ctype(PyObject* p_geo, const Int multiplicity)
 {
   Field<M>* p_field = new Field<M>();
   Field<M>& f = *p_field;
@@ -56,7 +56,7 @@ PyObject* set_sub_field_ctype(PyObject* p_field_new, PyObject* p_field)
 }
 
 template <class M>
-PyObject* set_mul_field_ctype(PyObject* p_field, const double& factor)
+PyObject* set_mul_field_ctype(PyObject* p_field, const RealD& factor)
 {
   Field<M>& f = py_convert_type_field<M>(p_field);
   f *= factor;
@@ -72,7 +72,8 @@ PyObject* set_mul_field_ctype(PyObject* p_field, const ComplexD& factor)
 }
 
 template <class M>
-PyObject* set_mul_field_ctype(PyObject* p_field, const Field<ComplexD>& f_factor)
+PyObject* set_mul_field_ctype(PyObject* p_field,
+                              const Field<ComplexD>& f_factor)
 {
   Field<M>& f = py_convert_type_field<M>(p_field);
   f *= f_factor;
@@ -80,7 +81,7 @@ PyObject* set_mul_field_ctype(PyObject* p_field, const Field<ComplexD>& f_factor
 }
 
 template <class M>
-PyObject* set_mul_field_ctype(PyObject* p_field, const Field<double>& f_factor)
+PyObject* set_mul_field_ctype(PyObject* p_field, const Field<RealD>& f_factor)
 {
   Field<M>& f = py_convert_type_field<M>(p_field);
   f *= f_factor;
@@ -123,7 +124,7 @@ template <class M>
 PyObject* qnorm_field_ctype(PyObject* p_field)
 {
   Field<M>& f = py_convert_type_field<M>(p_field);
-  const double ret = qnorm(f);
+  const RealD ret = qnorm(f);
   return py_convert(ret);
 }
 
@@ -148,7 +149,7 @@ PyObject* get_mview_field_ctype(PyObject* p_field)
   return p_mview;
 }
 
-} // namespace qlat
+}  // namespace qlat
 
 EXPORT(set_add_field, {
   using namespace qlat;
@@ -181,7 +182,7 @@ EXPORT(set_sub_field, {
 EXPORT(set_mul_double_field, {
   using namespace qlat;
   PyObject* p_field = NULL;
-  double factor = 0.0;
+  RealD factor = 0.0;
   if (!PyArg_ParseTuple(args, "Od", &p_field, &factor)) {
     return NULL;
   }
@@ -218,7 +219,7 @@ EXPORT(set_mul_cfield_field, {
     Field<ComplexD>& f_factor = py_convert_type_field<ComplexD>(p_cfield);
     FIELD_DISPATCH(p_ret, set_mul_field_ctype, ctype, p_field, f_factor);
   } else if (ctype_c == "RealD") {
-    Field<double>& f_factor = py_convert_type_field<double>(p_cfield);
+    Field<RealD>& f_factor = py_convert_type_field<RealD>(p_cfield);
     FIELD_DISPATCH(p_ret, set_mul_field_ctype, ctype, p_field, f_factor);
   } else {
     qassert(false);

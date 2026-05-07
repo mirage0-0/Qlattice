@@ -9,7 +9,7 @@ namespace qlat
 void set_m_z_field_tag(SelectedPoints<RealD>& smf_d,
                        const PointsSelection& psel_d, const Geometry& geo,
                        const Coordinate& xg_x, const Coordinate& xg_y,
-                       const double a, const int tag);
+                       const RealD a, const Int tag);
 
 // ------------------------------------------------------------------------
 
@@ -20,13 +20,13 @@ qacc ManyMagneticMoments simple_pion_projection(const CoordinateD& x,
   const CoordinateD mid_yz = (y + z) / 2;
   const CoordinateD x_mid_yz = x - mid_yz;
   const CoordinateD y_z = y - z;
-  array<array<double, 4>, 3> eps_eps_xyz;
+  array<array<RealD, 4>, 3> eps_eps_xyz;
   set_zero(eps_eps_xyz);
-  for (int i = 0; i < 3; ++i) {
-    for (int rho = 0; rho < 4; ++rho) {
-      for (int j = 0; j < 3; ++j) {
-        for (int k = 0; k < 3; ++k) {
-          for (int m = 0; m < 4; ++m) {
+  for (Int i = 0; i < 3; ++i) {
+    for (Int rho = 0; rho < 4; ++rho) {
+      for (Int j = 0; j < 3; ++j) {
+        for (Int k = 0; k < 3; ++k) {
+          for (Int m = 0; m < 4; ++m) {
             eps_eps_xyz[i][rho] += epsilon_tensor_acc(i, j, k) *
                                    epsilon_tensor_acc(rho, k, j, m) *
                                    x_mid_yz[m];
@@ -35,12 +35,12 @@ qacc ManyMagneticMoments simple_pion_projection(const CoordinateD& x,
       }
     }
   }
-  array<array<double, 4>, 4> eps_yz_xyz;
+  array<array<RealD, 4>, 4> eps_yz_xyz;
   set_zero(eps_yz_xyz);
-  for (int sigma = 0; sigma < 4; ++sigma) {
-    for (int lambda = 0; lambda < 4; ++lambda) {
-      for (int r = 0; r < 4; ++r) {
-        for (int s = 0; s < 4; ++s) {
+  for (Int sigma = 0; sigma < 4; ++sigma) {
+    for (Int lambda = 0; lambda < 4; ++lambda) {
+      for (Int r = 0; r < 4; ++r) {
+        for (Int s = 0; s < 4; ++s) {
           eps_yz_xyz[sigma][lambda] +=
               epsilon_tensor_acc(sigma, lambda, r, s) * y_z[r] * x_mid_yz[s];
         }
@@ -49,10 +49,10 @@ qacc ManyMagneticMoments simple_pion_projection(const CoordinateD& x,
   }
   ManyMagneticMoments ret;
   set_zero(ret);
-  for (int i = 0; i < 3; ++i) {
-    for (int rho = 0; rho < 4; ++rho) {
-      for (int sigma = 0; sigma < 4; ++sigma) {
-        for (int lambda = 0; lambda < 4; ++lambda) {
+  for (Int i = 0; i < 3; ++i) {
+    for (Int rho = 0; rho < 4; ++rho) {
+      for (Int sigma = 0; sigma < 4; ++sigma) {
+        for (Int lambda = 0; lambda < 4; ++lambda) {
           get_m_comp(ret, i, rho, sigma, lambda) =
               0.5 * eps_eps_xyz[i][rho] * eps_yz_xyz[sigma][lambda];
         }
@@ -69,11 +69,11 @@ qacc ManyMagneticMoments pion_projection(const CoordinateD& x,
 // x and y z are two ends of the pion
 {
   const ManyMagneticMoments mmm = simple_pion_projection(x, y, z);
-  double sum = 0.0;
-  for (int i = 0; i < 3; ++i) {
-    for (int rho = 0; rho < 4; ++rho) {
-      for (int sigma = 0; sigma < 4; ++sigma) {
-        for (int lambda = 0; lambda < 4; ++lambda) {
+  RealD sum = 0.0;
+  for (Int i = 0; i < 3; ++i) {
+    for (Int rho = 0; rho < 4; ++rho) {
+      for (Int sigma = 0; sigma < 4; ++sigma) {
+        for (Int lambda = 0; lambda < 4; ++lambda) {
           sum += sqr(get_m_comp(mmm, i, rho, sigma, lambda));
         }
       }
@@ -132,12 +132,12 @@ void set_local_current_from_props(SelectedPoints<WilsonMatrix>& scf,
 
 template <class M>
 struct CurrentMoments {
-  vector_acc<array<M, 3 * 3>> d;
+  vector<array<M, 3 * 3>> d;
   // moment = 0.5 * epsilon_tensor(i, j, k) * smod_sym(xg[j] - ref[j],
   // total_site[j]) * d[ xg[j] ][3*j + k]
   //
   void init() { clear(d); }
-  void init(const int lsize)
+  void init(const Int lsize)
   {
     init();
     d.resize(lsize);
@@ -150,22 +150,22 @@ qacc array<M, 3> simple_moment(const CurrentMoments<M>& cm,
                                const CoordinateD& ref,
                                const Coordinate& total_site)
 {
-  const int lsize =
+  const Int lsize =
       std::max(total_site[0], std::max(total_site[1], total_site[2]));
   array<M, 3> ret;
   set_zero(ret);
-  for (int x = 0; x < lsize; ++x) {
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
+  for (Int x = 0; x < lsize; ++x) {
+    for (Int i = 0; i < 3; ++i) {
+      for (Int j = 0; j < 3; ++j) {
         if (i == j) {
           continue;
         }
-        for (int k = 0; k < 3; ++k) {
+        for (Int k = 0; k < 3; ++k) {
           if (i == k or j == k) {
             continue;
           }
           ret[i] += (Complex)(0.5 * epsilon_tensor_acc(i, j, k) *
-                              smod_sym(x - ref[j], (double)total_site[j])) *
+                              smod_sym(x - ref[j], (RealD)total_site[j])) *
                     cm.d[x][3 * j + k];
         }
       }
@@ -188,45 +188,44 @@ qacc array<M, 3> simple_moment_with_contact_subtract(
   const RealD sub_coef = 1.0 - weight;
   const Vector<M> cv = current.get_elems_const(idx);
   array<M, 3> ret = simple_moment(cm, ref, total_site);
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) {
+  for (Int i = 0; i < 3; ++i) {
+    for (Int j = 0; j < 3; ++j) {
       if (i == j) {
         continue;
       }
-      for (int k = 0; k < 3; ++k) {
+      for (Int k = 0; k < 3; ++k) {
         if (i == k or j == k) {
           continue;
         }
-        ret[i] +=
-            (sub_coef * 0.5 * (Complex)epsilon_tensor_acc(i, j, k) *
-             (Complex)smod_sym(xg_op[j] - ref[j], (double)total_site[j])) *
-            cv[k];
+        ret[i] += (sub_coef * 0.5 * (Complex)epsilon_tensor_acc(i, j, k) *
+                   (Complex)smod_sym(xg_op[j] - ref[j], (RealD)total_site[j])) *
+                  cv[k];
       }
     }
   }
   return ret;
 }
 
-enum ChooseReferenceLabel {
-  choose_reference_label_ref_far,
-  choose_reference_label_ref_close,
-  choose_reference_label_ref_center,
+enum struct ChooseReferenceLabel : Int {
+  RefFar,
+  RefClose,
+  RefCenter,
 };
 
 inline ChooseReferenceLabel choose_reference_label(const std::string& label)
 {
   if (does_string_have_tag(label, "ref-far")) {
-    return choose_reference_label_ref_far;
+    return ChooseReferenceLabel::RefFar;
   } else if (does_string_have_tag(label, "ref-close")) {
-    return choose_reference_label_ref_close;
+    return ChooseReferenceLabel::RefClose;
   } else if (does_string_have_tag(label, "ref-center")) {
-    return choose_reference_label_ref_center;
+    return ChooseReferenceLabel::RefCenter;
   } else {
-    qassert(false);
-    return choose_reference_label_ref_far;
+    Qassert(false);
+    return ChooseReferenceLabel::RefFar;
   }
-  qassert(false);
-  return choose_reference_label_ref_far;
+  Qassert(false);
+  return ChooseReferenceLabel::RefFar;
 }
 
 qacc CoordinateD choose_reference(const Coordinate& xg_x,
@@ -238,7 +237,7 @@ qacc CoordinateD choose_reference(const Coordinate& xg_x,
   const long dis2_xy = sqr(smod(xg_x - xg_y, total_site));
   const long dis2_xz = sqr(smod(xg_x - xg_z, total_site));
   const long dis2_yz = sqr(smod(xg_y - xg_z, total_site));
-  if (choose_reference_label_ref_far == label) {
+  if (ChooseReferenceLabel::RefFar == label) {
     if (dis2_xy < dis2_xz and dis2_xy < dis2_yz) {
       return CoordinateD(xg_z);
     } else if (dis2_xz < dis2_xy and dis2_xz < dis2_yz) {
@@ -252,7 +251,7 @@ qacc CoordinateD choose_reference(const Coordinate& xg_x,
                                               smod(xg_y - xg_z, total_site)),
           total_site);
     }
-  } else if (choose_reference_label_ref_close == label) {
+  } else if (ChooseReferenceLabel::RefClose == label) {
     if (dis2_xy < dis2_xz and dis2_xy < dis2_yz) {
       return middle_mod(CoordinateD(xg_x), CoordinateD(xg_y),
                         CoordinateD(total_site));
@@ -269,7 +268,7 @@ qacc CoordinateD choose_reference(const Coordinate& xg_x,
                                               smod(xg_y - xg_z, total_site)),
           total_site);
     }
-  } else if (choose_reference_label_ref_center == label) {
+  } else if (ChooseReferenceLabel::RefCenter == label) {
     return mod(
         CoordinateD(xg_z) + 1.0 / 3.0 *
                                 CoordinateD(smod(xg_x - xg_z, total_site) +
@@ -305,15 +304,15 @@ void contract_four_loop(SelectedPoints<Complex>& f_loop_i_rho_sigma_lambda,
                         const CurrentMoments<WilsonMatrix>& cm_yx,
                         const PointsSelection& psel_d,
                         const SelectedPoints<RealD>& psel_d_prob_xy,
-                        const Geometry& geo,
-                        const Long r_sq_limit, const std::string& label);
+                        const Geometry& geo, const Long r_sq_limit,
+                        const std::string& label);
 
 void contract_four_combine(
     SlTable& t, SlTable& t_pi, const Complex& coef, const Geometry& geo,
     const Coordinate& xg_x, const Coordinate& xg_y,
     const SelectedPoints<Complex>& f_loop_i_rho_sigma_lambda,
-    const SelectedPoints<ManyMagneticMoments>& smf, const PointsSelection& psel_d,
-    const Long r_sq_limit);
+    const SelectedPoints<ManyMagneticMoments>& smf,
+    const PointsSelection& psel_d, const Long r_sq_limit);
 
 inline std::vector<std::string> get_clbl_inf_ref_tags(
     const std::string& job_tag)
@@ -333,7 +332,7 @@ inline std::vector<std::string> contract_four_pair_labels(
 {
   TIMER_VERBOSE("contract_four_pair_labels");
   std::vector<std::string> labels;
-  for (int i = 0; i < (int)tags.size(); ++i) {
+  for (Int i = 0; i < (int)tags.size(); ++i) {
     std::string label = tags[i] + " proj-all";
     std::string label_pi = tags[i] + " proj-pi";
     labels.push_back(label);
@@ -365,7 +364,7 @@ inline std::vector<std::string> contract_two_plus_two_pair_labels()
   tags.push_back("sub pisl");
   tags.push_back("dsub pisl");
   std::vector<std::string> labels;
-  for (int i = 0; i < (int)tags.size(); ++i) {
+  for (Int i = 0; i < (int)tags.size(); ++i) {
     std::string label = tags[i] + " proj-all";
     std::string label_pi = tags[i] + " proj-pi";
     labels.push_back(label);

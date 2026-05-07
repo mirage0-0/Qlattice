@@ -4,7 +4,7 @@ namespace qlat
 {  //
 
 template <class M>
-PyObject* mk_sfield_ctype(int dummy)
+PyObject* mk_sfield_ctype(Int dummy)
 {
   (void)dummy;
   SelectedField<M>* pf = new SelectedField<M>();
@@ -12,7 +12,8 @@ PyObject* mk_sfield_ctype(int dummy)
 }
 
 template <class M>
-PyObject* mk_sfield_fsel_ctype(const FieldSelection& fsel, const int multiplicity)
+PyObject* mk_sfield_fsel_ctype(const FieldSelection& fsel,
+                               const Int multiplicity)
 {
   SelectedField<M>* pf = new SelectedField<M>();
   SelectedField<M>& f = *pf;
@@ -96,7 +97,7 @@ PyObject* set_mul_sfield_ctype(PyObject* pf, const ComplexD& factor)
 }
 
 template <class M>
-PyObject* set_mul_sfield_ctype(PyObject* pf, const double& factor)
+PyObject* set_mul_sfield_ctype(PyObject* pf, const RealD& factor)
 {
   SelectedField<M>& f = py_convert_type_sfield<M>(pf);
   f *= factor;
@@ -123,11 +124,14 @@ PyObject* acc_field_sfield_ctype(PyObject* p_field, PyObject* p_sfield,
 
 template <class M>
 PyObject* field_shift_sfield_ctype(PyObject* p_sfield_new, PyObject* p_sfield,
-                                   const Coordinate& shift, const bool is_reflect)
+                                   const Coordinate& shift,
+                                   const bool is_reflect)
 {
   QLAT_PUSH_DIAGNOSTIC_DISABLE_DANGLING_REF;
-  FieldSelection& fsel_new = py_convert_type<FieldSelection>(p_sfield_new, "fsel");
-  const FieldSelection& fsel = py_convert_type<FieldSelection>(p_sfield, "fsel");
+  FieldSelection& fsel_new =
+      py_convert_type<FieldSelection>(p_sfield_new, "fsel");
+  const FieldSelection& fsel =
+      py_convert_type<FieldSelection>(p_sfield, "fsel");
   QLAT_DIAGNOSTIC_POP;
   SelectedField<M>& sf_new = py_convert_type_sfield<M>(p_sfield_new);
   const SelectedField<M>& sf = py_convert_type_sfield<M>(p_sfield);
@@ -171,12 +175,12 @@ template <class M>
 PyObject* qnorm_sfield_ctype(PyObject* pf)
 {
   SelectedField<M>& f = py_convert_type_sfield<M>(pf);
-  const double ret = qnorm(f);
+  const RealD ret = qnorm(f);
   return py_convert(ret);
 }
 
 template <class M>
-PyObject* qnorm_field_sfield_ctype(SelectedField<double>& f, PyObject* p_field1)
+PyObject* qnorm_field_sfield_ctype(SelectedField<RealD>& f, PyObject* p_field1)
 {
   const SelectedField<M>& f1 = py_convert_type_sfield<M>(p_field1);
   qnorm_field(f, f1);
@@ -191,7 +195,7 @@ PyObject* get_elems_sfield_ctype(PyObject* p_sfield, const Long idx)
 }
 
 template <class M>
-PyObject* get_elem_sfield_ctype(PyObject* p_sfield, const Long idx, const int m)
+PyObject* get_elem_sfield_ctype(PyObject* p_sfield, const Long idx, const Int m)
 {
   const SelectedField<M>& f = py_convert_type_sfield<M>(p_sfield);
   if (m >= 0) {
@@ -206,7 +210,7 @@ PyObject* set_elems_sfield_ctype(PyObject* p_field, const Long idx,
                                  PyObject* p_val)
 {
   SelectedField<M>& f = py_convert_type_sfield<M>(p_field);
-  const int multiplicity = f.multiplicity;
+  const Int multiplicity = f.multiplicity;
   qassert((Long)PyBytes_Size(p_val) == (Long)multiplicity * (Long)sizeof(M));
   const Vector<M> val((M*)PyBytes_AsString(p_val), multiplicity);
   assign(f.get_elems(idx), val);
@@ -214,8 +218,8 @@ PyObject* set_elems_sfield_ctype(PyObject* p_field, const Long idx,
 }
 
 template <class M>
-PyObject* set_elem_sfield_ctype(PyObject* p_field, const Long idx,
-                                const int m, PyObject* p_val)
+PyObject* set_elem_sfield_ctype(PyObject* p_field, const Long idx, const Int m,
+                                PyObject* p_val)
 {
   SelectedField<M>& f = py_convert_type_sfield<M>(p_field);
   qassert(PyBytes_Size(p_val) == sizeof(M));
@@ -228,7 +232,7 @@ template <class M>
 PyObject* glb_sum_tslice_double_sfield_ctype(PyObject* p_spfield,
                                              PyObject* p_field,
                                              const FieldSelection& fsel,
-                                             const int t_dir)
+                                             const Int t_dir)
 {
   SelectedPoints<M>& sp = py_convert_type_spoints<M>(p_spfield);
   const SelectedField<M>& f = py_convert_type_sfield<M>(p_field);
@@ -240,7 +244,7 @@ template <class M>
 PyObject* glb_sum_tslice_long_sfield_ctype(PyObject* p_spfield,
                                            PyObject* p_field,
                                            const FieldSelection& fsel,
-                                           const int t_dir)
+                                           const Int t_dir)
 {
   SelectedPoints<M>& sp = py_convert_type_spoints<M>(p_spfield);
   const SelectedField<M>& f = py_convert_type_sfield<M>(p_field);
@@ -269,7 +273,7 @@ PyObject* load_sfield_ctype(PyObject* pf, const std::string& path,
 template <class M>
 PyObject* convert_float_from_double_sfield_ctype(PyObject* pf_new, PyObject* pf)
 {
-  SelectedField<float>& f_new = py_convert_type_sfield<float>(pf_new);
+  SelectedField<RealF>& f_new = py_convert_type_sfield<RealF>(pf_new);
   const SelectedField<M>& f = py_convert_type_sfield<M>(pf);
   convert_field_float_from_double(f_new, f);
   Py_RETURN_NONE;
@@ -278,7 +282,7 @@ PyObject* convert_float_from_double_sfield_ctype(PyObject* pf_new, PyObject* pf)
 template <class M>
 PyObject* convert_double_from_float_sfield_ctype(PyObject* pf_new, PyObject* pf)
 {
-  const SelectedField<float>& f = py_convert_type_sfield<float>(pf);
+  const SelectedField<RealF>& f = py_convert_type_sfield<RealF>(pf);
   SelectedField<M>& f_new = py_convert_type_sfield<M>(pf_new);
   convert_field_double_from_float(f_new, f);
   Py_RETURN_NONE;
@@ -304,7 +308,6 @@ PyObject* to_from_endianness_sfield_ctype(PyObject* pf,
 }
 
 }  // namespace qlat
-
 
 EXPORT(set_add_sfield, {
   using namespace qlat;
@@ -337,7 +340,7 @@ EXPORT(set_sub_sfield, {
 EXPORT(set_mul_double_sfield, {
   using namespace qlat;
   PyObject* p_field = NULL;
-  double factor = 0.0;
+  RealD factor = 0.0;
   if (!PyArg_ParseTuple(args, "Od", &p_field, &factor)) {
     return NULL;
   }
@@ -369,7 +372,8 @@ EXPORT(acc_field_sfield, {
   const std::string ctype = py_get_ctype(p_sfield);
   qassert(py_get_ctype(p_sfield) == ctype);
   QLAT_PUSH_DIAGNOSTIC_DISABLE_DANGLING_REF;
-  const FieldSelection& fsel = py_convert_type<FieldSelection>(p_sfield, "fsel");
+  const FieldSelection& fsel =
+      py_convert_type<FieldSelection>(p_sfield, "fsel");
   QLAT_DIAGNOSTIC_POP;
   PyObject* p_ret = NULL;
   FIELD_DISPATCH(p_ret, acc_field_sfield_ctype, ctype, p_field, p_sfield, fsel);
@@ -464,7 +468,7 @@ EXPORT(qnorm_field_sfield, {
   if (!PyArg_ParseTuple(args, "OO", &p_field, &p_field1)) {
     return NULL;
   }
-  SelectedField<double>& f = py_convert_type_sfield<double>(p_field);
+  SelectedField<RealD>& f = py_convert_type_sfield<RealD>(p_field);
   const std::string ctype = py_get_ctype(p_field1);
   PyObject* p_ret = NULL;
   FIELD_DISPATCH(p_ret, qnorm_field_sfield_ctype, ctype, f, p_field1);
@@ -478,16 +482,16 @@ EXPORT(set_sqrt_double_sfield, {
   if (!PyArg_ParseTuple(args, "OO", &p_field, &p_field1)) {
     return NULL;
   }
-  SelectedField<double>& f = py_convert_type_sfield<double>(p_field);
-  const SelectedField<double>& f1 = py_convert_type_sfield<double>(p_field1);
+  SelectedField<RealD>& f = py_convert_type_sfield<RealD>(p_field);
+  const SelectedField<RealD>& f1 = py_convert_type_sfield<RealD>(p_field1);
   const Geometry& geo = f1.geo();
   qassert(geo.is_only_local);
   f.init();
   f.init(geo, f1.n_elems, f1.multiplicity);
   qacc_for(idx, f.n_elems, {
-    const Vector<double> f1v = f1.get_elems_const(idx);
-    Vector<double> fv = f.get_elems(idx);
-    for (int m = 0; m < f.multiplicity; ++m) {
+    const Vector<RealD> f1v = f1.get_elems_const(idx);
+    Vector<RealD> fv = f.get_elems(idx);
+    for (Int m = 0; m < f.multiplicity; ++m) {
       fv[m] = std::sqrt(f1v[m]);
     }
   });
@@ -554,7 +558,7 @@ EXPORT(glb_sum_tslice_double_sfield, {
   using namespace qlat;
   PyObject* p_spfield = NULL;
   PyObject* p_field = NULL;
-  int t_dir = 3;
+  Int t_dir = 3;
   if (!PyArg_ParseTuple(args, "OO|i", &p_spfield, &p_field, &t_dir)) {
     return NULL;
   }
@@ -573,7 +577,7 @@ EXPORT(glb_sum_tslice_long_sfield, {
   using namespace qlat;
   PyObject* p_spfield = NULL;
   PyObject* p_field = NULL;
-  int t_dir = 3;
+  Int t_dir = 3;
   if (!PyArg_ParseTuple(args, "OO|i", &p_spfield, &p_field, &t_dir)) {
     return NULL;
   }

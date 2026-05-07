@@ -4,7 +4,7 @@ from qlat_utils.all cimport *
 from . cimport everything as cc
 from .geometry cimport Geometry
 from .qcd cimport GaugeField
-from .propagator cimport Prop
+from .propagator cimport Prop, FermionField4d
 
 import cqlat as c
 import qlat_utils as q
@@ -39,7 +39,7 @@ def prop_smear(Prop prop, GaugeField gf1,
                int mode_smear=1):
     """
     gf_ape = gf_spatial_ape_smear(gf, 0.5, 30)
-    gf1 = mk_left_expanded_gauge_field(gf_ape)
+    gf1 = mk_left_expanded_field(gf_ape)
     mom: momentum smearing in lattice unit 1/a (not unit of lattice momentum 2 pi / L / a)
     smear params:
     24D: coef = 0.9375, step = 10
@@ -50,11 +50,33 @@ def prop_smear(Prop prop, GaugeField gf1,
     if mom is None:
         mom = CoordinateD()
     if mode_smear == 0:
-        cc.prop_smear(prop1.xxx().p[0], gf1.xxx().p[0],
+        cc.prop_smear(prop1.xxx().val(), gf1.xxx().val(),
                       coef, step, mom.xx, smear_in_time_dir)
     elif mode_smear >= 1:
-        cc.prop_smear_qlat_convension(prop1.xxx().p[0], gf1.xxx().p[0],
+        cc.prop_smear_qlat_convension(prop1.xxx().val(), gf1.xxx().val(),
                                       coef, step, mom.xx, smear_in_time_dir, mode_smear)
     else:
         raise Exception(f"prop_smear(prop1, gf1, coef={coef}, step={step}, mom={mom}, smear_in_time_dir={smear_in_time_dir}, mode_smear={mode_smear})")
     return prop1
+
+@q.timer
+def prop_spatial_smear_no_comm(list ff_list, GaugeField gf, cc.RealD coef, cc.Long step, CoordinateD mom=None):
+    """
+    `gf` and each of `ff_list` should contain entire time slices.
+    No communication will be performed.
+    """
+    if mom is None:
+        mom = q.CoordinateD()
+    cdef cc.Int num_field = len(ff_list)
+    cdef cc.std_vector[cc.FermionField4d] ff_vec
+    cdef FermionField4d ff
+    ff_vec.resize(num_field)
+    for i in range(num_field):
+        assert isinstance(ff_list[i], FermionField4d)
+        ff = ff_list[i]
+        cc.qswap(ff.xx, ff_vec[i])
+    cc.prop_spatial_smear_no_comm(ff_vec, gf.xxx().val(), coef, step, mom.xx)
+    for i in range(num_field):
+        ff = ff_list[i]
+        cc.qswap(ff.xx, ff_vec[i])
+

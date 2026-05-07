@@ -1,9 +1,11 @@
 {
-  nixpkgs ? import ./nixpkgs.nix {},
-  name ? "q-pkgs-cuda",
+  nixpkgs ? null,
+  version ? null,
+  use-gitee ? null,
+  name ? "q-pkgs-cudasupport",
 }:
 
 let
-  q-pkgs = import ./q-pkgs.nix { inherit nixpkgs; };
+  all-q-pkgs = import ./q-pkgs.nix { inherit nixpkgs version use-gitee; };
 in
-  q-pkgs."${name}"
+  all-q-pkgs."${name}"

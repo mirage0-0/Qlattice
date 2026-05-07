@@ -9,131 +9,168 @@
 namespace qlat
 {  //
 
-API inline int& qacc_num_threads()
+API inline Int& qacc_num_threads()
 // qlat parameter
 {
-  static int nt = get_env_long_default("q_acc_num_threads", 32);
+  static Int nt = get_env_long_default("q_acc_num_threads", 32);
   return nt;
 }
 
-#define qfor(iter1, num, ...)                    \
-  {                                              \
-    for (qlat::Long iter1 = 0; iter1 < num; ++iter1) { \
-      {__VA_ARGS__};                             \
-    }                                            \
-  }
-
-#define qfor2d(iter1, num1, iter2, num2, ...)       \
-  {                                                 \
-    for (qlat::Long iter1 = 0; iter1 < num1; ++iter1) {   \
-      for (qlat::Long iter2 = 0; iter2 < num2; ++iter2) { \
-        {__VA_ARGS__};                              \
-      }                                             \
-    }                                               \
-  }
-
-#define q_do_pragma(x) _Pragma(#x)
-
-#define qthread_for(iter1, num, ...)             \
-  {                                              \
-  q_do_pragma(omp parallel for schedule(static)) \
-  for (qlat::Long iter1 = 0; iter1 < num; ++iter1)     \
-    {                                            \
-      {__VA_ARGS__};                             \
-    }                                            \
-  }
-
-#define qthread_for2d(iter1, num1, iter2, num2, ...) \
-  {                                                  \
-  q_do_pragma(omp parallel for collapse(2))           \
-  for (qlat::Long iter1 = 0; iter1 < num1; ++iter1)        \
-    {                                                \
-      for (qlat::Long iter2 = 0; iter2 < num2; ++iter2) {  \
-        {__VA_ARGS__};                               \
-      }                                              \
-    }                                                \
-  }
-
 #ifdef QLAT_USE_ACC
+
+inline void qacc_Err(qacc_Error err, const char* file, Int line)
+{
+  if (qacc_Success != err) {
+    qlat::displayln(
+        qlat::ssprintf("qacc_barrier: ACC error %s from '%s' Line %d.",
+                       qacc_GetErrorString(err), file, line));
+    qassert(false);
+  }
+}
+
+#ifdef __NVCC__
 
 #ifndef __CUDACC_EXTENDED_LAMBDA__
 #error "please compile with --expt-extended-lambda"
 #endif
 
+#define qacc_ErrCheck(ans)                             \
+  {                                                    \
+    (ans);                                             \
+    qacc_Err(qacc_GetLastError(), __FILE__, __LINE__); \
+  }
+
+#else
+
+#define qacc_ErrCheck(ans)               \
+  {                                      \
+    qacc_Err((ans), __FILE__, __LINE__); \
+  }
+
+#endif
+
+#endif
+
+API inline MemType check_mem_type(const void* ptr)
+{
+  MemType mem_type;
+#ifdef QLAT_USE_ACC
+  bool find = false;
+  qacc_PointerAttributes attr;
+  qacc_ErrCheck(qacc_PointerGetAttributes(&attr, ptr));
+  if (attr.type == qacc_MemoryTypeHost) {
+    mem_type = MemType::Cpu;
+    find = true;
+  }
+  if (attr.type == qacc_MemoryTypeDevice) {
+    mem_type = MemType::Acc;
+    find = true;
+  }
+  if (attr.type == qacc_MemoryTypeManaged) {
+    mem_type = MemType::Uvm;
+    find = true;
+  }
+  if (attr.type == qacc_MemoryTypeUnregistered) {
+    // assume all Acc memeory is allocate by Acc and pt is not out of the range
+    mem_type = MemType::Cpu;
+    find = true;
+  }
+  assert(find);
+#else
+  (void)ptr;
+  mem_type = MemType::Cpu;
+#endif
+  return mem_type;
+}
+
+API inline void display_mem_type(const void* p)
+{
+  displayln_info(ssprintf("mem type %s", show(check_mem_type(p)).c_str()));
+}
+
+#define qfor(iter, num, ...)                                   \
+  {                                                            \
+    const qlat::Long QACC_NUM_VALUE = (num);                   \
+    for (qlat::Long iter = 0; iter < QACC_NUM_VALUE; ++iter) { \
+      {__VA_ARGS__};                                           \
+    }                                                          \
+  }
+
+#define q_do_pragma(x) _Pragma(#x)
+
+#define qthread_for(iter, num, ...)                          \
+  {                                                          \
+    const qlat::Long QACC_NUM_VALUE = (num);                 \
+    q_do_pragma(omp parallel for schedule(static))           \
+    for (qlat::Long iter = 0; iter < QACC_NUM_VALUE; ++iter) \
+    {                                                        \
+      {__VA_ARGS__};                                         \
+    }                                                        \
+  }
+
+#ifdef QLAT_USE_ACC
+
 #define qacc_continue return
 
-#define qacc_for2dNB(iter1, num1, iter2, num2, ...)                           \
-  {                                                                           \
-    if ((num1 != 0) and (num2 != 0)) {                                        \
-      typedef qlat::Long QACC_FOR_LOOP_ITERATOR;                                    \
-      auto QACC_FOR_LOOP_LAMBDA = [=] __host__ __device__(                    \
-                                      QACC_FOR_LOOP_ITERATOR iter1,           \
-                                      QACC_FOR_LOOP_ITERATOR iter2) mutable { \
-        {__VA_ARGS__};                                                        \
-      };                                                                      \
-      const int QACC_NUM_THREADS = qlat::qacc_num_threads();                  \
-      dim3 CUDA_THREADS_DIM3(QACC_NUM_THREADS, 1, 1);                         \
-      dim3 CUDA_BLOCKS_DIM3((num1 + QACC_NUM_THREADS - 1) / QACC_NUM_THREADS, \
-                            num2, 1);                                         \
-      qacc_Error CUDA_LAST_ERROR_OBJECT = qacc_GetLastError();                \
-      if (qacc_Success != CUDA_LAST_ERROR_OBJECT) {                           \
-        qerr(qlat::ssprintf("qacc_for: Cuda error %s from '%s' Line %d.",     \
-                            qacc_GetErrorString(CUDA_LAST_ERROR_OBJECT),      \
-                            __FILE__, __LINE__));                             \
-      }                                                                       \
-      qlambda_apply<<<CUDA_BLOCKS_DIM3, CUDA_THREADS_DIM3>>>(                 \
-          num1, num2, QACC_FOR_LOOP_LAMBDA);                                  \
-    }                                                                         \
+#define qacc_forNB(iter, num, ...)                                             \
+  {                                                                            \
+    const qlat::Long QACC_NUM_VALUE = (num);                                   \
+    if (QACC_NUM_VALUE != 0) {                                                 \
+      auto QACC_FOR_LOOP_LAMBDA =                                              \
+          [=] __host__ __device__(qlat::Long iter) mutable { {__VA_ARGS__}; }; \
+      const Int QACC_NUM_THREADS = qlat::qacc_num_threads();                   \
+      dim3 CUDA_THREADS_DIM3(QACC_NUM_THREADS, 1, 1);                          \
+      dim3 CUDA_BLOCKS_DIM3(                                                   \
+          (QACC_NUM_VALUE + QACC_NUM_THREADS - 1) / QACC_NUM_THREADS, 1, 1);   \
+      qacc_Error CUDA_LAST_ERROR_OBJECT = qacc_GetLastError();                 \
+      if (qacc_Success != CUDA_LAST_ERROR_OBJECT) {                            \
+        qerr(qlat::ssprintf("qacc_for: ACC error %s from '%s' Line %d.",       \
+                            qacc_GetErrorString(CUDA_LAST_ERROR_OBJECT),       \
+                            __FILE__, __LINE__));                              \
+      }                                                                        \
+      qlambda_apply<<<CUDA_BLOCKS_DIM3, CUDA_THREADS_DIM3>>>(                  \
+          QACC_NUM_VALUE, QACC_FOR_LOOP_LAMBDA);                               \
+    }                                                                          \
   }
 
 template <typename Lambda>
-__global__ void qlambda_apply(Long num1, Long num2, Lambda lam)
+__global__ void qlambda_apply(Long num, Lambda lam)
 {
   Long x = threadIdx.x + blockDim.x * blockIdx.x;
-  Long y = threadIdx.y + blockDim.y * blockIdx.y;
-  if ((x < num1) && (y < num2)) {
-    lam(x, y);
+  if (x < num) {
+    lam(x);
   }
 }
 
-#define qacc_barrier(dummy)                                                \
-  {                                                                        \
-    qacc_DeviceSynchronize();                                               \
-    qacc_Error err = qacc_GetLastError();                                    \
-    if (qacc_Success != err) {                                              \
-      qlat::displayln(                                                     \
-          qlat::ssprintf("qacc_barrier: Cuda error %s from '%s' Line %d.", \
-                         qacc_GetErrorString(err), __FILE__, __LINE__));    \
-      qassert(false);                                                      \
-    }                                                                      \
+#define qacc_barrier(dummy)                  \
+  {                                          \
+    qacc_ErrCheck(qacc_DeviceSynchronize()); \
   }
-
-#define qacc_forNB(iter1, num1, ...) \
-  qacc_for2dNB(iter1, num1, iter2, 1, {__VA_ARGS__});
 
 #define qacc_for(iter, num, ...) \
   qacc_forNB(iter, num, {__VA_ARGS__}) qacc_barrier(dummy)
-
-#define qacc_for2d(iter1, num1, iter2, num2, ...) \
-  qacc_for2dNB(iter1, num1, iter2, num2, {__VA_ARGS__}) qacc_barrier(dummy)
 
 #else
 
 #define qacc_continue continue
 
-#define qacc_for2dNB(iter1, num1, iter2, num2, ...) \
-  qthread_for2d(iter1, num1, iter2, num2, {__VA_ARGS__})
-
-#define qacc_forNB(iter1, num1, ...) qthread_for(iter1, num1, {__VA_ARGS__})
+#define qacc_forNB(iter, num, ...) qthread_for(iter, num, {__VA_ARGS__})
 
 #define qacc_barrier(dummy)
-
-#define qacc_for2d(iter1, num1, iter2, num2, ...) \
-  qacc_for2dNB(iter1, num1, iter2, num2, {__VA_ARGS__}) qacc_barrier(dummy)
 
 #define qacc_for(iter, num, ...) \
   qacc_forNB(iter, num, {__VA_ARGS__}) qacc_barrier(dummy);
 
 #endif
+
+#define qmem_for(iter, num, mem_type, ...)                              \
+  {                                                                     \
+    qlat::MemType QACC_EFF_MEM_TYPE = qlat::get_eff_mem_type(mem_type); \
+    if (QACC_EFF_MEM_TYPE == qlat::MemType::Cpu) {                      \
+      qthread_for(iter, (num), {__VA_ARGS__});                          \
+    } else {                                                            \
+      qacc_for(iter, (num), {__VA_ARGS__});                             \
+    }                                                                   \
+  }
 
 }  // namespace qlat

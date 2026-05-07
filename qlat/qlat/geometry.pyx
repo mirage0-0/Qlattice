@@ -16,12 +16,62 @@ cdef class Geometry:
         self.xx = cc.Geometry()
         self.cdata = <cc.Long>&(self.xx)
 
-    def __init__(self, Coordinate total_site=None):
+    def __init__(self, *args):
         """
-        if total_site is None: create geo uninitialized
+        Geometry()
+        Geometry(total_site)
+        Geometry(id_node, size_node, node_site)
+        Geometry(coor_node, size_node, node_site)
         """
-        if total_site is not None:
-            self.xx.init(Coordinate(total_site).xx)
+        n_args = len(args)
+        if n_args == 0:
+            self.xx.init()
+        elif n_args == 1:
+            if isinstance(args[0], Coordinate):
+                self.init_from_total_site(*args)
+            else:
+                fname = q.get_fname()
+                raise Exception(f"{fname}: args={args}")
+        elif n_args == 3:
+            if isinstance(args[0], Coordinate):
+                self.init_from_coor_node_site(*args)
+            elif isinstance(args[0], int):
+                self.init_from_id_node_site(*args)
+            else:
+                fname = q.get_fname()
+                raise Exception(f"{fname}: args={args}")
+        else:
+            fname = q.get_fname()
+            raise Exception(f"{fname}: args={args}")
+
+    def init_from_total_site(self, Coordinate total_site):
+        """
+        Use `total_site` to initialize `Geometry`.
+        Will use the global `geon` to determine `id_node` and `size_node`.
+        """
+        self.xx.init(total_site.xx)
+
+    def init_from_id_node_site(self, int id_node, Coordinate size_node, Coordinate node_site):
+        """
+        initialize Geometry without call MPI functions.
+        #
+        corr_node = q.coordinate_from_index(id_node, size_node)
+        id_node = q.index_from_coordinate(corr_node, size_node)
+        #
+        total_site = size_node * node_site
+        """
+        self.xx.init(id_node, size_node.xx, node_site.xx)
+
+    def init_from_coor_node_site(self, Coordinate coor_node, Coordinate size_node, Coordinate node_site):
+        """
+        initialize Geometry without call MPI functions.
+        #
+        corr_node = q.coordinate_from_index(id_node, size_node)
+        id_node = q.index_from_coordinate(corr_node, size_node)
+        #
+        total_site = size_node * node_site
+        """
+        self.xx.init(coor_node.xx, size_node.xx, node_site.xx)
 
     def __imatmul__(self, Geometry v1):
         cc.assign_direct(self.xx, v1.xx)
@@ -39,6 +89,9 @@ cdef class Geometry:
     def __deepcopy__(self, memo):
         return self.copy()
 
+    def __eq__(self, Geometry other):
+        return self.xx == other.xx
+
     @property
     def total_site(self):
         cdef Coordinate x = Coordinate()
@@ -50,6 +103,10 @@ cdef class Geometry:
         return self.xx.total_volume()
 
     @property
+    def spatial_volume(self):
+        return self.xx.spatial_volume()
+
+    @property
     def local_site(self):
         cdef Coordinate x = Coordinate()
         cc.assign_direct(x.xx, self.xx.local_site())
@@ -58,6 +115,10 @@ cdef class Geometry:
     @property
     def local_volume(self):
         return self.xx.local_volume()
+
+    @property
+    def local_volume_expanded(self):
+        return self.xx.local_volume_expanded()
 
     @property
     def eo(self):
@@ -96,6 +157,12 @@ cdef class Geometry:
         return x
 
     @property
+    def node_site(self):
+        cdef Coordinate x = Coordinate()
+        cc.assign_direct(x.xx, self.xx.node_site)
+        return x
+
+    @property
     def is_only_local(self):
         return self.xx.is_only_local
 
@@ -126,13 +193,21 @@ cdef class Geometry:
         cc.assign_direct(xl.xx, self.xx.coordinate_l_from_g(xg.xx))
         return xl
 
-    def index_from_coordinate(self, Coordinate xg not None):
-        return self.xx.index_from_coordinate(xg.xx)
+    def index_from_coordinate(self, Coordinate xl not None):
+        return self.xx.index_from_coordinate(xl.xx)
 
     def coordinate_from_index(self, cc.Long index):
         cdef Coordinate xl = Coordinate()
         cc.assign_direct(xl.xx, self.xx.coordinate_from_index(index))
         return xl
+
+    def index_from_g_coordinate(self, Coordinate xg not None):
+        return self.xx.index_from_g_coordinate(xg.xx)
+
+    def g_coordinate_from_index(self, cc.Long index):
+        cdef Coordinate xg = Coordinate()
+        cc.assign_direct(xg.xx, self.xx.g_coordinate_from_index(index))
+        return xg
 
     def is_local(self, Coordinate xl not None):
         return self.xx.is_local(xl.xx)
@@ -157,27 +232,30 @@ cdef class Geometry:
 
     def __getstate__(self):
         """
-        Only work when single node (or if all nodes has the same data).
-        Do not support expansion.
+        State of `Geometry` is different on different nodes.
         """
-        total_site = self.total_site
+        size_node = self.size_node
+        coor_node = self.coor_node
+        node_site = self.node_site
         expan_left = self.expansion_left
         expan_right = self.expansion_right
-        return [ total_site, expan_left, expan_right, ]
+        return [ size_node, coor_node, node_site, expan_left, expan_right, ]
 
     def __setstate__(self, state):
         """
-        Only work when single node (or if all nodes has the same data).
-        Do not support expansion.
+        State of `Geometry` is different on different nodes.
         """
         self.__init__()
-        cdef Coordinate total_site
+        cdef Coordinate size_node
+        cdef Coordinate coor_node
+        cdef Coordinate node_site
         cdef Coordinate expan_left
         cdef Coordinate expan_right
-        [ total_site, expan_left, expan_right, ] = state
-        self.xx.init(total_site.xx)
+        [ size_node, coor_node, node_site, expan_left, expan_right, ] = state
+        self.xx.init(coor_node.xx, size_node.xx, node_site.xx)
         self.xx.expansion_left = expan_left.xx
         self.xx.expansion_right = expan_right.xx
+        self.xx.reset_node_site_expanded()
 
 ### -------------------------------------------------------------------
 
@@ -206,10 +284,10 @@ def geo_resize(Geometry geo, expansion_left=None, expansion_right=None):
     elif isinstance(expansion_right, list):
         er = Coordinate(expansion_right)
     else:
-        assert isinstance(expansion_left, Coordinate)
-        er = <Coordinate>expansion_left
+        assert isinstance(expansion_right, Coordinate)
+        er = <Coordinate>expansion_right
     cdef Geometry geo_new = Geometry()
-    geo_new.xx = cc.geo_resize(geo.xx, el.xx, er.xx)
+    cc.assign_direct(geo_new.xx, cc.geo_resize(geo.xx, el.xx, er.xx))
     return geo_new
 
 def geo_eo(Geometry geo, int eo=0):

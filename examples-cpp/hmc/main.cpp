@@ -4,7 +4,8 @@ namespace qlat
 {  //
 
 inline void gm_evolve_fg(GaugeMomentum& gm, const GaugeField& gf_init,
-                  const GaugeAction& ga, const double fg_dt, const double dt)
+                         const GaugeAction& ga, const double fg_dt,
+                         const double dt)
 {
   TIMER("gm_evolve_fg");
   const Geometry& geo = gf_init.geo();
@@ -64,7 +65,8 @@ inline double run_hmc_evolve(GaugeMomentum& gm, GaugeField& gf,
   return delta_h;
 }
 
-inline void run_hmc(GaugeField& gf, const GaugeAction& ga, const int traj, const RngState& rs)
+inline void run_hmc(GaugeField& gf, const GaugeAction& ga, const int traj,
+                    const RngState& rs)
 {
   TIMER_VERBOSE("run_hmc");
   const Geometry& geo = gf.geo();
@@ -136,7 +138,7 @@ inline void test_hmc(const Coordinate& total_site, const GaugeAction& ga)
     run_hmc(gf, ga, traj, rs.split(ssprintf("hmc-%d", traj)));
     //
     const double plaq_avg = gf_avg_plaq(gf);
-    const double plaq_sum = product(total_site) * 6 * (1.0 - plaq_avg);
+    const double plaq_sum = volume(total_site) * 6 * (1.0 - plaq_avg);
     displayln_info("CHECK: " + fname +
                    ssprintf(": traj=%d ; plaq_avg=%24.12E ; plaq_sum=%24.12E.",
                             traj, plaq_avg, plaq_sum));

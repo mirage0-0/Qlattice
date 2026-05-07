@@ -1,162 +1,177 @@
 [
  [
-  "run_hmc: 1 plaq",
-  0.7450943920367528
- ],
- [
-  "run_hmc: 2 plaq",
-  0.6766937771184736
- ],
- [
-  "run_hmc: 3 plaq",
-  0.6436265119193416
- ],
- [
-  "run_hmc: 4 plaq",
-  0.6206781160838984
- ],
- [
-  "run_hmc: 5 plaq",
-  0.5973990387209165
- ],
- [
-  "run_hmc: 6 plaq",
-  0.5846407720593919
- ],
- [
-  "run_hmc: 7 plaq",
-  0.5867134719750318
- ],
- [
-  "run_hmc: 8 plaq",
-  0.5881418797220908
+  "{\"total_site\": [4, 4, 4, 8], \"hmc\": {\"max_traj\": 8, \"max_traj_always_accept\": 4, \"max_traj_reverse_test\": 2, \"md_time\": 1.0, \"n_step\": 10, \"beta\": 2.13, \"c1\": -0.331, \"save_traj_interval\": 4, \"is_saving_topo_info\": true, \"fa\": {\"is_project_gauge_transform\": true}}, \"analysis\": {\"md_time_factor\": 1.4142135623730951}}"
  ],
  [
   "run_hmc: 1 plaq",
-  0.7574303159184316
+  0.7450943920366759
  ],
  [
   "run_hmc: 2 plaq",
-  0.7162682961967344
+  0.6766937771184031
  ],
  [
   "run_hmc: 3 plaq",
-  0.6688024944326814
+  0.6436265119193245
  ],
  [
   "run_hmc: 4 plaq",
-  0.6473990260130363
+  0.6206781160839361
  ],
  [
   "run_hmc: 5 plaq",
-  0.6301599272579701
+  0.5973990387210192
  ],
  [
   "run_hmc: 6 plaq",
-  0.6183370383925256
+  0.584640772059464
  ],
  [
   "run_hmc: 7 plaq",
-  0.6056014047510287
+  0.5867134719746516
  ],
  [
   "run_hmc: 8 plaq",
-  0.5978031451858512
+  0.5881418797219358
+ ],
+ [
+  "{\"total_site\": [4, 4, 4, 8], \"hmc\": {\"max_traj\": 8, \"max_traj_always_accept\": 4, \"max_traj_reverse_test\": 2, \"md_time\": 1.0, \"n_step\": 10, \"beta\": 2.13, \"c1\": -0.331, \"save_traj_interval\": 4, \"is_saving_topo_info\": true, \"fa\": {\"complete_refresh_interval\": 2, \"is_project_gauge_transform\": true, \"mass_type\": \"random\", \"interval_list\": [1, 2]}}, \"analysis\": {\"md_time_factor\": 1.4142135623730951}}"
  ],
  [
   "run_hmc: 1 plaq",
-  0.7553940083686734
+  0.757430315918385
  ],
  [
   "run_hmc: 2 plaq",
-  0.7165997031181496
+  0.7162682961967222
  ],
  [
   "run_hmc: 3 plaq",
-  0.6672123175965112
+  0.668802494432672
  ],
  [
   "run_hmc: 4 plaq",
-  0.6478552906595931
+  0.6473990260130624
  ],
  [
   "run_hmc: 5 plaq",
-  0.6214441450798192
+  0.6301599272579714
  ],
  [
   "run_hmc: 6 plaq",
-  0.6085025839627993
+  0.618337038392538
  ],
  [
   "run_hmc: 7 plaq",
-  0.5962901303161345
+  0.6056014047510423
  ],
  [
   "run_hmc: 8 plaq",
-  0.5905986666701075
+  0.5978031451860212
+ ],
+ [
+  "{\"total_site\": [4, 4, 4, 8], \"hmc\": {\"max_traj\": 8, \"max_traj_always_accept\": 4, \"max_traj_reverse_test\": 2, \"md_time\": 1.0, \"n_step\": 10, \"beta\": 2.13, \"c1\": -0.331, \"save_traj_interval\": 4, \"is_saving_topo_info\": true, \"fa\": {\"complete_refresh_interval\": 2, \"is_project_gauge_transform\": false, \"mass_type\": \"random\", \"interval_list\": [1, 2]}}, \"analysis\": {\"md_time_factor\": 1.4142135623730951}}"
  ],
  [
   "run_hmc: 1 plaq",
-  0.7481205279773053
+  0.7553940083686219
  ],
  [
   "run_hmc: 2 plaq",
-  0.6913357725999982
+  0.7165997031181176
  ],
  [
   "run_hmc: 3 plaq",
-  0.6516687241015605
+  0.6672123175964966
  ],
  [
   "run_hmc: 4 plaq",
-  0.6302214606616231
+  0.6478552906595858
  ],
  [
   "run_hmc: 5 plaq",
-  0.6161817292121352
+  0.6214441450798182
  ],
  [
   "run_hmc: 6 plaq",
-  0.6052181052599356
+  0.6085025839628103
  ],
  [
   "run_hmc: 7 plaq",
-  0.5997161531369353
+  0.5962901303161287
  ],
  [
   "run_hmc: 8 plaq",
-  0.5904677295132285
+  0.5905986666701912
+ ],
+ [
+  "{\"total_site\": [4, 4, 4, 8], \"hmc\": {\"max_traj\": 8, \"max_traj_always_accept\": 4, \"max_traj_reverse_test\": 2, \"md_time\": 1.0, \"n_step\": 10, \"beta\": 2.13, \"c1\": -0.331, \"save_traj_interval\": 4, \"is_saving_topo_info\": true, \"fa\": {\"complete_refresh_interval\": 2, \"is_project_gauge_transform\": true, \"mass_type\": \"grid-2\", \"mass_list\": [1.0, 1.25, 1.5, 4.0], \"interval_list\": [1, 1, 1, 2]}}, \"analysis\": {\"md_time_factor\": 1.4142135623730951}}"
  ],
  [
   "run_hmc: 1 plaq",
-  0.7564848285840841
+  0.7481205279772534
  ],
  [
   "run_hmc: 2 plaq",
-  0.7077345298590232
+  0.6913357725999666
  ],
  [
   "run_hmc: 3 plaq",
-  0.6580872503111821
+  0.651668724101524
  ],
  [
   "run_hmc: 4 plaq",
-  0.6392689277384989
+  0.6302214606616119
  ],
  [
   "run_hmc: 5 plaq",
-  0.61921773217575
+  0.6161817292121254
  ],
  [
   "run_hmc: 6 plaq",
-  0.6067884819604743
+  0.6052181052599224
  ],
  [
   "run_hmc: 7 plaq",
-  0.5995068883214777
+  0.5997161531369214
  ],
  [
   "run_hmc: 8 plaq",
-  0.5909372191909894
+  0.5904677295132266
+ ],
+ [
+  "{\"total_site\": [4, 4, 4, 8], \"hmc\": {\"max_traj\": 8, \"max_traj_always_accept\": 4, \"max_traj_reverse_test\": 2, \"md_time\": 1.0, \"n_step\": 10, \"beta\": 2.13, \"c1\": -0.331, \"save_traj_interval\": 4, \"is_saving_topo_info\": true, \"fa\": {\"complete_refresh_interval\": 2, \"is_project_gauge_transform\": true, \"mass_type\": \"grid-2-eo\", \"mass_list\": [1.0, 1.25, 1.5, 4.0, Infinity, Infinity, Infinity, Infinity], \"interval_list\": [1, 1, 1, 2, 1, 1, 1, 1]}}}"
+ ],
+ [
+  "run_hmc: 1 plaq",
+  0.7564848285839976
+ ],
+ [
+  "run_hmc: 2 plaq",
+  0.7077345298589477
+ ],
+ [
+  "run_hmc: 3 plaq",
+  0.658087250311148
+ ],
+ [
+  "run_hmc: 4 plaq",
+  0.6392689277384828
+ ],
+ [
+  "run_hmc: 5 plaq",
+  0.6192177321757404
+ ],
+ [
+  "run_hmc: 6 plaq",
+  0.6067884819604881
+ ],
+ [
+  "run_hmc: 7 plaq",
+  0.5995068883215273
+ ],
+ [
+  "run_hmc: 8 plaq",
+  0.5909372191910358
  ]
 ]

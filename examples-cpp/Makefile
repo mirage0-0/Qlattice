@@ -2,10 +2,11 @@ SHELL=/usr/bin/env bash
 
 mpi_options ?= --oversubscribe --bind-to none
 
-tests = qlat-vector-utils \
-		qlat-fft-tests \
-		qlat-smear-tests \
-		qcd-utils-tests \
+tests = \
+		vector-utils \
+		fft-tests \
+		smear-tests \
+		gf-utils-tests \
 		lbl-muon-part \
 		rng-state-tests \
 		field-rng-tests \
@@ -41,9 +42,9 @@ run-proj: compile-proj
 	-mkdir build
 	-touch build/log build/log.full
 	-time meson compile -C build run
-	-cat build/log | grep -a '^CHECK: \|^INFO: \|WARNING' >build/log.txt
-	-cat build/log.txt | grep -a '^CHECK: ' >build/log.check.txt.new
-	-cat log | grep -a '^CHECK: ' >build/log.check.txt
+	-cat build/log | grep -a 'CHECK: \|INFO: \|WARNING' >build/log.txt
+	-cat build/log.txt | grep -a 'CHECK: ' >build/log.check.txt.new
+	-cat log | grep -a 'CHECK: ' >build/log.check.txt
 	-if diff build/log.check.txt build/log.check.txt.new ; then echo passed ; else cat build/log.full ; fi
 	-rm -rfv log
 	-touch log

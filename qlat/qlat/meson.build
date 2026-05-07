@@ -16,7 +16,6 @@ py_files = files(
   'field_double.py',
   'field_type_dict.py',
   'fthmc.py',
-  'get_include_dir.py',
   'hmc_stats.py',
   'inverter.py',
   '__main__.py',
@@ -25,6 +24,10 @@ py_files = files(
   'scalar_action.py',
   'field_analysis.py',
   'mat_mpi.py',
+  'psel_split.py',
+  'smear_prop.py',
+  'instanton_map.py',
+  'flow_scale.py',
   )
 
 pxd_files = files(

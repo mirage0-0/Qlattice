@@ -23,9 +23,9 @@ inline void collect_pis(const std::string& job_tag)
     TIMER_VERBOSE("collect_pis");
     qmkdir_info(ssprintf("data/point-src-info"));
     qmkdir_info(ssprintf("data/point-src-info/%s", job_tag.c_str()));
-    const std::vector<int> trajs = get_todo_trajs(old_job_tag);
-    for (int i = 0; i < (int)trajs.size(); ++i) {
-      const int traj = trajs[i];
+    const std::vector<int> traj_list = get_todo_traj_list(old_job_tag);
+    for (int i = 0; i < (int)traj_list.size(); ++i) {
+      const int traj = traj_list[i];
       check_sigint();
       const std::string fn = get_point_src_info_path(job_tag, traj);
       const std::string fn_old = get_pis_path(old_job_tag, traj);
@@ -48,22 +48,22 @@ inline void collect_pcs(const std::string& job_tag)
 {
   const std::string old_job_tag = get_old_job_tag(job_tag);
   const std::string checkpoint =
-      ssprintf("data/point-selection/%s/checkpoint.txt", job_tag.c_str());
+      ssprintf("data/points-selection/%s/checkpoint.txt", job_tag.c_str());
   if (does_file_exist_sync_node(checkpoint)) {
     return;
   }
-  if (not obtain_lock(ssprintf("lock-point-selection-%s", job_tag.c_str()))) {
+  if (not obtain_lock(ssprintf("lock-points-selection-%s", job_tag.c_str()))) {
     return;
   }
   {
     TIMER_VERBOSE("collect_pcs");
-    qmkdir_info(ssprintf("data/point-selection"));
-    qmkdir_info(ssprintf("data/point-selection/%s", job_tag.c_str()));
-    const std::vector<int> trajs = get_todo_trajs(old_job_tag);
-    for (int i = 0; i < (int)trajs.size(); ++i) {
-      const int traj = trajs[i];
+    qmkdir_info(ssprintf("data/points-selection"));
+    qmkdir_info(ssprintf("data/points-selection/%s", job_tag.c_str()));
+    const std::vector<int> traj_list = get_todo_traj_list(old_job_tag);
+    for (int i = 0; i < (int)traj_list.size(); ++i) {
+      const int traj = traj_list[i];
       check_sigint();
-      const std::string fn = get_point_selection_path(job_tag, traj);
+      const std::string fn = get_points_selection_path(job_tag, traj);
       const std::string fn_old = get_pis_path(old_job_tag, traj);
       if (fn_old != "") {
         const std::vector<PointInfo> pis = load_lbl_pis_info(fn_old);
@@ -248,13 +248,13 @@ inline void set_sparse_parameters(std::vector<Coordinate>& psel,
                                   const std::string& job_tag, const int traj)
 {
   TIMER_VERBOSE("set_sparse_parameters");
-  const std::string fn_point_selection =
-      get_point_selection_path(job_tag, traj);
+  const std::string fn_points_selection =
+      get_points_selection_path(job_tag, traj);
   const std::string fn_field_selection =
       get_field_selection_path(job_tag, traj);
-  qassert(fn_point_selection != "");
+  qassert(fn_points_selection != "");
   qassert(fn_field_selection != "");
-  psel = load_lbl_pcs_info(fn_point_selection);
+  psel = load_lbl_pcs_info(fn_points_selection);
   const Coordinate total_site = get_total_site(job_tag);
   const Long spatial_vol = total_site[0] * total_site[1] * total_site[2];
   const Long n_per_tslice = spatial_vol / 16;
@@ -996,9 +996,9 @@ inline void compute(const std::string& job_tag)
     Timer::reset();
   }
   const std::string old_job_tag = get_old_job_tag(job_tag);
-  const std::vector<int> trajs = get_todo_trajs(old_job_tag);
-  for (int i = 0; i < (int)trajs.size(); ++i) {
-    const int traj = trajs[i];
+  const std::vector<int> traj_list = get_todo_traj_list(old_job_tag);
+  for (int i = 0; i < (int)traj_list.size(); ++i) {
+    const int traj = traj_list[i];
     compute_traj(job_tag, traj);
   }
 }
@@ -1021,17 +1021,17 @@ int main(int argc, char* argv[])
   setup_log_idx();
   setup();
   qmkdir_info(ssprintf("data"));
-  std::vector<std::string> job_tags;
+  std::vector<std::string> job_tag_list;
   // SADJUST ME
-  job_tags.push_back("24D");
-  job_tags.push_back("24DH");
-  job_tags.push_back("32Dfine");
-  job_tags.push_back("32D");
-  job_tags.push_back("48I");
-  job_tags.push_back("64I");
+  job_tag_list.push_back("24D");
+  job_tag_list.push_back("24DH");
+  job_tag_list.push_back("32Dfine");
+  job_tag_list.push_back("32D");
+  job_tag_list.push_back("48I");
+  job_tag_list.push_back("64I");
   //
-  for (int k = 0; k < (int)job_tags.size(); ++k) {
-    const std::string& job_tag = job_tags[k];
+  for (int k = 0; k < (int)job_tag_list.size(); ++k) {
+    const std::string& job_tag = job_tag_list[k];
     compute(job_tag);
   }
   end();

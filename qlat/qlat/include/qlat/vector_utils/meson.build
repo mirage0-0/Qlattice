@@ -15,7 +15,7 @@ vector_utils_header_files = files(
   'utils_fft_desc.h',
   'utils_float_type.h',
   'utils_gammas.h',
-  'utils_gaugefield.h',
+  'utils_gauge_field.h',
   'utils_grid_src.h',
   'utils_io_vec.h',
   'utils_lms_funs.h',
@@ -36,5 +36,13 @@ vector_utils_header_files = files(
   'utils_props_type.h',
   'utils_field_expand.h',
   'utils_gauge_box.h',
+  'utils_Smear_vecs_2link.h',
+  'utils_grid_multi.h',
+  'utils_field_gpu.h',
+  'utils_sector_funs.h',
+  'utils_corr_sparse_baryon.h',
+  'utils_geo_cache.h',
+  'utils_macro_defines.h',
+  'utils_cg_iter.h',
   )
 py3.install_sources(vector_utils_header_files, subdir: 'qlat/include/qlat/vector_utils')

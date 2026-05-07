@@ -19,156 +19,16 @@ RealD gf_avg_plaq(const GaugeField& gf);
 
 RealD gf_avg_link_trace(const GaugeField& gf);
 
+void gf_plaq_field(Field<RealD>& f_plaq, const GaugeField& gf);
+
+RealD gf_local_avg_plaq(const GaugeField& gf, const Coordinate& block_site);
+
 struct U1GaugeTransform : FieldM<ComplexF, 1> {
 };
 
-template <class T>
-void unitarize(Field<ColorMatrixT<T> >& gf)
-{
-  TIMER_VERBOSE("unitarize(gf)");
-  qacc_for(index, gf.geo().local_volume(), {
-    const Geometry& geo = gf.geo();
-    const Coordinate xl = geo.coordinate_from_index(index);
-    Vector<ColorMatrixT<T>> v = gf.get_elems(xl);
-    for (int m = 0; m < gf.multiplicity; ++m) {
-      unitarize(v[m]);
-    }
-  });
-}
+void unitarize(Field<ColorMatrix>& gf);
 
-template <class T>
-double gf_avg_plaq_no_comm(const GaugeFieldT<T>& gf)
-// assume proper communication is done
-{
-  TIMER("gf_avg_plaq_no_comm");
-  const Geometry geo = geo_resize(gf.geo());
-  FieldM<double, 1> cf;
-  cf.init(geo);
-  qacc_for(index, geo.local_volume(), {
-    const Geometry& geo = cf.geo();
-    Coordinate xl = geo.coordinate_from_index(index);
-    const Vector<ColorMatrixT<T>> v = gf.get_elems_const(xl);
-    array<Vector<ColorMatrixT<T>>, DIMN> vms;
-    for (int m = 0; m < DIMN; ++m) {
-      xl[m] += 1;
-      vms[m] = gf.get_elems_const(xl);
-      xl[m] -= 1;
-    }
-    double sum = 0.0;
-    for (int m1 = 1; m1 < DIMN; ++m1) {
-      for (int m2 = 0; m2 < m1; ++m2) {
-        ColorMatrixT<T> cm =
-            v[m1] * vms[m1][m2] * matrix_adjoint(v[m2] * vms[m2][m1]);
-        sum += matrix_trace(cm).real() / NUM_COLOR;
-        if (std::isnan(sum)) {
-          qerr(ssprintf("WARNING: isnan in gf_avg_plaq"));
-        }
-      }
-    }
-    sum /= DIMN * (DIMN - 1) / 2;
-    cf.get_elem(index) = sum;
-  });
-  const std::vector<double> sum_vec = field_sum(cf);
-  qassert(sum_vec.size() == 1);
-  double sum = sum_vec[0];
-  glb_sum(sum);
-  sum /= geo.total_volume();
-  return sum;
-}
-
-template <class T>
-double gf_avg_plaq(const GaugeFieldT<T>& gf)
-{
-  TIMER("gf_avg_plaq");
-  GaugeFieldT<T> gf1;
-  gf1.init(geo_resize(gf.geo(), Coordinate(1, 1, 1, 1), Coordinate(1, 1, 1, 1)));
-  gf1 = gf;
-  refresh_expanded(gf1);
-  return gf_avg_plaq_no_comm(gf1);
-}
-
-template <class T>
-double gf_avg_spatial_plaq_no_comm(const GaugeFieldT<T>& gf)
-// assume proper communication is done
-{
-  TIMER("gf_avg_spatial_plaq_no_comm");
-  const Geometry& geo = gf.geo();
-  std::vector<double> sums(omp_get_max_threads(), 0.0);
-#pragma omp parallel
-  {
-    double sum_avg_plaq = 0.0;
-#pragma omp for
-    for (Long index = 0; index < geo.local_volume(); ++index) {
-      Coordinate xl = geo.coordinate_from_index(index);
-      const Vector<ColorMatrixT<T> > v = gf.get_elems_const(xl);
-      std::vector<Vector<ColorMatrixT<T> > > vms(DIMN - 1);
-      for (int m = 0; m < DIMN - 1; ++m) {
-        xl[m] += 1;
-        vms[m] = gf.get_elems_const(xl);
-        xl[m] -= 1;
-      }
-      double avg_plaq = 0.0;
-      for (int m1 = 1; m1 < 3; ++m1) {
-        for (int m2 = 0; m2 < m1; ++m2) {
-          ColorMatrixT<T> cm =
-              v[m1] * vms[m1][m2] * matrix_adjoint(v[m2] * vms[m2][m1]);
-          avg_plaq += matrix_trace(cm).real() / NUM_COLOR;
-          if (std::isnan(avg_plaq)) {
-            fdisplayln(stdout, ssprintf("WARNING: isnan in gf_avg_plaq"));
-            qassert(false);
-          }
-        }
-      }
-      avg_plaq /= (DIMN - 1) * (DIMN - 2) / 2;
-      sum_avg_plaq += avg_plaq;
-    }
-    sums[omp_get_thread_num()] = sum_avg_plaq;
-  }
-  double sum = 0.0;
-  for (size_t i = 0; i < sums.size(); ++i) {
-    sum += sums[i];
-  }
-  glb_sum(sum);
-  sum /= geo.total_volume();
-  return sum;
-}
-
-template <class T>
-RealD gf_avg_spatial_plaq(const GaugeFieldT<T>& gf)
-{
-  TIMER("gf_avg_spatial_plaq(gf)");
-  GaugeFieldT<T> gf1;
-  gf1.init(geo_resize(gf.geo(), Coordinate(1, 1, 1, 1), Coordinate(1, 1, 1, 1)));
-  gf1 = gf;
-  refresh_expanded(gf1);
-  return gf_avg_spatial_plaq_no_comm(gf1);
-}
-
-template <class T>
-double gf_avg_link_trace(const GaugeFieldT<T>& gf)
-{
-  TIMER("gf_avg_link_trace");
-  const Geometry& geo = gf.geo();
-  FieldM<double, 1> cf;
-  cf.init(geo);
-  qacc_for(index, geo.local_volume(), {
-    const Geometry& geo = cf.geo();
-    const Coordinate xl = geo.coordinate_from_index(index);
-    const Vector<ColorMatrixT<T>> v = gf.get_elems_const(xl);
-    double sum = 0;
-    for (int m = 0; m < v.size(); ++m) {
-      sum += matrix_trace(v[m]).real() / NUM_COLOR;
-    }
-    sum /= v.size();
-    cf.get_elem(index) = sum;
-  });
-  const std::vector<double> sum_vec = field_sum(cf);
-  qassert(sum_vec.size() == 1);
-  double sum = sum_vec[0];
-  glb_sum(sum);
-  sum /= geo.total_volume();
-  return sum;
-}
+void make_tr_less_anti_herm_matrix(Field<ColorMatrix>& fc);
 
 // GaugeField IO
 
@@ -246,7 +106,7 @@ inline void read_gauge_field_header(GaugeFieldInfo& gfi,
           while (infos.back() != "END_HEADER\n" && infos.back() != "") {
             infos.push_back(qgetline(qfile));
           }
-          for (int m = 0; m < 4; ++m) {
+          for (Int m = 0; m < 4; ++m) {
             reads(gfi.total_site[m],
                   info_get_prop(infos, ssprintf("DIMENSION_%d = ", m + 1)));
           }
@@ -292,9 +152,9 @@ Long save_gauge_field(const GaugeFieldT<T>& gf, const std::string& path,
 #pragma omp parallel for
   for (Long index = 0; index < geo.local_volume(); ++index) {
     const Coordinate xl = geo.coordinate_from_index(index);
-    const Vector<ColorMatrixT<T> > v = gf.get_elems_const(xl);
+    const Vector<ColorMatrixT<T>> v = gf.get_elems_const(xl);
     Vector<ComplexD> vt = gft.get_elems(xl);
-    for (int m = 0; m < multiplicity; ++m) {
+    for (Int m = 0; m < multiplicity; ++m) {
       vt[6 * m + 0] = v[m](0, 0);
       vt[6 * m + 1] = v[m](0, 1);
       vt[6 * m + 2] = v[m](0, 2);
@@ -304,7 +164,8 @@ Long save_gauge_field(const GaugeFieldT<T>& gf, const std::string& path,
     }
   }
   GaugeFieldInfo gfi = gfi_;
-  gfi.simple_checksum = field_simple_checksum(gft); // before to_from_big_endian_64
+  gfi.simple_checksum =
+      field_simple_checksum(gft);  // before to_from_big_endian_64
   to_from_big_endian(get_data(gft));
   gfi.plaq = gf_avg_plaq(gf);
   gfi.trace = gf_avg_link_trace(gf);
@@ -327,7 +188,7 @@ Long load_gauge_field(GaugeFieldT<T>& gf, const std::string& path)
   read_gauge_field_header(gfi, path);
   const bool is_two_row = gfi.datatype == "4D_SU3_GAUGE";
   const bool is_three_row = gfi.datatype == "4D_SU3_GAUGE_3x3";
-  const int n_complex_su3 = is_two_row ? 6 : (is_three_row ? 9 : 0);
+  const Int n_complex_su3 = is_two_row ? 6 : (is_three_row ? 9 : 0);
   if (n_complex_su3 == 0) {
     displayln(fname + ssprintf(": gfi.datatype '%s' id_node=%d.",
                                gfi.datatype.c_str(), get_id_node()));
@@ -373,7 +234,7 @@ Long load_gauge_field(GaugeFieldT<T>& gf, const std::string& path)
     const Coordinate xl = geo.coordinate_from_index(index);
     Vector<ComplexD> vt = gft.get_elems(xl);
     Vector<ColorMatrixT<T>> v = gf.get_elems(xl);
-    for (int m = 0; m < multiplicity; ++m) {
+    for (Int m = 0; m < multiplicity; ++m) {
       v[m](0, 0) = vt[m * n_complex_su3 + 0];
       v[m](0, 1) = vt[m * n_complex_su3 + 1];
       v[m](0, 2) = vt[m * n_complex_su3 + 2];
@@ -394,8 +255,7 @@ Long load_gauge_field(GaugeFieldT<T>& gf, const std::string& path)
 }
 
 template <class T = Real>
-inline Long load_gauge_field_cps3x3(GaugeFieldT<T>& gf,
-                                    const std::string& path)
+inline Long load_gauge_field_cps3x3(GaugeFieldT<T>& gf, const std::string& path)
 // assuming gf already initialized and have correct size;
 {
   TIMER_VERBOSE_FLOPS("load_gauge_field_cps3x3");
@@ -414,8 +274,8 @@ inline Long load_gauge_field_cps3x3(GaugeFieldT<T>& gf,
     const Coordinate xl = geo.coordinate_from_index(index);
     Vector<ComplexD> vt = gft.get_elems(xl);
     to_from_big_endian(vt);
-    Vector<ColorMatrixT<T> > v = gf.get_elems(xl);
-    for (int m = 0; m < gf.multiplicity; ++m) {
+    Vector<ColorMatrixT<T>> v = gf.get_elems(xl);
+    for (Int m = 0; m < gf.multiplicity; ++m) {
       assign_truncate(v[m], vt[m]);
     }
   }
@@ -424,8 +284,7 @@ inline Long load_gauge_field_cps3x3(GaugeFieldT<T>& gf,
 }
 
 template <class T = Real>
-inline Long load_gauge_field_milc(GaugeFieldT<T>& gf,
-                                  const std::string& path,
+inline Long load_gauge_field_milc(GaugeFieldT<T>& gf, const std::string& path,
                                   const bool par_read = false)
 // assuming gf already initialized and have correct size;
 {
@@ -450,8 +309,8 @@ inline Long load_gauge_field_milc(GaugeFieldT<T>& gf,
     Coordinate xl = geo.coordinate_from_index(index);
     Vector<ComplexF> vt = gft.get_elems(xl);
     to_from_big_endian(vt);
-    Vector<ColorMatrixT<T> > v = gf.get_elems(xl);
-    for (int m = 0; m < gf.multiplicity; ++m) {
+    Vector<ColorMatrixT<T>> v = gf.get_elems(xl);
+    for (Int m = 0; m < gf.multiplicity; ++m) {
       // assign_truncate(v[m], vt[m]);
       v[m](0, 0) = vt[9 * m + 0 * 3 + 0];
       v[m](0, 1) = vt[9 * m + 0 * 3 + 1];
@@ -470,13 +329,13 @@ inline Long load_gauge_field_milc(GaugeFieldT<T>& gf,
 }
 
 template <class T>
-void twist_boundary_at_boundary(GaugeFieldT<T>& gf, double lmom, int mu)
+void twist_boundary_at_boundary(GaugeFieldT<T>& gf, double lmom, Int mu)
 {
   TIMER_VERBOSE_FLOPS("twist_boundary_at_boundary");
   const Geometry& geo = gf.geo();
   const double amp = 2.0 * PI * lmom;
-  const int len = geo.total_site()[mu];
-  for (int index = 0; index < geo.local_volume(); index++) {
+  const Int len = geo.total_site()[mu];
+  for (Int index = 0; index < geo.local_volume(); index++) {
     Coordinate xl = geo.coordinate_from_index(index);
     Coordinate xg = geo.coordinate_g_from_l(xl);
     if (xg[mu] == len - 1) {
@@ -494,7 +353,7 @@ struct API GaugeTransformInfo {
   Coordinate total_site;
   crc32_t simple_checksum;
   std::string floating_point;
-  int data_per_site;
+  Int data_per_site;
   std::string gf_type;
   double gf_accuracy;
   //
@@ -554,7 +413,7 @@ inline void read_gauge_transform_header(GaugeTransformInfo& info,
               remove_trailing_newline(info_get_prop(infos, "HDR_VERSION = "));
           info.storage_format = remove_trailing_newline(
               info_get_prop(infos, "STORAGE_FORMAT = "));
-          for (int m = 0; m < 4; ++m) {
+          for (Int m = 0; m < 4; ++m) {
             reads(info.total_site[m],
                   info_get_prop(infos, ssprintf("DIMENSION_%d = ", m + 1)));
           }
@@ -594,7 +453,8 @@ inline Long save_gauge_transform_cps(
   const Geometry& geo = gt1.geo();
   GaugeTransformInfo info = info_;
   info.total_site = geo.total_site();
-  info.simple_checksum = field_simple_checksum(gt1); // before to_from_big_endian_64
+  info.simple_checksum =
+      field_simple_checksum(gt1);  // before to_from_big_endian_64
   to_from_big_endian(get_data(gt1));
   qtouch_info(path + ".partial", make_gauge_transform_header(info));
   const Long file_size = serial_write_field(gt1, path + ".partial");
@@ -603,7 +463,8 @@ inline Long save_gauge_transform_cps(
   return file_size;
 }
 
-inline Long load_gauge_transform_cps(GaugeTransform& gt, const std::string& path)
+inline Long load_gauge_transform_cps(GaugeTransform& gt,
+                                     const std::string& path)
 // USE: read_field_double(gt, path) for qlat format GaugeTransform
 {
   TIMER_VERBOSE_FLOPS("load_gauge_transform_cps");
@@ -628,7 +489,8 @@ inline Long load_gauge_transform_cps(GaugeTransform& gt, const std::string& path
   } else {
     qassert(false);
   }
-  crc32_t simple_checksum = field_simple_checksum(gt); // after endianness conversion
+  crc32_t simple_checksum =
+      field_simple_checksum(gt);  // after endianness conversion
   if (simple_checksum != info.simple_checksum) {
     if (get_id_node() == 0) {
       qwarn(fname +

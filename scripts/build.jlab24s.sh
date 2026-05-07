@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# prefix=~/qlat-build/v0.78-avx512-2 num_proc=64 srun -A qcdqedta24s -p 24s -t 600 --pty bash ./build.sh jlab24s
+#
+# prefix=~/qlat-build/v0.78-avx512-2 ./scripts/qlat-clean-build.sh
+# prefix=~/qlat-build/v0.78-avx512-2 num_proc=64 srun -A qcdqedta24s -p 24s -t 600 --pty bash ./scripts/qlat-all.sh
+
 set -e
 
 {
@@ -44,18 +49,18 @@ set -e
     ./scripts/qmp.sh
     ./scripts/qio.sh
     ./scripts/cps.sh
-    ./scripts/grid-clehner.avx2.sh
-    # ./scripts/grid-clehner.avx512.sh
+    # ./scripts/grid-clehner.avx2.sh
+    ./scripts/grid-clehner.avx512.sh
     ./scripts/gpt.sh
 
     # ./scripts/qlat-packages.sh
     ./scripts/qlat-all.sh
 
-    ./scripts/qlat-examples-py.sh
-    ./scripts/qlat-examples-cpp.sh
-    ./scripts/qlat-examples-py-gpt.sh
-    ./scripts/qlat-examples-py-cps.sh
-    ./scripts/qlat-examples-cpp-grid.sh
+    # ./scripts/qlat-examples-py.sh
+    # ./scripts/qlat-examples-cpp.sh
+    # ./scripts/qlat-examples-py-gpt.sh
+    # ./scripts/qlat-examples-py-cps.sh
+    # ./scripts/qlat-examples-cpp-grid.sh
 
     # ./scripts/hadrons.sh
 

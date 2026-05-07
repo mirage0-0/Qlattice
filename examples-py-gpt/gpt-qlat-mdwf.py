@@ -20,13 +20,13 @@ gf.set_rand(rs.split("gf-init"), 0.05, 2)
 gf.show_info()
 
 mobius_params = {
-        "mass": 0.1,
-        "M5": 1.0,
-        "b": 1.0,
-        "c": 0.0,
-        "Ls": 8,
-        "boundary_phases": [1.0, 1.0, 1.0, 1.0],
-        }
+    "mass": 0.1,
+    "M5": 1.0,
+    "b": 1.0,
+    "c": 0.0,
+    "Ls": 8,
+    "boundary_phases": [1.0, 1.0, 1.0, 1.0],
+}
 
 gpt_gf = qg.gpt_from_qlat(gf)
 
@@ -43,7 +43,7 @@ inv = g.algorithms.inverter
 cg = inv.cg({"eps": 1e-8, "maxiter": 10000})
 slv_5d = inv.preconditioned(pc.eo2_ne(), cg)
 slv_qm = qm.propagator(slv_5d).grouped(4)
-inv_qm = qg.InverterGPT(inverter = slv_qm, qtimer = q.Timer("py:slv_qm", True))
+inv_qm = qg.InverterGPT(inverter=slv_qm, qtimer=q.Timer("py:slv_qm", True))
 
 def mk_src(geo):
     src = q.mk_point_src(geo, q.Coordinate([0, 0, 0, 0]))
@@ -83,4 +83,4 @@ q.timer_display()
 
 qg.end_with_gpt()
 
-q.displayln_info(f"CHECK: finished successfully.")
+q.displayln_info("CHECK: finished successfully.")

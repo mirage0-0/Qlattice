@@ -1,0 +1,851 @@
+[
+ [
+  "{\"traj_list\": [1000], \"total_site\": [4, 4, 4, 8], \"mk_sample_gauge_field\": {\"rand_n_step\": 20, \"rand_sigma\": 0.25, \"flow_n_step\": 4, \"hmc_n_traj\": 5, \"hmc_beta\": 3.0}}"
+ ],
+ [
+  "run_topo_measure: Start compute topo_measure out='results/test-4nt8-checker/topo-dwf-info/traj-1000' for 'results/test-4nt8-checker/configs/ckpoint_lat.1000'"
+ ],
+ [
+  "gf.plaq()",
+  0.20807790817294344,
+  1e-12
+ ],
+ [
+  "gf.link_trace()",
+  0.00044710419956450753,
+  1e-12
+ ],
+ [
+  "after transform gf.plaq()",
+  0.20807790817294353,
+  1e-12
+ ],
+ [
+  "after transform gf.link_trace()",
+  0.005662309576126316,
+  1e-12
+ ],
+ [
+  "total_site.volume()=512"
+ ],
+ [
+  "psel_full.n_points=256"
+ ],
+ [
+  "sparse_ratio=2 idx=0 len(psel)=128 q.hash_sha256(psel)='4d1f5c96eaffe8e200a5ea9f23a8c28b282d741ca32069bacefb05e9f4f1b141'"
+ ],
+ [
+  "sparse_ratio=2 idx=1 len(psel)=128 q.hash_sha256(psel)='cedc47aec2537d72fc9335019fceffd2ccf7788b9e723db810ad17389526c65e'"
+ ],
+ [
+  "len(psel_list)=2"
+ ],
+ [
+  "g.qcd.gauge.plaquette(gpt_gf)",
+  0.2080779081729436,
+  1e-12
+ ],
+ [
+  "gf1.plaq()",
+  0.20807790817294353,
+  1e-12
+ ],
+ [
+  "fu1 sig",
+  {
+   "value": [
+    {
+     "real": -42.000165175431505,
+     "imag": -32.82061898067418,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.8211439307146238,
+     "imag": -61.57049611433473,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -54.70096351764871,
+     "imag": 50.36456271979691,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sparse_solve: 1/2"
+ ],
+ [
+  "sp_prop_src 0",
+  {
+   "value": [
+    {
+     "real": -11.548731659731812,
+     "imag": -56.08308345643823,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -30.9970514777608,
+     "imag": 11.871018535746309,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 16.26065703513823,
+     "imag": 9.461192342054677,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sp_prop_sol 0",
+  {
+   "value": [
+    {
+     "real": 2.737501032976561,
+     "imag": 0.013104480581187739,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 5.218432441066782,
+     "imag": -0.593316447246585,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -2.4253807886648273,
+     "imag": -2.217946349157573,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "benchmark: prop_size val,err,err/val",
+  {
+   "value": [
+    0.3301940286263917,
+    0.2855266850975234,
+    0.8647239512032225
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: topo_sum val,err,err/val",
+  {
+   "value": [
+    0.4949076319070669,
+    0.48854303408752187,
+    0.987139826890485
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: quark_condensate_avg val,err,err/val",
+  {
+   "value": [
+    0.5622836702387802,
+    0.005553293717584418,
+    0.009876320461567287
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "sp_prop_src 0",
+  {
+   "value": [
+    {
+     "real": -11.548731659731812,
+     "imag": -56.08308345643823,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -30.9970514777608,
+     "imag": 11.871018535746309,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 16.26065703513823,
+     "imag": 9.461192342054677,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sp_prop_sol 0",
+  {
+   "value": [
+    {
+     "real": 2.6998673805059292,
+     "imag": -0.06967414481278733,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 5.203550417299317,
+     "imag": -0.510642363800418,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -2.38532633179919,
+     "imag": -2.2779238296612947,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "sp_prop_sol_ama ratio of sqrt(qnorm) (1/2) (ama_prob=0.1000)",
+  0.021691276911519886,
+  1e-05
+ ],
+ [
+  "benchmark: prop_size val,err,err/val",
+  {
+   "value": [
+    0.3386028302508186,
+    0.29677615287265025,
+    0.8764727472975183
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: topo_sum val,err,err/val",
+  {
+   "value": [
+    0.6686826100714659,
+    0.6392607214070093,
+    0.9560002186069829
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: quark_condensate_avg val,err,err/val",
+  {
+   "value": [
+    0.5504742285754561,
+    0.00524073692967621,
+    0.00952040378572934
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "sparse_solve: 2/2"
+ ],
+ [
+  "sp_prop_src 1",
+  {
+   "value": [
+    {
+     "real": -3.391293311679398,
+     "imag": -19.501716956789597,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 77.49151819949108,
+     "imag": 0.7269577677589201,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -6.772760177002628,
+     "imag": -38.24063589903137,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sp_prop_sol 1",
+  {
+   "value": [
+    {
+     "real": 4.380266426926592,
+     "imag": -1.7686781994571716,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -1.7411914993435436,
+     "imag": -2.6074480026091837,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.4927474508450338,
+     "imag": 2.5890069940234164,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "benchmark: prop_size val,err,err/val",
+  {
+   "value": [
+    0.33296963659647616,
+    0.2934169576452717,
+    0.8812123551099103
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: topo_sum val,err,err/val",
+  {
+   "value": [
+    0.5365436993028094,
+    0.513694305081743,
+    0.9574137311634501
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: quark_condensate_avg val,err,err/val",
+  {
+   "value": [
+    0.5778555072351741,
+    0.0057970867412655,
+    0.01003206972795401
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "prop_sol sig",
+  {
+   "value": [
+    {
+     "real": 6.741430935196847,
+     "imag": -2.5833599728157246,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 3.328420704048589,
+     "imag": -2.3740236153941123,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -2.517583670853478,
+     "imag": -0.22871416017137403,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop sig",
+  {
+   "value": [
+    {
+     "real": -2.8049248518301875,
+     "imag": -0.060963977329382746,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 11.254468251600297,
+     "imag": 4.081756768110275,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -8.17712547261979,
+     "imag": -0.4273997409419745,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum sig",
+  {
+   "value": [
+    {
+     "real": 120.08511349620399,
+     "imag": -1.0817634068512485,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 20.376447913929173,
+     "imag": 0.03308478472421261,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 3.1629873863428983,
+     "imag": 1.6432079263794384,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum topo sum and err",
+  {
+   "value": [
+    {
+     "real": -0.17668674121267983,
+     "imag": 0.0007540591873755886,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.5798862427266338,
+     "imag": 0.0,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum quark condensate avg and err",
+  {
+   "value": [
+    {
+     "real": -0.5527544425264961,
+     "imag": 9.316285135667346e-07,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.005525917944189376,
+     "imag": 0.0,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "fu1 sig",
+  {
+   "value": [
+    {
+     "real": -63.321595665938574,
+     "imag": 48.50295851955647,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 31.339994957015065,
+     "imag": -22.34791342007083,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 15.076746982963446,
+     "imag": 22.040067584428257,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sparse_solve: 1/2"
+ ],
+ [
+  "sp_prop_src 0",
+  {
+   "value": [
+    {
+     "real": 7.1029746719941915,
+     "imag": 2.6142816638765733,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -4.584154224451597,
+     "imag": 6.178724447050526,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 17.040404593241814,
+     "imag": -5.2405185145159265,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sp_prop_sol 0",
+  {
+   "value": [
+    {
+     "real": 1.5337110081274132,
+     "imag": 6.461779113225566,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -1.8633255657795642,
+     "imag": -0.46936750225381774,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 1.6788837514651225,
+     "imag": -2.2509871111122695,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "benchmark: prop_size val,err,err/val",
+  {
+   "value": [
+    0.33327759455984757,
+    0.2887941643858547,
+    0.866527390679409
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: topo_sum val,err,err/val",
+  {
+   "value": [
+    0.4665765133367367,
+    0.4952419899976439,
+    1.0614378903385109
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: quark_condensate_avg val,err,err/val",
+  {
+   "value": [
+    0.5765384762076898,
+    0.005623271000950126,
+    0.00975350515708586
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "sparse_solve: 2/2"
+ ],
+ [
+  "sp_prop_src 1",
+  {
+   "value": [
+    {
+     "real": 27.4071051470066,
+     "imag": -17.836108003119445,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 27.11182115618841,
+     "imag": -3.646296263401822,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 40.41977275261816,
+     "imag": 10.902587798010014,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-12
+ ],
+ [
+  "sp_prop_sol 1",
+  {
+   "value": [
+    {
+     "real": -0.35861511712772165,
+     "imag": 0.6827304817463173,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -1.4248259368667076,
+     "imag": 0.5834315560323562,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.789738671619191,
+     "imag": 1.334637384783407,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "benchmark: prop_size val,err,err/val",
+  {
+   "value": [
+    0.32723616178427345,
+    0.2840709284082388,
+    0.8680914934930363
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: topo_sum val,err,err/val",
+  {
+   "value": [
+    0.47232795706086433,
+    0.5178528327080975,
+    1.0963840377574068
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "benchmark: quark_condensate_avg val,err,err/val",
+  {
+   "value": [
+    0.5601627248224452,
+    0.005341968500435192,
+    0.009536458360610189
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-05
+ ],
+ [
+  "prop_sol sig",
+  {
+   "value": [
+    {
+     "real": 1.1750958909996925,
+     "imag": 7.1445095949718835,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -3.288151502646272,
+     "imag": 0.11406405377853934,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 2.4686224230843132,
+     "imag": -0.9163497263288618,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop sig",
+  {
+   "value": [
+    {
+     "real": -3.0804359353819386,
+     "imag": 2.4461532173866165,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 9.02101618174559,
+     "imag": -0.34977400500096323,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -5.8531713007191,
+     "imag": -1.9685681944096902,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum sig",
+  {
+   "value": [
+    {
+     "real": 123.64184201006836,
+     "imag": -0.603599811626673,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 24.574189111118827,
+     "imag": 0.7878846907014279,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 1.7899446790601132,
+     "imag": 1.3821765126368473,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum topo sum and err",
+  {
+   "value": [
+    {
+     "real": -1.591217437235613,
+     "imag": 0.0012524650846568175,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.5066735561486446,
+     "imag": 0.0,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum quark condensate avg and err",
+  {
+   "value": [
+    {
+     "real": -0.5552793296318931,
+     "imag": -1.547603592614872e-06,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 0.0054844235891189355,
+     "imag": 0.0,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum_arr sig",
+  {
+   "value": [
+    {
+     "real": 180.3950087988488,
+     "imag": -1.8242437852390911,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": 87.66325874125006,
+     "imag": 2.040643428569876,
+     "__extended_json_type__": "complex"
+    },
+    {
+     "real": -0.5029868737250638,
+     "imag": -0.9601637266097667,
+     "__extended_json_type__": "complex"
+    }
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum_arr topo sum and err",
+  {
+   "value": [
+    [
+     {
+      "real": -0.17668674121267983,
+      "imag": 0.0007540591873755886,
+      "__extended_json_type__": "complex"
+     },
+     {
+      "real": -1.591217437235613,
+      "imag": 0.0012524650846568175,
+      "__extended_json_type__": "complex"
+     }
+    ],
+    [
+     {
+      "real": 0.5798862427266338,
+      "imag": 0.0,
+      "__extended_json_type__": "complex"
+     },
+     {
+      "real": 0.5066735561486446,
+      "imag": 0.0,
+      "__extended_json_type__": "complex"
+     }
+    ]
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "f_tadpole_loop_sum_arr quark condensate avg and err",
+  {
+   "value": [
+    [
+     {
+      "real": -0.5527544425264961,
+      "imag": 9.316285135667346e-07,
+      "__extended_json_type__": "complex"
+     },
+     {
+      "real": -0.5552793296318931,
+      "imag": -1.547603592614872e-06,
+      "__extended_json_type__": "complex"
+     }
+    ],
+    [
+     {
+      "real": 0.005525917944189376,
+      "imag": 0.0,
+      "__extended_json_type__": "complex"
+     },
+     {
+      "real": 0.0054844235891189355,
+      "imag": 0.0,
+      "__extended_json_type__": "complex"
+     }
+    ]
+   ],
+   "__extended_json_type__": "ndarray"
+  },
+  1e-07
+ ],
+ [
+  "run_topo_measure: End compute topo_measure out='results/test-4nt8-checker/topo-dwf-info/traj-1000' for 'results/test-4nt8-checker/configs/ckpoint_lat.1000'"
+ ]
+]

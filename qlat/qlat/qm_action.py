@@ -3,9 +3,39 @@ from .c import *
 from . import c
 
 class QMAction:
-
-    def __init__(self, alpha, beta, FV_offset, TV_offset, barrier_strength, M, L, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, t_TV_start, dt, proj_sq):
-        self.cdata = c.mk_qm_action(alpha, beta, FV_offset, TV_offset, barrier_strength, M, L, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, t_TV_start, dt, proj_sq)
+    def __init__(
+        self,
+        alpha,
+        beta,
+        V_FV_min,
+        FV_offset,
+        TV_offset,
+        barrier_strength,
+        L,
+        M,
+        epsilon,
+        t_FV_out,
+        t_FV_mid,
+        dt,
+        measure_offset_L,
+        measure_offset_M,
+    ):
+        self.cdata = c.mk_qm_action(
+            alpha,
+            beta,
+            V_FV_min,
+            FV_offset,
+            TV_offset,
+            barrier_strength,
+            L,
+            M,
+            epsilon,
+            t_FV_out,
+            t_FV_mid,
+            dt,
+            measure_offset_L,
+            measure_offset_M,
+        )
 
     def __del__(self):
         assert isinstance(self.cdata, int)
@@ -31,32 +61,23 @@ class QMAction:
     def L(self):
         return c.get_L_qm_action(self)
 
-    def P(self):
-        return c.get_P_qm_action(self)
-
     def t_FV_out(self):
         return c.get_t_FV_out_qm_action(self)
 
     def t_FV_mid(self):
         return c.get_t_FV_mid_qm_action(self)
-    
-    def t_FV(self):
-        return 2*self.t_FV_out() + self.t_FV_mid()
-    
-    def t_full1(self):
-        return c.get_t_full1_qm_action(self)
 
-    def t_full2(self):
-        return c.get_t_full2_qm_action(self)
+    def t_FV(self):
+        return 2 * self.t_FV_out() + self.t_FV_mid()
 
     def dt(self):
         return c.get_dt_qm_action(self)
 
     def V(self, x, t):
-        return c.V_qm_action(self, x, t)
+        return c.V_qm_action(self, x[0], x[1], t)
 
     def dV(self, x, t):
-        return c.dV_qm_action(self, x, t)
+        return c.dV_qm_action(self, x[0], x[1], t)
 
     def action_node(self, f):
         assert isinstance(f, FieldBase)

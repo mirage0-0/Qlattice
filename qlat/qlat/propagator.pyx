@@ -27,7 +27,7 @@ cdef class Prop(FieldWilsonMatrix):
         super().__init__(geo, 1)
 
     cdef cc.Handle[cc.Prop] xxx(self):
-        assert self.xx.multiplicity == 1
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
         return cc.Handle[cc.Prop](<cc.Prop&>self.xx)
 
     def get_elem_wm(self, cc.Long index, int m=0):
@@ -47,6 +47,12 @@ cdef class Prop(FieldWilsonMatrix):
         """
         super().__setstate__(state)
 
+    def glb_sum_tslice(self, *, cc.Int t_dir=3):
+        cdef SelectedPointsWilsonMatrix sp = super().glb_sum_tslice(t_dir=t_dir)
+        cdef PselProp sp_prop = PselProp(sp.psel)
+        sp_prop @= sp
+        return sp_prop
+
 ###
 
 cdef class SelProp(SelectedFieldWilsonMatrix):
@@ -56,7 +62,7 @@ cdef class SelProp(SelectedFieldWilsonMatrix):
         super().__init__(fsel, 1)
 
     cdef cc.Handle[cc.SelProp] xxx(self):
-        assert self.xx.multiplicity == 1
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
         return cc.Handle[cc.SelProp](<cc.SelProp&>self.xx)
 
     def get_elem_wm(self, cc.Long idx, int m=0):
@@ -93,9 +99,11 @@ cdef class PselProp(SelectedPointsWilsonMatrix):
             super().__init__(psel, 1)
         elif isinstance(args[0], SelProp):
             super().__init__(*args)
+        else:
+            assert False
 
     cdef cc.Handle[cc.PselProp] xxx(self):
-        assert self.xx.multiplicity == 1
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
         return cc.Handle[cc.PselProp](<cc.PselProp&>self.xx)
 
     def get_elem_wm(self, cc.Long idx, int m=0):
@@ -117,22 +125,100 @@ cdef class PselProp(SelectedPointsWilsonMatrix):
 
 ###
 
+cdef class SpinProp(FieldSpinMatrix):
+
+    def __init__(self, Geometry geo=None, multiplicity=1):
+        assert multiplicity == 1
+        super().__init__(geo, 1)
+
+    cdef cc.Handle[cc.SpinProp] xxx(self):
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
+        return cc.Handle[cc.SpinProp](<cc.SpinProp&>self.xx)
+
+    def get_elem_sm(self, cc.Long index, int m=0):
+        cdef SpinMatrix sm = SpinMatrix()
+        np.asarray(sm)[:] = self[index, m]
+        return sm
+
+    def __getstate__(self):
+        """
+        Only work when single node (or if all nodes has the same data).
+        """
+        return super().__getstate__()
+
+    def __setstate__(self, state):
+        """
+        Only work when single node (or if all nodes has the same data).
+        """
+        super().__setstate__(state)
+
+    def glb_sum_tslice(self, *, cc.Int t_dir=3):
+        cdef SelectedPointsSpinMatrix sp = super().glb_sum_tslice(t_dir=t_dir)
+        return sp
+
+###
+
 def set_point_src(Prop prop_src not None, Geometry geo not None, Coordinate xg not None, cc.PyComplexD value=1.0):
-    cc.set_point_src(prop_src.xxx().p[0], geo.xx, xg.xx, cc.ccpy_d(value))
+    cc.set_point_src(prop_src.xxx().val(), geo.xx, xg.xx, cc.ccpy_d(value))
 
 def set_wall_src(Prop prop_src not None, Geometry geo not None, int tslice, CoordinateD lmom=None):
     if lmom is None:
         lmom = CoordinateD()
-    cc.set_wall_src(prop_src.xxx().p[0], geo.xx, tslice, lmom.xx)
+    cc.set_wall_src(prop_src.xxx().val(), geo.xx, tslice, lmom.xx)
 
+def set_rand_vol_u1(
+        FieldComplexD fu1 not None,
+        Geometry geo not None,
+        cc.Int multiplicity,
+        RngState rs not None,
+        ):
+    cc.set_rand_vol_u1(fu1.xx, geo.xx, multiplicity, rs.xx)
+
+def set_rand_vol_u1_src(
+        Prop prop_src not None,
+        FieldComplexD fu1 not None,
+        ):
+    """
+    prop_src ~ fu1
+    """
+    cc.set_rand_vol_u1_src(prop_src.xxx().val(), fu1.xx)
+
+@q.timer
 def mk_point_src(Geometry geo not None, Coordinate xg not None, cc.PyComplexD value=1.0):
     cdef Prop prop_src = Prop(geo)
     set_point_src(prop_src, geo, xg, value)
     return prop_src
 
+@q.timer
 def mk_wall_src(Geometry geo not None, int tslice, CoordinateD lmom=None):
     cdef Prop prop_src = Prop(geo)
     set_wall_src(prop_src, geo, tslice, lmom)
+    return prop_src
+
+@q.timer
+def mk_rand_vol_u1(
+        Geometry geo not None,
+        cc.Int multiplicity,
+        RngState rs not None,
+        ):
+    """
+    return prop_src, fu1
+    prop_src ~ fu1
+    """
+    cdef FieldComplexD fu1 = FieldComplexD(geo, multiplicity)
+    set_rand_vol_u1(fu1, geo, multiplicity, rs)
+    return fu1
+
+@q.timer
+def mk_rand_vol_u1_src(
+        FieldComplexD fu1 not None,
+        ):
+    """
+    return prop_src
+    prop_src ~ fu1
+    """
+    cdef Prop prop_src = Prop(fu1.geo)
+    set_rand_vol_u1_src(prop_src, fu1)
     return prop_src
 
 @q.timer
@@ -185,13 +271,52 @@ def mk_rand_u1_prop(inv, sel, rs):
     return get_rand_u1_sol(prop_sol, fu1, sel)
 
 @q.timer
-def free_invert(prop_src, mass, m5=1.0, momtwist=None):
-    assert isinstance(prop_src, Prop)
+def free_invert(prop_src, cc.RealD mass, cc.RealD m5=1.0, CoordinateD momtwist=None):
+    cdef Prop qcd_prop_src
+    cdef Prop qcd_prop_sol
+    cdef SpinProp spin_prop_src
+    cdef SpinProp spin_prop_sol
     if momtwist is None:
-        momtwist = [ 0.0, 0.0, 0.0, 0.0, ]
-    prop_sol = Prop()
-    c.free_invert_prop(prop_sol, prop_src, mass, m5, momtwist)
-    return prop_sol
+        momtwist = CoordinateD([ 0.0, 0.0, 0.0, 0.0, ])
+    if isinstance(prop_src, Prop):
+        qcd_prop_src = prop_src
+        qcd_prop_sol = Prop()
+        cc.free_invert(qcd_prop_sol.xxx().val(), qcd_prop_src.xxx().val(), mass, m5, momtwist.xx)
+        return qcd_prop_sol
+    elif isinstance(prop_src, SpinProp):
+        spin_prop_src = prop_src
+        spin_prop_sol = SpinProp()
+        cc.free_invert(spin_prop_sol.xxx().val(), spin_prop_src.xxx().val(), mass, m5, momtwist.xx)
+        return spin_prop_sol
+    else:
+        assert False
+
+@q.timer
+def invert_qed(
+        SpinProp sp_src, FieldComplexD gf1,
+        cc.RealD mass, cc.RealD m5, cc.Int ls,
+        *,
+        t_wick_phase_factor_arr=None,
+        cc.Bool is_dagger=False,
+        cc.RealD stop_rsd=1e-8, cc.Long max_num_iter=50000,
+        ):
+    """
+    gf1 = q.mk_left_expanded_field(gf)
+    """
+    cdef SpinProp sp_sol = SpinProp()
+    cdef cc.vector[cc.ComplexD] t_wick_phase_factor_vec = cc.vector[cc.ComplexD]()
+    cdef cc.Int t_size
+    cdef cc.Int i
+    if t_wick_phase_factor_arr is not None:
+        t_size = len(t_wick_phase_factor_arr)
+        t_wick_phase_factor_vec.resize(t_size)
+        for i in range(t_size):
+            t_wick_phase_factor_vec[i] = cc.ccpy_d(t_wick_phase_factor_arr[i])
+    cc.invert_qed(
+        sp_sol.xxx().val(), sp_src.xxx().val(), gf1.xx,
+        mass, m5, ls, t_wick_phase_factor_vec,
+        is_dagger, stop_rsd, max_num_iter)
+    return sp_sol
 
 def convert_mspincolor_from_wm(prop_wm):
     prop_msc = prop_wm.copy(False)
@@ -216,6 +341,46 @@ def convert_wm_from_mspincolor(prop_msc):
     else:
         raise Exception("prop type match failed")
     return prop_wm
+
+@q.timer
+def mk_ff_list_from_prop(Prop prop):
+    """
+    return ff_list
+    isinstance(ff_list, list)
+    len(ff_list) == 12
+    """
+    cdef cc.Int num_field = 12
+    cdef list ff_list = []
+    cdef FermionField4d ff
+    cdef cc.std_vector[cc.FermionField4d] ff_vec
+    cc.set_ff_vec_from_prop(ff_vec, prop.xxx().val())
+    assert <cc.Int>ff_vec.size() == num_field
+    for i in range(num_field):
+        ff = FermionField4d()
+        cc.qswap(ff_vec[i], ff.xx)
+        ff_list.append(ff)
+    return ff_list
+
+@q.timer
+def mk_prop_from_ff_list(list ff_list):
+    """
+    return prop
+    isinstance(prop, Prop)
+    """
+    cdef cc.Int num_field = 12
+    assert len(ff_list) == num_field
+    cdef Prop prop = Prop()
+    cdef FermionField4d ff
+    cdef cc.std_vector[cc.FermionField4d] ff_vec
+    ff_vec.resize(num_field)
+    for i in range(num_field):
+        ff = ff_list[i]
+        cc.qswap(ff_vec[i], ff.xx)
+    cc.set_prop_from_ff_vec(prop.xxx().val(), ff_vec)
+    for i in range(num_field):
+        ff = ff_list[i]
+        cc.qswap(ff_vec[i], ff.xx)
+    return prop
 
 @q.timer
 def flip_tpbc_with_tslice(prop, tslice_flip_tpbc):
@@ -248,7 +413,7 @@ cdef class FermionField4d(FieldWilsonVector):
         super().__init__(geo, 1)
 
     cdef cc.Handle[cc.FermionField4d] xxx(self):
-        assert self.xx.multiplicity == 1
+        assert self.xx.multiplicity == 1 or self.xx.multiplicity == 0
         return cc.Handle[cc.FermionField4d](<cc.FermionField4d&>self.xx)
 
 ###

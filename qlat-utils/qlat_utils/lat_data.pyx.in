@@ -97,10 +97,16 @@ cdef class LatData{{type_ext}}:
         self.xx.load(path)
 
     def save(self, const cc.std_string& path):
+        """
+        save from node 0
+        """
         if cc.get_id_node() == 0:
             self.save_node(path)
 
     def load(self, const cc.std_string& path):
+        """
+        load from node 0 and bcast
+        """
         if cc.get_id_node() == 0:
             self.load_node(path)
         self.bcast()
@@ -108,8 +114,9 @@ cdef class LatData{{type_ext}}:
     def save_str(self):
         return <bytes>self.xx.save_str()
 
-    def load_str(self, cc.std_string& content):
-        return self.xx.load_str(content)
+    def load_str(self, bytes content):
+        cdef cc.std_string content_std_str = content
+        return self.xx.load_str(content_std_str)
 
     def bcast(self, cc.Int root=0):
         if cc.get_num_node() != 1:
@@ -302,8 +309,10 @@ cdef class LatData{{type_ext}}:
 
     def set_info(self, list info_list, *, cc.Bool is_complex={{type_default_complex}}):
         """
-        ``info_list`` format::\n
+        ``info_list`` format::
+
             [ [ dim_name, dim_size, dim_indices, ], ... ]
+
         dim_indices can be optional
         """
         if self.view_count > 0:
@@ -412,8 +421,10 @@ cdef class LatData{{type_ext}}:
 
 def mk_lat_data{{type_ext2}}(list info_list, *, cc.Bool is_complex={{type_default_complex}}):
     """
-    ``info_list`` format::\n
+    ``info_list`` format::
+
         [ [ dim_name, dim_size, dim_indices, ], ... ]
+
     dim_indices can be optional
     """
     ld = LatData{{type_ext}}()
@@ -423,6 +434,7 @@ def mk_lat_data{{type_ext2}}(list info_list, *, cc.Bool is_complex={{type_defaul
 def load_lat_data{{type_ext2}}(const cc.std_string& path):
     """
     Load ``lat_data`` from file ``path``.
+    Load from node 0 and bcast.
     """
     ld = LatData{{type_ext}}()
     ld.load(path)

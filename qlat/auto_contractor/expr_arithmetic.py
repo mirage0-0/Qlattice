@@ -27,11 +27,11 @@ import sympy
 
 def get_variables(s):
     """
-    `s` is a string
-    return a list of variables contained in `s`
+    ``s`` is a string
+    return a list of variables contained in ``s``
     """
     variables = []
-    g = tokenize.tokenize(io.BytesIO(s.encode('utf-8')).readline)  # tokenize the string
+    g = tokenize.tokenize(io.BytesIO(s.encode("utf-8")).readline)  # tokenize the string
     for toknum, tokval, _, _, _ in g:
         if toknum == tokenize.NAME:
             variables.append(tokval)
@@ -39,7 +39,6 @@ def get_variables(s):
     return variables
 
 class Factor:
-
     """
     self.code
     self.variables
@@ -74,13 +73,16 @@ class Factor:
     def get_variable_set(self) -> set[str]:
         s = set(self.variables)
         if self.otype == "Var":
-            s |= set([ self.code, ])
+            s |= set(
+                [
+                    self.code,
+                ]
+            )
         return s
 
 ### ------
 
 class Term:
-
     """
     self.coef
     self.factors
@@ -88,7 +90,7 @@ class Term:
     coef should be a number or a sympy expression
     """
 
-    def __init__(self, factors:list, coef=1):
+    def __init__(self, factors: list, coef=1):
         self.coef = coef
         self.factors = factors
 
@@ -105,13 +107,18 @@ class Term:
         self.coef = sympy.simplify(self.coef)
 
     def compile_py(self, var_dict=None) -> str:
-        fs = [ f"({f.compile_py(var_dict)})" for f in self.factors ]
+        fs = [f"({f.compile_py(var_dict)})" for f in self.factors]
         if self.coef == 1:
             if self.factors == []:
                 return "1"
             else:
-                return '*'.join(fs)
-        return '*'.join([ compile_py_complex(self.coef), ] + fs)
+                return "*".join(fs)
+        return "*".join(
+            [
+                compile_py_complex(self.coef),
+            ]
+            + fs
+        )
 
     def get_variable_set(self) -> set[str]:
         s = set()
@@ -122,7 +129,6 @@ class Term:
 ### ------
 
 class Expr:
-
     """
     self.terms
     """
@@ -185,7 +191,7 @@ class Expr:
 
     def simplify_coef(self) -> None:
         """
-        call `simplified_coef_ea` instead
+        call ``simplified_coef_ea`` instead
         """
         for t in self.terms:
             t.simplify_coef()
@@ -193,7 +199,7 @@ class Expr:
 
     def simplify(self) -> None:
         """
-        call `simplified_ea` instead
+        call ``simplified_ea`` instead
         """
         self.sort()
         self.combine_terms()
@@ -205,9 +211,9 @@ class Expr:
 
     def compile_py(self, var_dict=None) -> str:
         if self.terms:
-            return '+'.join([ f"{t.compile_py(var_dict)}" for t in self.terms ])
+            return "+".join([f"{t.compile_py(var_dict)}" for t in self.terms])
         else:
-            return '0'
+            return "0"
 
     def get_variable_set(self) -> set[str]:
         s = set()
@@ -218,7 +224,7 @@ class Expr:
 ### ------
 
 @q.timer
-def simplified_ea(x) -> Expr|int:
+def simplified_ea(x) -> Expr | int:
     """
     interface function
     Only perform structure simplification.
@@ -233,7 +239,7 @@ def simplified_ea(x) -> Expr|int:
     return x
 
 @q.timer
-def simplified_coef_ea(x) -> Expr|int:
+def simplified_coef_ea(x) -> Expr | int:
     """
     interface function
     Only perform sympy simplification.
@@ -246,7 +252,15 @@ def compile_py(x, var_dict=None) -> str:
     """
     interface function
     """
-    if isinstance(x, (int, float, complex, sympy.Basic,)):
+    if isinstance(
+        x,
+        (
+            int,
+            float,
+            complex,
+            sympy.Basic,
+        ),
+    ):
         return compile_py_complex(x)
     else:
         return mk_expr(x).compile_py(var_dict)
@@ -255,7 +269,15 @@ def is_zero(x) -> bool:
     """
     interface function
     """
-    if isinstance(x, (int, float, complex, sympy.Basic,)):
+    if isinstance(
+        x,
+        (
+            int,
+            float,
+            complex,
+            sympy.Basic,
+        ),
+    ):
         return x == 0
     elif isinstance(x, Expr):
         return x.is_zero()
@@ -270,14 +292,49 @@ def mk_expr(x) -> Expr:
     if isinstance(x, Expr):
         return x
     elif isinstance(x, Term):
-        return Expr([ x, ])
+        return Expr(
+            [
+                x,
+            ]
+        )
     elif isinstance(x, Factor):
-        return Expr([ Term([ x, ]), ])
-    elif isinstance(x, (int, float, complex, sympy.Basic,)):
-        return Expr([ Term([], x,), ])
+        return Expr(
+            [
+                Term(
+                    [
+                        x,
+                    ]
+                ),
+            ]
+        )
+    elif isinstance(
+        x,
+        (
+            int,
+            float,
+            complex,
+            sympy.Basic,
+        ),
+    ):
+        return Expr(
+            [
+                Term(
+                    [],
+                    x,
+                ),
+            ]
+        )
     elif isinstance(x, str):
         # str viewed as code segment
-        return Expr([ Term([ Factor(x), ]), ])
+        return Expr(
+            [
+                Term(
+                    [
+                        Factor(x),
+                    ]
+                ),
+            ]
+        )
     else:
         print(x)
         assert False
@@ -289,14 +346,14 @@ def compile_py_complex(x) -> str:
     v = complex(x)
     return f"{v}"
 
-def drop_zero_terms(expr:Expr) -> Expr:
+def drop_zero_terms(expr: Expr) -> Expr:
     terms = []
     for t in expr.terms:
         if t.coef != 0:
             terms.append(t)
     return Expr(terms)
 
-def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
+def combine_two_terms(t1: Term, t2: Term, t1_sig: str, t2_sig: str) -> Term | None:
     if t1_sig == t2_sig:
         coef = t1.coef + t2.coef
         if coef == 0:
@@ -306,14 +363,16 @@ def combine_two_terms(t1:Term, t2:Term, t1_sig:str, t2_sig:str) -> Term|None:
     else:
         return None
 
-def combine_terms_expr(expr:Expr) -> Expr:
+def combine_terms_expr(expr: Expr) -> Expr:
     if not expr.terms:
         return expr
+    #
     def get_sig(t):
         return f"{t.factors}"
+    #
     zero_term = Term([], 0)
     zero_term_sig = get_sig(zero_term)
-    signatures = [ get_sig(t) for t in expr.terms ]
+    signatures = [get_sig(t) for t in expr.terms]
     terms = []
     term = expr.terms[0]
     term_sig = signatures[0]
@@ -341,7 +400,7 @@ def combine_terms_expr(expr:Expr) -> Expr:
 def mk_sym(x):
     """
     interface function
-    Make a sympy simplified value with `sympy.simplify(x)`
+    Make a sympy simplified value with ``sympy.simplify(x)``
     """
     return sympy.simplify(x)
 
@@ -350,11 +409,11 @@ def mk_fac(x) -> Expr:
     interface function
     Stand for "make factor", the result of this function can be used in auto contractor as a factor.
     Make an Expr obj (can be sympy expression).
-    `x` can have type `str`, which will be viewed as code segment.
-    The code segment can use functions and variables defined in `auto_contractor.auto_fac_funcs`, `position_dict`, `base_position_dict`.
-    You can define functions in `position_dict` or `base_position_dict`.
-    `position_dict` is argument in function `eval_cexpr`.
-    `base_position_dict` is argument in function `cache_compiled_cexpr`.
+    ``x`` can have type ``str``, which will be viewed as code segment.
+    The code segment can use functions and variables defined in ``auto_contractor.auto_fac_funcs``, ``position_dict``, ``base_position_dict``.
+    You can define functions in ``position_dict`` or ``base_position_dict``.
+    ``position_dict`` is argument in function ``eval_cexpr``.
+    ``base_position_dict`` is argument in function ``cache_compiled_cexpr``.
     """
     return mk_expr(x)
 

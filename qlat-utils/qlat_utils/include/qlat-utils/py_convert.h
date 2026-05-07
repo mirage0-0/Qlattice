@@ -1,10 +1,9 @@
 #pragma once
 
-#include <qlat-utils/core.h>
-#include <qlat-utils/utils.h>
-#include <qlat-utils/utils-vec.h>
-
 #include <Python.h>
+#include <qlat-utils/core.h>
+#include <qlat-utils/utils-vec.h>
+#include <qlat-utils/utils.h>
 
 namespace qlat
 {  //
@@ -29,7 +28,7 @@ inline bool check_ctype_name<ComplexF>(const std::string& ctype)
 }
 
 template <>
-inline bool check_ctype_name<double>(const std::string& ctype)
+inline bool check_ctype_name<RealD>(const std::string& ctype)
 {
   return "RealD" == ctype;
 }
@@ -60,7 +59,7 @@ inline bool check_ctype_name<int8_t>(const std::string& ctype)
 
 inline void py_convert(PyObject*& out, PyObject* in) { out = in; }
 
-inline void py_convert(int& out, PyObject* in)
+inline void py_convert(Int& out, PyObject* in)
 {
   qassert(PyLong_Check(in));
   out = PyLong_AsLong(in);
@@ -72,7 +71,7 @@ inline void py_convert(Long& out, PyObject* in)
   out = PyLong_AsLong(in);
 }
 
-inline void py_convert(double& out, PyObject* in)
+inline void py_convert(RealD& out, PyObject* in)
 {
   if (PyFloat_Check(in)) {
     out = PyFloat_AsDouble(in);
@@ -177,7 +176,7 @@ void py_convert(Vector<M> out, PyObject* in)
   }
 }
 
-template <class M, unsigned long N>
+template <class M, std::size_t N>
 void py_convert(array<M, N>& out, PyObject* in)
 {
   if (PyList_Check(in)) {
@@ -199,9 +198,9 @@ template <class T>
 T py_convert_data(PyObject* in)
 // interface
 // examples:
-// py_convert_data<int>(in)
+// py_convert_data<Int>(in)
 // py_convert_data<Long>(in)
-// py_convert_data<double>(in)
+// py_convert_data<RealD>(in)
 // py_convert_data<ComplexD>(in)
 // py_convert_data<bool>(in)
 // py_convert_data<std::string>(in)
@@ -227,7 +226,8 @@ T py_convert_data(PyObject* in, const std::string& attr)
 }
 
 template <class T>
-T py_convert_data(PyObject* in, const std::string& attr, const std::string& attr1)
+T py_convert_data(PyObject* in, const std::string& attr,
+                  const std::string& attr1)
 // interface
 {
   PyObject* p_obj = PyObject_GetAttrString(in, attr.c_str());
@@ -277,7 +277,8 @@ T& py_convert_type(PyObject* in, const std::string& attr)
 }
 
 template <class T>
-T& py_convert_type(PyObject* in, const std::string& attr, const std::string& attr1)
+T& py_convert_type(PyObject* in, const std::string& attr,
+                   const std::string& attr1)
 // interface
 // py_convert_type<Geometry>(in, "psel", "geo")
 {
@@ -295,31 +296,26 @@ inline PyObject* py_convert(const char& x) { return PyLong_FromLong((Long)x); }
 
 inline PyObject* py_convert(const bool& x) { return PyBool_FromLong((Long)x); }
 
-inline PyObject* py_convert(const int& x) { return PyLong_FromLong((Long)x); }
+inline PyObject* py_convert(const Int& x) { return PyLong_FromLong((Long)x); }
 
 inline PyObject* py_convert(const Long& x) { return PyLong_FromLong(x); }
 
-inline PyObject* py_convert(const unsigned int& x)
+inline PyObject* py_convert(const uint32_t& x)
 {
-  return PyLong_FromUnsignedLong((unsigned long)x);
+  return PyLong_FromUnsignedLong((uint64_t)x);
 }
 
-inline PyObject* py_convert(const unsigned long& x)
-{
-  return PyLong_FromUnsignedLong(x);
-}
-
-inline PyObject* py_convert(const unsigned long long& x)
+inline PyObject* py_convert(const uint64_t& x)
 {
   return PyLong_FromUnsignedLongLong(x);
 }
 
-inline PyObject* py_convert(const float& x)
+inline PyObject* py_convert(const RealF& x)
 {
-  return PyFloat_FromDouble((double)x);
+  return PyFloat_FromDouble((RealD)x);
 }
 
-inline PyObject* py_convert(const double& x) { return PyFloat_FromDouble(x); }
+inline PyObject* py_convert(const RealD& x) { return PyFloat_FromDouble(x); }
 
 inline PyObject* py_convert(const ComplexD& x)
 {

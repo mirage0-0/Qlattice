@@ -48,7 +48,7 @@ from . cimport everything as cc
 from cpython cimport Py_buffer
 from cpython.buffer cimport PyBUF_FORMAT
 from .geometry cimport Geometry
-from .field_selection cimport FieldSelection, PointsSelection
+from .field_selection cimport FieldSelection, PointsSelection, SelectedShufflePlan
 from .field_types cimport *
 from .selected_field_types cimport *
 
@@ -58,34 +58,6 @@ import numpy as np
 from .field_type_dict import selected_points_type_dict
 
 ### -------------------------------------------------------------------
-
-cdef class SelectedShufflePlan:
-
-    def __init__(self, *args):
-        """
-        SelectedShufflePlan()
-        SelectedShufflePlan(psel, rs)
-        """
-        cdef cc.Int len_args = len(args)
-        self.xx.init()
-        if len_args == 0:
-            return
-        elif len_args == 2:
-            if isinstance(args[0], PointsSelection) and isinstance(args[1], RngState):
-                psel, rs, = args
-                self.init_from_psel(psel, rs)
-            else:
-                raise Exception(f"SelectedShufflePlan {args}")
-        else:
-            raise Exception(f"SelectedShufflePlan {args}")
-
-    def init_from_psel(self, PointsSelection psel, RngState rs):
-        """
-        shuffle from PointsDistType::Local to PointsDistType::Random
-        """
-        cc.set_selected_shuffle_plan(self.xx, psel.xx, rs.xx)
-
-###
 
 {{for name in type_name_list}}
 
@@ -107,6 +79,11 @@ cdef void set_field_sp_f_{{name}}(SelectedPoints{{name}} self, Field{{name}} oth
 
 cdef class SelectedPoints{{name}}(SelectedPointsBase):
 
+    """
+    self.cdata
+    self.psel
+    """
+
     ctype = ElemType{{name}}
 
     def __cinit__(self):
@@ -117,61 +94,56 @@ cdef class SelectedPoints{{name}}(SelectedPointsBase):
         """
         SelectedPoints()
         SelectedPoints(n_points, multiplicity, points_dist_type)
+        SelectedPoints(None)
         SelectedPoints(psel)
         SelectedPoints(psel, multiplicity)
-        SelectedPoints(sf, ssp) # via `shuffle_selected_field` where ssp = SelectedShufflePlan(psel, rs)
-        SelectedPoints(sf, rs) # via `shuffle_selected_field`
+        SelectedPoints(sp, ssp) # via `shuffle_selected_points` where ssp = SelectedShufflePlan("r_from_l", psel, rs)
+        SelectedPoints(sp, ssp, is_reverse) # via `shuffle_selected_points` where ssp = SelectedShufflePlan("r_from_l", psel, rs)
+        SelectedPoints(sf, ssp) # via `shuffle_selected_field` where ssp = SelectedShufflePlan("r_from_l", psel, rs)
         #
-        points_dist_type in [ None, "g", "l", "r", ]
+        points_dist_type in [ "g", "f", "l", "r", "o", ]
         """
-        cdef cc.Int len_args = len(args)
         if self.view_count > 0:
             raise ValueError("can't re-init while being viewed")
-        if len_args == 0:
-            self.psel = None
-            self.xx.init()
+        self.psel = None
+        self.xx.init()
+        if len(args) == 0:
+            return
         elif isinstance(args[0], int):
             self.init_from_n_points(*args)
+        elif args[0] is None:
+            return
         elif isinstance(args[0], PointsSelection):
             self.init_from_psel(*args)
+        elif isinstance(args[0], SelectedPoints{{name}}):
+            self.init_from_sp_ssp(*args)
         elif isinstance(args[0], SelectedField{{name}}):
-            if len_args == 2:
-                if isinstance(args[1], RngState):
-                    sf, rs, = args
-                    self.init_from_sf_rs(sf, rs)
-                elif isinstance(args[1], SelectedShufflePlan):
-                    sf, ssp, = args
-                    self.init_from_sf_ssp(sf, ssp)
-                else:
-                    raise Exception(f"SelectedPoints.__init__ {args}")
-            else:
-                raise Exception(f"SelectedPoints.__init__ {args}")
+            self.init_from_sf_ssp(*args)
         else:
             raise Exception(f"SelectedPoints.__init__ {args}")
 
     def init_from_n_points(self, cc.Long n_points, cc.Int multiplicity, str points_dist_type):
-        self.psel = None
         self.xx.init(n_points, multiplicity, cc.read_points_dist_type(points_dist_type))
 
     def init_from_psel(self, PointsSelection psel, cc.Int multiplicity=0):
         self.psel = psel
-        if multiplicity == 0:
-            self.xx.init()
-        else:
+        if multiplicity != 0:
             self.xx.init(psel.xx, multiplicity)
 
-    def init_from_sf_ssp(self, SelectedField{{name}} sf, SelectedShufflePlan ssp):
-        cdef FieldSelection fsel = sf.fsel
-        cdef PointsSelection psel = PointsSelection()
-        self.psel = psel
-        cc.shuffle_field_selection(psel.xx, fsel.xx, ssp.xx)
-        cc.shuffle_selected_field(self.xx, sf.xx, ssp.xx)
+    def init_from_sp_ssp(self, SelectedPoints{{name}} sp, SelectedShufflePlan ssp=None, bint is_reverse=False):
+        if ssp is None:
+            self @= sp
+            return
+        sp_dst = ssp.shuffle_sp(SelectedPoints{{name}}, sp, is_reverse=is_reverse)
+        self.swap(sp_dst)
 
-    def init_from_sf_rs(self, SelectedField{{name}} sf, RngState rs):
-        cdef FieldSelection fsel = sf.fsel
-        cdef PointsSelection psel = PointsSelection(fsel)
-        cdef SelectedShufflePlan ssp = SelectedShufflePlan(psel, rs)
-        self.init_from_sf_ssp(sf, ssp)
+    def init_from_sf_ssp(self, SelectedField{{name}} sf, SelectedShufflePlan ssp):
+        assert len(ssp.psel_send_list) == 1
+        assert len(ssp.psel_recv_list) == 1
+        self.psel = PointsSelection(sf.fsel, ssp)
+        if self.psel == ssp.psel_recv_list[0]:
+            self.psel = ssp.psel_recv_list[0]
+        cc.shuffle_selected_field(self.xx, sf.xx, ssp.xx)
 
     def __getbuffer__(self, Py_buffer *buffer, int flags):
         cdef int ndim = 2 + ElemType{{name}}.ndim()
@@ -197,14 +169,14 @@ cdef class SelectedPoints{{name}}(SelectedPointsBase):
     def __imatmul__(self, other):
         """
         won't change self.psel
+        #
+        two psel may or may NOT be the same object
+        #
+        only assign available points
         """
         if isinstance(other, SelectedPoints{{name}}):
-            """
-            two psel may or may NOT be the same object
-            """
             set_field_sp_sp_{{name}}(self, other)
         elif isinstance(other, SelectedField{{name}}):
-            # only assign available points
             set_field_sp_sf_{{name}}(self, other)
         elif isinstance(other, Field{{name}}):
             set_field_sp_f_{{name}}(self, other)
@@ -224,26 +196,63 @@ cdef class SelectedPoints{{name}}(SelectedPointsBase):
         cc.set_zero(self.xx)
 
     def swap(self, SelectedPoints{{name}} f1):
-        assert f1.psel is self.psel
-        cc.qswap(f1.xx, self.xx)
+        cdef PointsSelection psel = self.psel
+        self.psel = f1.psel
+        f1.psel = psel
+        cc.qswap(self.xx, f1.xx)
 
-    def save(self, const cc.std_string& path):
-        cc.save_selected_points(self.xx, path)
+    def swap_cast(self, SelectedPointsChar f1):
+        cdef PointsSelection psel = self.psel
+        self.psel = f1.psel
+        f1.psel = psel
+        cc.qswap_cast(self.xx, f1.xx)
 
-    def load(self, const cc.std_string& path):
-        cc.load_selected_points(self.xx, path)
+    def save(
+        self, const cc.std_string& path,
+        const cc.Bool is_sync_node=True,
+    ):
+        cc.save_selected_points(self.xx, path, is_sync_node)
 
-    def save_str(self):
+    def load(
+        self, const cc.std_string& path,
+        const cc.Bool is_sync_node=True,
+    ):
+        cc.load_selected_points(self.xx, path, is_sync_node)
+
+    @q.timer
+    def bcast(
+        self, cc.Int root=0,
+    ):
         """
-        only return str at node 0
+        Call ``self.psel.bcast(root)``
+        Note: will set ``self.psel`` to ``None`` if ``self.psel.n_points == 0``
         """
-        return <bytes>cc.save_selected_points_str(self.xx)
+        cdef cc.Int ret = cc.bcast(self.xx, root)
+        assert ret == 0
+        if self.psel is None:
+            self.psel = PointsSelection()
+        self.psel.bcast(root)
+        if self.psel.n_points == 0:
+            self.psel = None
+        return self
 
-    def load_str(self, cc.std_string& content):
+    def save_str(
+        self, cc.Bool is_sync_node=True,
+    ):
+        """
+        only return str at node root
+        """
+        return <bytes>cc.save_selected_points_str(self.xx, is_sync_node)
+
+    def load_str(
+        self, bytes content,
+        cc.Bool is_sync_node=True,
+    ):
         """
         only need str at node 0
         """
-        return cc.load_selected_points_str(self.xx, content)
+        cdef cc.std_string content_std_str = content
+        return cc.load_selected_points_str(self.xx, content_std_str, is_sync_node)
 
 {{if name in real_d_type_name_list}}
     def to_lat_data(self):

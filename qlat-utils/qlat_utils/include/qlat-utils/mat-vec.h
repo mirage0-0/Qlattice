@@ -18,12 +18,13 @@
 
 #pragma once
 
-#include <qlat-utils/assert.h>
 #include <qlat-utils/complex.h>
 #include <qlat-utils/config.h>
 #include <qlat-utils/handle.h>
 #include <qlat-utils/qacc.h>
+#include <qlat-utils/qassert.h>
 #include <qlat-utils/qcd-setting.h>
+#include <qlat-utils/timer.h>
 
 namespace qlat
 {
@@ -31,9 +32,9 @@ namespace qlat
 template <class T>
 struct CommaLoader {
   Vector<T> m;
-  int i;
+  Int i;
   //
-  CommaLoader(Vector<T> m_, int i_)
+  CommaLoader(Vector<T> m_, Int i_)
   {
     m = m_;
     i = i_;
@@ -48,24 +49,24 @@ struct CommaLoader {
 
 // --------------------
 
-template <int DIMN, class T>
+template <Int DIMN, class T>
 struct API QLAT_ALIGN(sizeof(T) * DIMN * DIMN) MatrixT {
   T p[DIMN * DIMN];
   //
   qacc T* data() { return p; }
   qacc const T* data() const { return p; }
   //
-  // convert to double array
-  qacc double* d() { return (double*)p; }
-  qacc const double* d() const { return (const double*)p; }
+  // convert to RealD array
+  qacc RealD* d() { return (RealD*)p; }
+  qacc const RealD* d() const { return (const RealD*)p; }
   //
-  qacc T& operator()(int i, int j)
+  qacc T& operator()(Int i, Int j)
   {
     qassert(0 <= i && i < DIMN);
     qassert(0 <= j && j < DIMN);
     return p[i * DIMN + j];
   }
-  qacc const T& operator()(int i, int j) const
+  qacc const T& operator()(Int i, Int j) const
   {
     qassert(0 <= i && i < DIMN);
     qassert(0 <= j && j < DIMN);
@@ -227,23 +228,23 @@ using AdjointColorMatrixF = AdjointColorMatrixT<RealF>;
 
 // --------------------
 
-template <int DIMN, class T>
+template <Int DIMN, class T>
 struct API QLAT_ALIGN(sizeof(T) * DIMN) MvectorT {
   T p[DIMN];
   //
   qacc T* data() { return p; }
   qacc const T* data() const { return p; }
   //
-  // convert to double array
-  qacc double* d() { return (double*)p; }
-  qacc const double* d() const { return (const double*)p; }
+  // convert to RealD array
+  qacc RealD* d() { return (RealD*)p; }
+  qacc const RealD* d() const { return (const RealD*)p; }
   //
-  qacc T& operator()(int i)
+  qacc T& operator()(Int i)
   {
     qassert(0 <= i && i < DIMN);
     return p[i];
   }
-  qacc const T& operator()(int i) const
+  qacc const T& operator()(Int i) const
   {
     qassert(0 <= i && i < DIMN);
     return p[i];

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <qlat-utils/matrix.h>
+#include <qlat/core.h>
 #include <qlat/field-fft.h>
 #include <qlat/field.h>
-#include <qlat-utils/matrix.h>
 
 #include <cmath>
 
@@ -23,11 +24,13 @@ struct SpinPropagator4dT : FieldM<SpinMatrixT<T>, 1> {
 
 #ifndef QLAT_NO_DEFAULT_TYPE
 
-typedef QedGaugeFieldT<> QedGaugeField;
+using QedGaugeField = QedGaugeFieldT<>;
 
-typedef ComplexScalerFieldT<> ComplexScalerField;
+using ComplexScalerField = ComplexScalerFieldT<>;
 
-typedef SpinPropagator4dT<> SpinPropagator4d;
+using SpinPropagator4d = SpinPropagator4dT<>;
+
+using SpinProp = SpinPropagator4d;
 
 #endif
 
@@ -41,7 +44,7 @@ inline void take_real_part_and_multiply_sqrt2(Field<T>& f)
   for (Long index = 0; index < geo.local_volume(); ++index) {
     const Coordinate xl = geo.coordinate_from_index(index);
     Vector<T> fv = f.get_elems(xl);
-    for (int m = 0; m < f.multiplicity; ++m) {
+    for (Int m = 0; m < f.multiplicity; ++m) {
       fv[m] = sqrt(2.0) * fv[m].real();
     }
   }
@@ -56,30 +59,30 @@ inline void set_mom_stochastic_qed_field_feynman(Field<T>& f,
 {
   TIMER("set_mom_stochastic_qed_field_feynman");
   f.init(geo, multiplicity);
-  const double total_volume = geo.total_volume();
+  const RealD total_volume = geo.total_volume();
 #pragma omp parallel for
   for (Long index = 0; index < geo.local_volume(); ++index) {
     const Coordinate kl = geo.coordinate_from_index(index);
     const Coordinate kg = geo.coordinate_g_from_l(kl);
     const Long gindex = geo.g_index_from_g_coordinate(kg);
     RngState rst = rs.newtype(gindex);
-    double s2 = 0.0;
-    array<double, DIMN> kk;
-    for (int i = 0; i < DIMN; i++) {
+    RealD s2 = 0.0;
+    array<RealD, DIMN> kk;
+    for (Int i = 0; i < DIMN; i++) {
       const Coordinate total_site = geo.total_site();
-      kk[i] = 2.0 * PI * smod(kg[i], total_site[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * smod(kg[i], total_site[i]) / (RealD)total_site[i];
       s2 += 4.0 * sqr(std::sin(kk[i] / 2.0));
     }
     Vector<ComplexD> fv = f.get_elems(kl);
     if (0.0 == kk[0] && 0.0 == kk[1] && 0.0 == kk[2]) {
-      for (int m = 0; m < multiplicity; ++m) {
+      for (Int m = 0; m < multiplicity; ++m) {
         fv[m] = 0.0;
       }
     } else {
-      const double sigma = std::sqrt(1.0 / (2.0 * total_volume * s2));
-      for (int m = 0; m < multiplicity; ++m) {
-        const double re = g_rand_gen(rst, 0.0, sigma);
-        const double im = g_rand_gen(rst, 0.0, sigma);
+      const RealD sigma = std::sqrt(1.0 / (2.0 * total_volume * s2));
+      for (Int m = 0; m < multiplicity; ++m) {
+        const RealD re = g_rand_gen(rst, 0.0, sigma);
+        const RealD im = g_rand_gen(rst, 0.0, sigma);
         fv[m] = T(re, im);
       }
     }
@@ -87,7 +90,8 @@ inline void set_mom_stochastic_qed_field_feynman(Field<T>& f,
 }
 
 template <class T>
-inline void set_stochastic_qed_field_feynman(Field<T>& f, const Geometry& geo, const Int multiplicity,
+inline void set_stochastic_qed_field_feynman(Field<T>& f, const Geometry& geo,
+                                             const Int multiplicity,
                                              const RngState& rs)
 {
   TIMER("set_stochastic_qed_field_feynman");
@@ -97,32 +101,33 @@ inline void set_stochastic_qed_field_feynman(Field<T>& f, const Geometry& geo, c
 }
 
 template <class T>
-inline void set_mom_stochastic_qed_field_mass(Field<T>& f, const Geometry& geo, const Int multiplicity,
-                                              const double mass,
+inline void set_mom_stochastic_qed_field_mass(Field<T>& f, const Geometry& geo,
+                                              const Int multiplicity,
+                                              const RealD mass,
                                               const RngState& rs)
 // use mass scheme, all zero modes are kept
 {
   TIMER("set_mom_stochastic_qed_field_mass");
   f.init(geo, multiplicity);
-  const double total_volume = geo.total_volume();
+  const RealD total_volume = geo.total_volume();
 #pragma omp parallel for
   for (Long index = 0; index < geo.local_volume(); ++index) {
     const Coordinate kl = geo.coordinate_from_index(index);
     const Coordinate kg = geo.coordinate_g_from_l(kl);
     const Long gindex = geo.g_index_from_g_coordinate(kg);
     RngState rst = rs.newtype(gindex);
-    double s2 = sqr(mass);
-    array<double, DIMN> kk;
-    for (int i = 0; i < DIMN; i++) {
+    RealD s2 = sqr(mass);
+    array<RealD, DIMN> kk;
+    for (Int i = 0; i < DIMN; i++) {
       const Coordinate total_site = geo.total_site();
-      kk[i] = 2.0 * PI * smod(kg[i], total_site[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * smod(kg[i], total_site[i]) / (RealD)total_site[i];
       s2 += 4.0 * sqr(std::sin(kk[i] / 2.0));
     }
     Vector<ComplexD> fv = f.get_elems(kl);
-    const double sigma = std::sqrt(1.0 / (2.0 * total_volume * s2));
-    for (int m = 0; m < multiplicity; ++m) {
-      const double re = g_rand_gen(rst, 0.0, sigma);
-      const double im = g_rand_gen(rst, 0.0, sigma);
+    const RealD sigma = std::sqrt(1.0 / (2.0 * total_volume * s2));
+    for (Int m = 0; m < multiplicity; ++m) {
+      const RealD re = g_rand_gen(rst, 0.0, sigma);
+      const RealD im = g_rand_gen(rst, 0.0, sigma);
       fv[m] = T(re, im);
     }
   }
@@ -130,7 +135,7 @@ inline void set_mom_stochastic_qed_field_mass(Field<T>& f, const Geometry& geo, 
 
 template <class T>
 inline void set_stochastic_qed_field_mass(Field<T>& f, const Geometry& geo,
-                                          const double mass, const RngState& rs)
+                                          const RealD mass, const RngState& rs)
 {
   TIMER("set_stochastic_qed_field_mass");
   set_mom_stochastic_qed_field_mass(f, geo, mass, rs);
@@ -139,7 +144,7 @@ inline void set_stochastic_qed_field_mass(Field<T>& f, const Geometry& geo,
 }
 
 inline void prop_mom_photon_invert(QedGaugeField& egf,
-                                   const array<double, DIMN>& momtwist)
+                                   const CoordinateD& momtwist)
 // Feynman Gauge
 // All spatial zero mode removed.
 // egf in momentum space.
@@ -150,44 +155,43 @@ inline void prop_mom_photon_invert(QedGaugeField& egf,
   for (Long index = 0; index < geo.local_volume(); ++index) {
     Coordinate kl = geo.coordinate_from_index(index);
     Coordinate kg = geo.coordinate_g_from_l(kl);
-    array<double, DIMN> kk;
-    double s2 = 0.0;
-    for (int i = 0; i < DIMN; i++) {
+    array<RealD, DIMN> kk;
+    RealD s2 = 0.0;
+    for (Int i = 0; i < DIMN; i++) {
       const Coordinate total_site = geo.total_site();
       kg[i] = smod(kg[i], total_site[i]);
-      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (RealD)total_site[i];
       s2 += 4.0 * sqr(std::sin(kk[i] / 2.0));
     }
     if (0.0 == kk[0] && 0.0 == kk[1] && 0.0 == kk[2]) {
-      for (int mu = 0; mu < multiplicity; ++mu) {
+      for (Int mu = 0; mu < multiplicity; ++mu) {
         egf.get_elem(kl, mu) *= 0.0;
       }
     } else {
-      double s2inv = 1.0 / s2;
-      for (int mu = 0; mu < multiplicity; ++mu) {
+      RealD s2inv = 1.0 / s2;
+      for (Int mu = 0; mu < multiplicity; ++mu) {
         egf.get_elem(kl, mu) *= s2inv;
       }
     }
   }
 }
 
-inline void prop_photon_invert(QedGaugeField& egf,
-                               const array<double, DIMN>& momtwist)
+inline void prop_photon_invert(QedGaugeField& egf, const CoordinateD& momtwist)
 // Feynman Gauge
 // All spatial zero mode removed.
 // egf in coordinate space.
 {
   TIMER_VERBOSE("prop_photon_invert");
-  const Geometry& geo = egf.geo();
+  const Geometry geo = egf.geo();
   fft_complex_field(egf, true);
   prop_mom_photon_invert(egf, momtwist);
   fft_complex_field(egf, false);
   egf *= 1.0 / geo.total_volume();
 }
 
-inline void prop_mom_complex_scalar_invert(
-    ComplexScalerField& csf, const double mass,
-    const array<double, DIMN>& momtwist)
+inline void prop_mom_complex_scalar_invert(ComplexScalerField& csf,
+                                           const RealD mass,
+                                           const CoordinateD& momtwist)
 {
   TIMER("prop_mom_complex_scalar_invert");
   const Geometry& geo = csf.geo();
@@ -195,24 +199,24 @@ inline void prop_mom_complex_scalar_invert(
   for (Long index = 0; index < geo.local_volume(); ++index) {
     Coordinate kl = geo.coordinate_from_index(index);
     Coordinate kg = geo.coordinate_g_from_l(kl);
-    array<double, DIMN> kk;
-    double s2 = sqr(mass);
-    for (int i = 0; i < DIMN; i++) {
+    array<RealD, DIMN> kk;
+    RealD s2 = sqr(mass);
+    for (Int i = 0; i < DIMN; i++) {
       Coordinate total_site = geo.total_site();
       kg[i] = smod(kg[i], total_site[i]);
-      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (RealD)total_site[i];
       s2 += 4.0 * sqr(std::sin(kk[i] / 2.0));
     }
-    double s2inv = 1.0 / s2;
-    for (int mu = 0; mu < multiplicity; ++mu) {
+    RealD s2inv = 1.0 / s2;
+    for (Int mu = 0; mu < multiplicity; ++mu) {
       csf.get_elem(kl, mu) *= s2inv;
     }
   }
 }
 
 inline void prop_complex_scalar_invert(ComplexScalerField& csf,
-                                       const double mass,
-                                       const array<double, DIMN>& momtwist)
+                                       const RealD mass,
+                                       const CoordinateD& momtwist)
 {
   TIMER_VERBOSE("prop_complex_scalar_invert");
   const Geometry& geo = csf.geo();
@@ -222,67 +226,65 @@ inline void prop_complex_scalar_invert(ComplexScalerField& csf,
   csf *= 1.0 / geo.total_volume();
 }
 
-inline double acosh(const double x)
+inline RealD acosh(const RealD x)
 {
   return std::log(x + std::sqrt(x + 1.0) * std::sqrt(x - 1.0));
 }
 
-inline void prop_free_scalar_invert(Field<ComplexD>& f, const double mass,
+inline void prop_free_scalar_invert(Field<ComplexD>& f, const RealD mass,
                                     const CoordinateD& momtwist)
 {
   TIMER("prop_free_scalar_invert");
   const Geometry& geo = f.geo();
   const Coordinate total_site = geo.total_site();
-  const double m_pi_sq = 4.0 * sqr(std::sinh(mass / 2.0));
+  const RealD m_pi_sq = 4.0 * sqr(std::sinh(mass / 2.0));
   qacc_for(index, geo.local_volume(), {
     const Coordinate kl = geo.coordinate_from_index(index);
     Coordinate kg = geo.coordinate_g_from_l(kl);
     CoordinateD kk, ks;
-    double s2 = 0.0;
-    for (int i = 0; i < DIMN; i++) {
+    RealD s2 = 0.0;
+    for (Int i = 0; i < DIMN; i++) {
       kg[i] = smod(kg[i], total_site[i]);
-      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (RealD)total_site[i];
       ks[i] = 2.0 * std::sin(kk[i] / 2.0);
       s2 += sqr(ks[i]);
     }
-    const double fac = 1.0 / (m_pi_sq + s2);
+    const RealD fac = 1.0 / (m_pi_sq + s2);
     Vector<ComplexD> v = f.get_elems(kl);
-    for (int i = 0; i < v.size(); ++i) {
+    for (Int i = 0; i < v.size(); ++i) {
       v[i] *= fac;
     }
   })
 }
 
 template <class T>
-void prop_mom_spin_propagator4d(SpinPropagator4dT<T>& sp4d, const double mass,
-                                const array<double, DIMN>& momtwist)
+void prop_mom_spin_propagator4d(SpinPropagator4dT<T>& sp4d, const RealD mass,
+                                const RealD m5, const CoordinateD& momtwist)
 // DWF infinite L_s
-// M_5 = 1.0
+// M_5 <= 1.0
 {
   TIMER("prop_mom_spin_propagator4d");
   const Geometry& geo = sp4d.geo();
-  const double m5 = 1.0;
-#pragma omp parallel for
-  for (Long index = 0; index < geo.local_volume(); ++index) {
+  qthread_for(index, geo.local_volume(), {
     Coordinate kl = geo.coordinate_from_index(index);
     Coordinate kg = geo.coordinate_g_from_l(kl);
-    array<double, DIMN> kk, ks;
-    double p2 = 0.0;
-    double wp = 1.0 - m5;
+    array<RealD, DIMN> kk, ks;
+    RealD p2 = 0.0;
+    RealD wp = 1.0 - m5;
     SpinMatrixT<T> pg;
     set_zero(pg);
-    for (int i = 0; i < DIMN; ++i) {
+    for (Int i = 0; i < DIMN; ++i) {
       Coordinate total_site = geo.total_site();
       kg[i] = smod(kg[i], total_site[i]);
-      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (double)total_site[i];
+      kk[i] = 2.0 * PI * (kg[i] + momtwist[i]) / (RealD)total_site[i];
       ks[i] = sin(kk[i]);
-      pg += SpinMatrixConstantsT<T>::get_gamma(i) * (ComplexT<T>)ks[i];
+      pg += SpinMatrixConstantsT<T>::get_cps_gamma(i) * (ComplexT<T>)ks[i];
       p2 += sqr(ks[i]);
       wp += 2.0 * sqr(sin(kk[i] / 2.0));
     }
-    const double calpha = (1.0 + sqr(wp) + p2) / 2.0 / wp;
-    const double alpha = acosh(calpha);
-    const double lwa = 1.0 - wp * exp(-alpha);
+    const RealD calpha = (1.0 + sqr(wp) + p2) / 2.0 / wp;
+    const RealD alpha = acosh(calpha);
+    const RealD lwa = 1.0 - wp * exp(-alpha);
     SpinMatrixT<T> m;
     set_unit(m, mass * lwa);
     SpinMatrixT<T> ipgm = pg;
@@ -303,23 +305,23 @@ void prop_mom_spin_propagator4d(SpinPropagator4dT<T>& sp4d, const double mass,
     }
     ipgm *= sp4d.get_elem(kl);
     sp4d.get_elem(kl) = ipgm;
-  }
+  });
 }
 
 template <class T>
-void prop_spin_propagator4d(SpinPropagator4dT<T>& sp4d, const double mass,
-                            const array<double, DIMN>& momtwist)
+void prop_spin_propagator4d(SpinPropagator4dT<T>& sp4d, const RealD mass,
+                            const RealD m5, const CoordinateD& momtwist)
 {
   TIMER_VERBOSE("prop_spin_propagator4d");
-  const Geometry& geo = sp4d.geo();
+  const Geometry geo = sp4d.geo();
   fft_complex_field(sp4d, true);
-  prop_mom_spin_propagator4d(sp4d, mass, momtwist);
+  prop_mom_spin_propagator4d(sp4d, mass, m5, momtwist);
   fft_complex_field(sp4d, false);
   sp4d *= 1.0 / geo.total_volume();
 }
 
 inline void set_point_source_plusm(QedGaugeField& f, const ComplexD& coef,
-                                   const Coordinate& xg, const int mu)
+                                   const Coordinate& xg, const Int mu)
 {
   TIMER("set_point_source_plusm");
   const Geometry& geo = f.geo();
@@ -351,7 +353,7 @@ void set_box_source_plusm(SpinPropagator4dT<T>& f, const ComplexD& coef,
 
 template <class T>
 void set_wall_source_plusm(SpinPropagator4dT<T>& f, const ComplexD& coef,
-                           const int t)
+                           const Int t)
 {
   TIMER("set_wall_source_plusm");
   const Geometry& geo = f.geo();
@@ -373,12 +375,12 @@ void sequential_photon_spin_propagator_plusm(SpinPropagator4dT<T>& src,
 #pragma omp parallel for
   for (Long index = 0; index < geo.local_volume(); ++index) {
     Coordinate xl = geo.coordinate_from_index(index);
-    for (int mu = 0; mu < DIMN; mu++) {
+    for (Int mu = 0; mu < DIMN; mu++) {
       // a = A_\mu(x)
       ComplexD a = egf.get_elem(xl, mu);
       // tmp = \gamma_\mu \psi(x)
       SpinMatrixT<T> tmp =
-          SpinMatrixConstantsT<T>::get_gamma(mu) * sol.get_elem(xl);
+          SpinMatrixConstantsT<T>::get_cps_gamma(mu) * sol.get_elem(xl);
       // tmp = coef * \gamma_\mu A_\mu(x) \psi(x)
       tmp *= (ComplexT<T>)(a * coef);
       src.get_elem(xl) += tmp;
@@ -403,15 +405,59 @@ SpinMatrixT<T> contract_spin_propagator4d(const SpinPropagator4dT<T>& snk,
       Coordinate xl = geo.coordinate_from_index(index);
       psum += matrix_adjoint(snk.get_elem(xl)) * src.get_elem(xl);
     }
-    for (int i = 0; i < omp_get_num_threads(); ++i) {
+    for (Int i = 0; i < omp_get_num_threads(); ++i) {
 #pragma omp barrier
       if (omp_get_thread_num() == i) {
         sum += psum;
       }
     }
   }
-  glb_sum_double(sum);
+  glb_sum(sum);
   return sum;
 }
+
+void set_left_expanded_gauge_field(Field<ComplexD>& gf1,
+                                   const Field<ComplexD>& gf);
+
+void free_invert(SpinProp& sp_sol, SpinProp& sp_src, const RealD mass,
+                 const RealD m5 = 1.0,
+                 const CoordinateD& momtwist = CoordinateD());
+
+void invert_qed(
+    SpinProp& sp_sol, const SpinProp& sp_src, const Field<ComplexD>& gf1,
+    const RealD mass, const RealD m5, const Int ls,
+    const vector<ComplexD>& t_wick_phase_factor_vec = vector<ComplexD>(),
+    const bool is_dagger = false, const RealD stop_rsd = 1e-8,
+    const Long max_num_iter = 50000);
+
+void fermion_field_4d_from_5d_qed(Field<ComplexD>& ff4d,
+                                  const Field<ComplexD>& ff5d, const Int ls,
+                                  const Int upper, const Int lower);
+
+void fermion_field_5d_from_4d_qed(Field<ComplexD>& ff5d,
+                                  const Field<ComplexD>& ff4d, const Int ls,
+                                  const Int upper, const Int lower);
+
+Long invert_dwf_qed(
+    Field<ComplexD>& f_out4d, const Field<ComplexD>& f_in4d,
+    const Field<ComplexD>& gf1, const RealD mass, const RealD m5, const Int ls,
+    const vector<ComplexD>& t_wick_phase_factor_vec = vector<ComplexD>(),
+    const bool is_dagger = false, const RealD stop_rsd = 1e-8,
+    const Long max_num_iter = 50000);
+
+ComplexD dot_product(const Field<ComplexD>& ff1, const Field<ComplexD>& ff2);
+
+Long cg_with_m_dwf_qed(
+    Field<ComplexD>& f_out5d, const Field<ComplexD>& f_in5d,
+    const Field<ComplexD>& gf1, const RealD mass, const RealD m5, const Int ls,
+    const vector<ComplexD>& t_wick_phase_factor_vec = vector<ComplexD>(),
+    const bool is_dagger = false, const RealD stop_rsd = 1e-8,
+    const Long max_num_iter = 50000);
+
+void multiply_m_dwf_qed(
+    Field<ComplexD>& f_out5d, const Field<ComplexD>& f_in5d,
+    const Field<ComplexD>& gf1, const RealD mass, const RealD m5, const Int ls,
+    const vector<ComplexD>& t_wick_phase_factor_vec = vector<ComplexD>(),
+    const bool is_dagger = false);
 
 }  // namespace qlat

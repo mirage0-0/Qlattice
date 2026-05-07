@@ -2,7 +2,7 @@ import sys
 import zlib
 
 def crc32(fileName):
-    with open(fileName, 'rb') as fh:
+    with open(fileName, "rb") as fh:
         hash = 0
         while True:
             s = fh.read(65536)

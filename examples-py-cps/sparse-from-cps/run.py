@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import qlat as q
-import qlat_cps as qc
-import qlat_gpt as qg
-import gpt as g
 import qlat_gpt_cps as qgc
 
 from qlat_scripts.v1 import *
@@ -22,11 +18,11 @@ qgc.begin_with_gpt_cps(total_site)
 
 gen_all_data_cps_fake(job_tag)
 
-for traj in get_param(job_tag, "trajs"):
+for traj in get_param(job_tag, "traj_list"):
     run_job(job_tag, traj)
 
 q.timer_display()
 
 qgc.end_with_gpt_cps()
 
-q.displayln_info(f"CHECK: finished successfully.")
+q.displayln_info("CHECK: finished successfully.")

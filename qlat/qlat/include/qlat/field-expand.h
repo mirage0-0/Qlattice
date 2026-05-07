@@ -23,8 +23,8 @@ qacc void set_marks_field_path(CommMarks& marks, const Coordinate xl,
 {
   const Geometry& geo = marks.geo();
   Coordinate xl1 = xl;
-  for (int i = 0; i < (int)path.size(); ++i) {
-    const int dir = path[i];
+  for (Int i = 0; i < (int)path.size(); ++i) {
+    const Int dir = path[i];
     qassert(-DIMN <= dir && dir < DIMN);
     if (0 <= dir) {
       if (not geo.is_local(xl1)) {
@@ -40,17 +40,18 @@ qacc void set_marks_field_path(CommMarks& marks, const Coordinate xl,
   }
 }
 
-void set_marks_field_all(CommMarks& marks, const Geometry& geo, const Int multiplicity,
-                         const std::string& tag);
+void set_marks_field_all(CommMarks& marks, const Geometry& geo,
+                         const Int multiplicity, const std::string& tag);
 
-void set_marks_field_1(CommMarks& marks, const Geometry& geo, const Int multiplicity,
-                       const std::string& tag);
+void set_marks_field_1(CommMarks& marks, const Geometry& geo,
+                       const Int multiplicity, const std::string& tag);
 
-void set_marks_field_gf_hamilton(CommMarks& marks, const Geometry& geo, const Int multiplicity,
+void set_marks_field_gf_hamilton(CommMarks& marks, const Geometry& geo,
+                                 const Int multiplicity,
                                  const std::string& tag);
 
-void set_marks_field_gm_force(CommMarks& marks, const Geometry& geo, const Int multiplicity,
-                              const std::string& tag);
+void set_marks_field_gm_force(CommMarks& marks, const Geometry& geo,
+                              const Int multiplicity, const std::string& tag);
 
 struct API CommPackInfo {
   Long offset;
@@ -81,16 +82,19 @@ struct API CommPlanKey {
   Int multiplicity;
 };
 
-const int lattice_size_multiplier = 3;
+const Int lattice_size_multiplier = 3;
 // g_offset calculated assume lattice_size_multiplier*total_site
 // (This is a hack, please fix me)
 
-void g_offset_id_node_from_offset(Long& g_offset, int& id_node,
-                                  const Long offset, const Geometry& geo, const Int multiplicity);
+void g_offset_id_node_from_offset(Long& g_offset, Int& id_node,
+                                  const Long offset, const Geometry& geo,
+                                  const Int multiplicity);
 
-Long offset_send_from_g_offset(const Long g_offset, const Geometry& geo, const Int multiplicity);
+Long offset_send_from_g_offset(const Long g_offset, const Geometry& geo,
+                               const Int multiplicity);
 
-Long offset_recv_from_g_offset(const Long g_offset, const Geometry& geo, const Int multiplicity);
+Long offset_recv_from_g_offset(const Long g_offset, const Geometry& geo,
+                               const Int multiplicity);
 
 CommPlan make_comm_plan(const CommMarks& marks);
 
@@ -118,8 +122,8 @@ void refresh_expanded(Field<M>& f, const CommPlan& plan)
   }
   TIMER_FLOPS("refresh_expanded");
   timer.flops += total_bytes / 2;
-  vector<M> send_buffer(plan.total_send_size);
-  vector<M> recv_buffer(plan.total_recv_size);
+  vector<M> send_buffer(plan.total_send_size, MemType::Comm);
+  vector<M> recv_buffer(plan.total_recv_size, MemType::Comm);
 #pragma omp parallel for
   for (Long i = 0; i < (Long)plan.send_pack_infos.size(); ++i) {
     const CommPackInfo& cpi = plan.send_pack_infos[i];
@@ -127,14 +131,14 @@ void refresh_expanded(Field<M>& f, const CommPlan& plan)
            cpi.size * sizeof(M));
   }
   {
-    sync_node();
+    SYNC_NODE();
     TIMER_FLOPS("refresh_expanded-comm");
     timer.flops +=
         (plan.total_recv_size + plan.total_send_size) * sizeof(M) / 2;
     std::vector<MPI_Request> reqs;
     {
       TIMER("refresh_expanded-comm-init");
-      const int mpi_tag = 10;
+      const Int mpi_tag = 10;
       for (size_t i = 0; i < plan.recv_msg_infos.size(); ++i) {
         const CommMsgInfo& cmi = plan.recv_msg_infos[i];
         mpi_irecv(&recv_buffer[cmi.buffer_idx], cmi.size * sizeof(M), MPI_BYTE,
@@ -147,7 +151,7 @@ void refresh_expanded(Field<M>& f, const CommPlan& plan)
       }
     }
     mpi_waitall(reqs);
-    sync_node();
+    SYNC_NODE();
   }
 #pragma omp parallel for
   for (Long i = 0; i < (Long)plan.recv_pack_infos.size(); ++i) {

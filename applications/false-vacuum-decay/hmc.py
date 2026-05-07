@@ -333,26 +333,25 @@ def main():
     Nt = 100
     total_site = q.Coordinate([1,1,1,Nt])
     # The multiplicity of the field
-    mult = 1
+    mult = 2
     alpha = 1.0
     beta = 9.0
+    V_FV_min = -1.0
     FV_offset = 0.3
     TV_offset = 0.0
     barrier_strength = 1000.0
-    M = 1.0
-    L = 0.0
-    P = 0.0
+    M = 0.0
+    L = 1.0
     epsilon = 1e-10
-    t_full1 = 5
-    t_full2 = 5
-    t_TV = 30
+    t_TV = 40
     t_FV_mid = 6
     dt = 0.2
     # The number of trajectories to calculate
     n_traj = 50000
-    proj_sq = False
+    measure_offset_L = False
+    measure_offset_M = False
     #
-    version = "11-0"
+    version = "15-0"
     date = datetime.datetime.now().date()
     # The number of steps to take in a single trajectory
     steps = 10
@@ -368,19 +367,14 @@ def main():
                 alpha = float(sys.argv[i+1])
             elif(sys.argv[i]=="-b"):
                 beta = float(sys.argv[i+1])
+            elif(sys.argv[i]=="-F"):
+                V_FV_min = float(sys.argv[i+1])
             elif(sys.argv[i]=="-o"):
                 FV_offset = float(sys.argv[i+1])
             elif(sys.argv[i]=="-O"):
                 TV_offset = float(sys.argv[i+1])
             elif(sys.argv[i]=="-B"):
                 barrier_strength = float(sys.argv[i+1])
-            elif(sys.argv[i]=="-f"):
-                t_full1 = int(sys.argv[i+1])
-                t_full2 = int(sys.argv[i+1])
-            elif(sys.argv[i]=="-f1"):
-                t_full1 = int(sys.argv[i+1])
-            elif(sys.argv[i]=="-f2"):
-                t_full2 = int(sys.argv[i+1])
             elif(sys.argv[i]=="-t"):
                 t_TV = int(sys.argv[i+1])
             elif(sys.argv[i]=="-m"):
@@ -389,12 +383,12 @@ def main():
                 M = float(sys.argv[i+1])
             elif(sys.argv[i]=="-L"):
                 L = float(sys.argv[i+1])
-            elif(sys.argv[i]=="-P"):
-                P = float(sys.argv[i+1])
             elif(sys.argv[i]=="-e"):
                 epsilon = float(sys.argv[i+1])
+            elif(sys.argv[i]=="-l"):
+                measure_offset_L=True
             elif(sys.argv[i]=="-p"):
-                proj_sq=True
+                measure_offset_M=True
             elif(sys.argv[i]=="-D"):
                 a = sys.argv[i+1].split("x")
                 total_site = q.Coordinate([int(a[j]) for j in range(4)])
@@ -412,51 +406,50 @@ def main():
             elif(sys.argv[i]=="-i"):
                 init_length = int(sys.argv[i+1])
         except:
-            raise Exception("Invalid arguments: use \
-                            -a for alpha, \
-                            -b for beta, \
-                            -o to offset the barrier location in V_FV, \
-                            -O to offset the barrier location in V_TV, \
-                            -B for the barrier strength used in H_FV and H_TV, \
-                            -f for the time to evolve with H_full (both first and second time), \
-                            -f1 for the time to evolve with H_full the first time, \
-                            -f2 for the time to evolve with H_full the second time, \
-                            -t for the time to evolve with H_TV, \
-                            -m for the time to evolve with H_FV_mid, \
-                            -M to set the left barrier for H_TV, \
-                            -L to set the right barrier for H_TV, \
-                            -P to set the projection strength, \
-                            -e to set epsilon (for V_proj), \
-                            -p use V_bar^2 instead of V_bar in V_proj, \
-                            -D for lattice dimensions, \
-                            -d for the lattice spacing, \
-                            -T for number of trajectories, \
-                            -s for the number of steps in a trajectory, \
-                            -S for the number of trajectories to run before each save, \
-                            -R to force restarting with blank initial field, \
+            raise Exception("Invalid arguments: use \n\
+                            -a for alpha, \n\
+                            -b for beta, \n\
+                            -F for the energy difference between the minimum of the true vacuum minus the minimum of the false vacuum, \n\
+                            -o to offset the barrier location in V_FV, \n\
+                            -O to offset the barrier location in V_TV, \n\
+                            -B for the barrier strength used in H_FV and H_TV, \n\
+                            -t for the time to evolve with H_TV, \n\
+                            -m for the time to evolve with H_FV_mid, \n\
+                            -M to set the left barrier for H_TV, \n\
+                            -L to set the right barrier for H_TV, \n\
+                            -e to set epsilon (for V_proj), \n\
+                            -p use action for the M observable associated with decreasing t_TV by 1, \n\
+                            -l use action for the L observable associated with decreasing t_TV by 1, \n\
+                            -D for lattice dimensions, \n\
+                            -d for the lattice spacing, \n\
+                            -T for number of trajectories, \n\
+                            -s for the number of steps in a trajectory, \n\
+                            -S for the number of trajectories to run before each save, \n\
+                            -R to force restarting with blank initial field, \n\
                             -i for the number of trajectories to do at the beginning without a Metropolis step.")
     
-    t_FV_out = int((Nt - t_full1 - t_full2 - t_TV - t_FV_mid)/2)
-    t_FV_mid = Nt - t_full1 - t_full2 - t_TV - 2*t_FV_out
+    t_FV_out = int((Nt - 2 - t_TV - t_FV_mid)/2)
+    t_FV_mid = Nt - 2 - t_TV - 2*t_FV_out
     
-    action = q.QMAction(alpha, beta, FV_offset, TV_offset, barrier_strength, M, L, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, 0, dt, proj_sq)
-    hmc = HMC(action,f"alpha_{alpha}_beta_{beta}_dt_{dt}_FVoff_{FV_offset}_TVoff_{TV_offset}_bar_{barrier_strength}_M_{M}_L_{L}_P_{P}_eps_{epsilon}_tfull1_{t_full1}_tfull2_{t_full2}_proj2_{proj_sq}_tTV_{t_TV}_tFV_{t_FV_out*2+t_FV_mid}_tFVout_{t_FV_out}_tFVmid_{t_FV_mid}",total_site,mult,steps,init_length,date,version,fresh_start)
+    action = q.QMAction(alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, L, M, epsilon, t_FV_out, t_FV_mid, dt, measure_offset_L, measure_offset_M)
+    hmc = HMC(action,f"alpha_{alpha}_beta_{beta}_FVmin_{V_FV_min}_dt_{dt}_FVoff_{FV_offset}_TVoff_{TV_offset}_bar_{barrier_strength}_M_{M}_L_{L}_eps_{epsilon}_offL_{measure_offset_L}_offM_{measure_offset_M}_tTV_{t_TV}_tFV_{t_FV_out*2+t_FV_mid}_tFVout_{t_FV_out}_tFVmid_{t_FV_mid}",total_site,mult,steps,init_length,date,version,fresh_start)
     
-    steps = np.array([0.001, 0.002, 0.003, 0.004, 0.006, 0.008, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.06, 0.07, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) #np.concatenate([0.001*np.arange(1,100), 0.1 + 0.01*np.arange(0,91)])
-    measure_Ms = steps[steps>M] #[round(min(max(M,0.001)*2**i, 1.0),5) for i in range(1,10)]
-    measure_Ls = steps[steps>L] #[round(min(max(L,0.001)*2**i, 1.0),5) for i in range(1,10)]
-    measure_Ps = steps[steps>P] #[round(min(max(L,0.001)*2**i, 1.0),5) for i in range(1,10)]
-    
-    actions = {"M": {}, "L": {}, "P": {}}
-    if(L==1.0):
+    steps_M = np.array([0.001, 0.002, 0.003, 0.004, 0.006, 0.008, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.06, 0.07, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) #np.concatenate([0.001*np.arange(1,100), 0.1 + 0.01*np.arange(0,91)])
+    measure_Ms = steps_M[steps_M>M] #[round(min(max(M,0.001)*2**i, 1.0),5) for i in range(1,10)]
+    steps_L = np.array([0.002, 0.004, 0.006, 0.008, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.501, 0.502, 0.503, 0.504, 0.506, 0.508, 0.51, 0.515, 0.52, 0.525, 0.53, 0.535, 0.54, 0.545, 0.55, 0.56, 0.57, 0.58, 0.6, 0.65, 0.7, 0.8, 0.9, 1.0])
+    measure_Ls = steps_L[steps_L>L] #[round(min(max(L,0.001)*2**i, 1.0),5) for i in range(1,10)]
+        
+    actions = {"M": {}, "L": {}, "D": {}}
+    if(L==0.0 and M==0.0):
+        actions["D"]["L"] = q.QMAction(alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, L, M, epsilon, t_FV_out, t_FV_mid, dt, True, False)
+        actions["D"]["M"] = q.QMAction(alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, L, M, epsilon, t_FV_out, t_FV_mid-1, dt, False, True)
+    elif(L==1.0):
         for Mi in measure_Ms:
-            actions["M"][f"{Mi}"] = q.QMAction(alpha, beta, FV_offset, TV_offset, barrier_strength, Mi, L, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, 0, dt, proj_sq)
-    if(M==1.0):
+            actions["M"][f"{Mi}"] = q.QMAction(alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, 1.0, Mi, epsilon, t_FV_out, t_FV_mid, dt, False, False)
+    else:
         for Li in measure_Ls:
-            actions["L"][f"{Li}"] = q.QMAction(alpha, beta, FV_offset, TV_offset, barrier_strength, M, Li, P, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, 0, dt, proj_sq)
-    if(M==1.0 and L==0.0):
-        for Pi in measure_Ps:
-            actions["P"][f"{Pi}"] = q.QMAction(alpha, beta, FV_offset, TV_offset, barrier_strength, M, L, Pi, epsilon, t_full1, t_full2, t_FV_out, t_FV_mid, 0, dt, proj_sq)
+            actions["L"][f"{Li}"] = q.QMAction(alpha, beta, V_FV_min, FV_offset, TV_offset, barrier_strength, Li, 1.0, epsilon, t_FV_out, t_FV_mid, dt, False, False)
+    
     
     measurements = Measurements(total_site, actions, f"output_data/measurements_{hmc.fileid}.bin")
     
@@ -493,8 +486,6 @@ def main():
         q.displayln_info(f"e^(Delta S) for M={da}: {np.mean(np.exp(measurements.delta_actions['M'][da][-int(n_traj/2):]))}+-{np.std(np.exp(measurements.delta_actions['M'][da][-int(n_traj/2):]))/(n_traj/2)**0.5}")
     for da in measurements.delta_actions["L"]:
         q.displayln_info(f"e^(Delta S) for L={da}: {np.mean(np.exp(measurements.delta_actions['L'][da][-int(n_traj/2):]))}+-{np.std(np.exp(measurements.delta_actions['L'][da][-int(n_traj/2):]))/(n_traj/2)**0.5}")
-    for da in measurements.delta_actions["P"]:
-        q.displayln_info(f"e^(Delta S) for P={da}: {np.mean(np.exp(measurements.delta_actions['P'][da][-int(n_traj/2):]))}+-{np.std(np.exp(measurements.delta_actions['P'][da][-int(n_traj/2):]))/(n_traj/2)**0.5}")
     
     q.displayln_info(f"CHECK: The vacuum expectation value of phi_0 is {round(np.mean(measurements.phi_list[int(n_traj/2):], axis=0)[0],2)}.")
     q.displayln_info(f"CHECK: The vacuum expectation value of phi^2 is {round(np.mean(measurements.psq_list[int(n_traj/2):]),2)}.")

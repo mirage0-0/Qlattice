@@ -96,7 +96,7 @@ cdef class Coordinate:
         """
         get product of all components
         """
-        cdef cc.Long vol = cc.product(self.xx)
+        cdef cc.Long vol = cc.volume(self.xx)
         return vol
 
     def spatial_volume(self):
@@ -109,16 +109,13 @@ cdef class Coordinate:
         svol *= self.xx[2]
         return svol
 
-    def __getitem__(self, int key):
-        assert 0 <= key
+    def __getitem__(self, size_t key):
         assert key < 4
         return self.xx[key]
 
-    def __setitem__(self, int key, int val):
-        assert 0 <= key
+    def __setitem__(self, size_t key, cc.Int val):
         assert key < 4
-        cdef int* p_val = &self.xx[key]
-        p_val[0] = val
+        self.xx[key] = val
 
     def __add__(Coordinate c1, Coordinate c2):
         cdef Coordinate x = Coordinate()
@@ -146,6 +143,11 @@ cdef class Coordinate:
     def __mod__(Coordinate c1, Coordinate c2):
         cdef Coordinate x = Coordinate()
         cc.assign_direct(x.xx, cc.mod(c1.xx, c2.xx))
+        return x
+
+    def __floordiv__(Coordinate c1, Coordinate c2):
+        cdef Coordinate x = Coordinate()
+        cc.assign_direct(x.xx, c1.xx / c2.xx)
         return x
 
     def __neg__(self):
@@ -190,6 +192,8 @@ def smod_sym_coordinate(Coordinate c, Coordinate size):
     smod based on ``size``
     return ``x``
     ``-size/2 < x < size/2``
+    if x == size / 2:
+        return 0 for that dimension
     """
     cdef Coordinate x = Coordinate()
     cc.assign_direct(x.xx, cc.smod_sym(c.xx, size.xx))
@@ -209,7 +213,7 @@ def middle_mod_coordinate(Coordinate x, Coordinate y, Coordinate size):
 
 def coordinate_from_index(cc.Long index, Coordinate size not None):
     cdef Coordinate x = Coordinate()
-    cc.assign_direct(x.xx, cc.coordinate_from_index(index, (<Coordinate>size).xx))
+    cc.assign_direct(x.xx, cc.coordinate_from_index(index, size.xx))
     return x
 
 def index_from_coordinate(Coordinate x not None, Coordinate size not None):
@@ -296,16 +300,19 @@ cdef class CoordinateD:
         self.__init__()
         self.from_list(state)
 
-    def __getitem__(self, int key):
-        assert 0 <= key
+    def sqr(self):
+        """
+        Return the square sum of all the components as ``cc.Long``.
+        """
+        return cc.sqr(self.xx)
+
+    def __getitem__(self, size_t key):
         assert key < 4
         return self.xx[key]
 
-    def __setitem__(self, int key, double val):
-        assert 0 <= key
+    def __setitem__(self, size_t key, cc.RealD val):
         assert key < 4
-        cdef double* p_val = &self.xx[key]
-        p_val[0] = val
+        self.xx[key] = val
 
     def __add__(CoordinateD c1, CoordinateD c2):
         cdef CoordinateD x = CoordinateD()
@@ -330,6 +337,16 @@ cdef class CoordinateD:
     def __rmul__(c1, c2):
         return c1 * c2
 
+    def __mod__(CoordinateD c1, CoordinateD c2):
+        cdef CoordinateD x = CoordinateD()
+        cc.assign_direct(x.xx, cc.mod(c1.xx, c2.xx))
+        return x
+
+    def __truediv__(CoordinateD c1, CoordinateD c2):
+        cdef CoordinateD x = CoordinateD()
+        cc.assign_direct(x.xx, c1.xx / c2.xx)
+        return x
+
     def __neg__(self):
         cdef CoordinateD x = CoordinateD()
         x.xx = x.xx - self.xx
@@ -340,5 +357,49 @@ cdef class CoordinateD:
 
     def __eq__(self, other):
         return isinstance(other, CoordinateD) and self.xx == (<CoordinateD>other).xx
+
+### ------------------------------------------------
+
+def mod_coordinate_d(CoordinateD c, CoordinateD size):
+    """
+    mod based on ``size``
+    return ``x``
+    ``0 <= x < size``
+    """
+    return c % size
+
+def smod_coordinate_d(CoordinateD c, CoordinateD size):
+    """
+    smod based on ``size``
+    return ``x``
+    ``-size/2 <= x < size/2``
+    """
+    cdef CoordinateD x = CoordinateD()
+    cc.assign_direct(x.xx, cc.smod(c.xx, size.xx))
+    return x
+
+def smod_sym_coordinate_d(CoordinateD c, CoordinateD size):
+    """
+    smod based on ``size``
+    return ``x``
+    ``-size/2 < x < size/2``
+    if x == size / 2:
+        return 0 for that dimension
+    """
+    cdef CoordinateD x = CoordinateD()
+    cc.assign_direct(x.xx, cc.smod_sym(c.xx, size.xx))
+    return x
+
+def middle_mod_coordinate_d(CoordinateD x, CoordinateD y, CoordinateD size):
+    """
+    return middle of x and y
+    xm = mod(x, size)
+    ym = mod(y, size)
+    if xm<=ym: return mod(xm + smod(ym - xm, size), size)
+    else: return mod(ym + smod(xm - ym, size), size)
+    """
+    cdef CoordinateD ret = CoordinateD()
+    cc.assign_direct(ret.xx, cc.middle_mod(x.xx, y.xx, size.xx))
+    return ret
 
 ### ------------------------------------------------

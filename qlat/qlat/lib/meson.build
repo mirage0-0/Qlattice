@@ -10,6 +10,9 @@ cppsources = files(
   'hmc.cpp',
   'mpi.cpp',
   'qcd.cpp',
+  'qcd-utils.cpp',
+  'qcd-prop.cpp',
+  'qed.cpp',
   'selected-field.cpp',
   'selected-points.cpp',
   'selected-shuffle.cpp',
@@ -18,6 +21,11 @@ cppsources = files(
   'utils_Matrix_prod.cpp',
   'utils_field_expand.cpp',
   'hlbl-contract.cpp',
+  'commpressed-eigen-io.cpp',
+  'dslash.cpp',
+  'wilson-flow.cpp',
+  'flowed-hmc.cpp',
+  'utils_geo_cache.cpp',
   )
 py3.install_sources(cppsources, subdir: 'qlat/lib')
 

@@ -1,7 +1,6 @@
 { stdenv
 , config
 , lib
-, fetchFromGitHub
 , python
 , buildPythonPackage
 , mpi
@@ -14,29 +13,37 @@
 , rsync
 , cudaSupport ? config.cudaSupport
 , cudaPackages ? {}
+, use-gitee ? null
 }:
 
 let
-  orig-stdenv = stdenv;
+  use-gitee-wd = if use-gitee == null then false else use-gitee;
+  pname = "gpt-lehenr";
+  # version = "9bb16fc9fe134623b94116b2a47f7b9288f360df"; # 2025/06/15
+  # version = "d69e4d0389015b338a2956de806a53bb0354efaf"; # 2025/12/12
+  # version = "ac6d56e98dc961661ea6b6692490f66285a1530a"; # 2026/03/11
+  # version = "464cef1bc5b7a69e5254dc00eb111eadb2430f66"; # 2026/03/22
+  # version = "1f711e53911deb3113795547602a8825fc4bd959"; # 2026/04/18
+  version = "df6fa3f329a3679d884f64342f4dd773cfe32532"; # 2026/04/27
 in
 
-buildPythonPackage rec {
+buildPythonPackage {
 
-  pname = "gpt-lehenr";
-  version = "b1faeb58184620702b05764497c65c8d2b20b04a";
+  pname = pname;
+  version = version;
 
   pyproject = false;
 
-  src = fetchFromGitHub {
-    owner = "lehner";
-    repo = "gpt";
+  src = builtins.fetchGit {
+    url = if use-gitee-wd then "https://gitee.com/jinluchang/gpt" else "https://github.com/lehner/gpt";
+    # url = "https://github.com/jinluchang/gpt";
+    ref = "master";
     rev = version;
-    hash = "sha256-axilpf/DmyoHbc3EB4/FyL84DiHCPeYCeNMVNUVoXms=";
   };
 
   enableParallelBuilding = true;
 
-  stdenv = if cudaSupport then cudaPackages.backendStdenv else orig-stdenv;
+  stdenv = stdenv;
 
   build-system = [
     pkg-config
@@ -64,8 +71,11 @@ buildPythonPackage rec {
   ];
 
   preConfigure = ''
-	export OMPI_CXX=c++
-	export OMPI_CC=cc
+    export OMPI_CXX=c++
+    export OMPI_CC=cc
+    if [ "$(uname)" == "Darwin" ] ; then
+      export CGPT_EXTRA_LDFLAGS="-undefined dynamic_lookup"
+    fi
     #
     export
     #
@@ -93,6 +103,14 @@ buildPythonPackage rec {
     pwd
     ls -l
     #
+    which python3-config
+    python3-config --prefix
+    python3-config --includes
+    python3-config --ldflags
+    # echo
+    # cat "$(python3-config --prefix)/bin/python3-config"
+    echo
+    #
     patchShebangs --build ./clean ./update
     #
     echo '-- clean source...'
@@ -105,7 +123,7 @@ buildPythonPackage rec {
     which grid-config
     bash ./make %grid-config "$NIX_BUILD_CORES"
     #
-    cat build/logs/basis.err
+    head -n 100 build/logs/*.err
     #
     cd "$NIX_BUILD_TOP/source"
     pwd

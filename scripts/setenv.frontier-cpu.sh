@@ -15,20 +15,23 @@ if [ -z "\$num_proc" ] ; then
 fi
 # module purge
 module load PrgEnv-gnu
+#
 module load craype-x86-trento
 module load xpmem
 module load perftools-base
-module load perl
 module load openblas
+#
 module list
+#
 if [ -z "\$USE_COMPILER" ] ; then
     export USE_COMPILER=gcc
 fi
+#
 export CC=cc
 export CXX=CC
 export MPICC=cc
 export MPICXX=CC
-export QLAT_CXX=\${GCC_PATH}/bin/g++
+export QLAT_CXX=\${GCC_PATH}/g++
 export QLAT_MPICXX=mpic++
 EOF
 

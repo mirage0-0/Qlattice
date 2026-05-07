@@ -2,20 +2,20 @@
 
 #include <qlat/field-base-io.h>
 #include <qlat/field-dist-io.h>
-
 #include <stdio.h>
-#include <ctime>
 
+#include <ctime>
 #include <fstream>
 #include <iostream>
 
 namespace qlat
 {  //
 
-inline Coordinate get_default_serial_new_size_node(const Geometry& geo, const int max_num_ = 0)
+inline Coordinate get_default_serial_new_size_node(const Geometry& geo,
+                                                   const Int max_num_ = 0)
 {
-  const int num_node = geo.geon.num_node;
-  const int max_num =
+  const Int num_node = geo.geon.num_node;
+  const Int max_num =
       (max_num_ <= 0) or (max_num_ > num_node) ? num_node : max_num_;
   const Coordinate total_site = geo.total_site();
   Coordinate new_size_node = Coordinate(1, 1, 1, total_site[3]);
@@ -48,26 +48,26 @@ Long serial_write_field(const Field<M>& f, const std::string& path,
 // would be correct. eg. new_size_node = Coordinate(1,1,1,2)
 {
   TIMER_VERBOSE_FLOPS("serial_write_field");
-  std::vector<Field<M> > fs;
+  std::vector<Field<M>> fs;
   shuffle_field(fs, f, new_size_node);
-  const int mpi_tag = 6;
+  const Int mpi_tag = 6;
   if (get_id_node() == 0) {
     qassert(fs.size() > 0);
     Field<M> f;
     f = fs[0];
     Vector<M> v = get_data(f);
-    const int num_node = get_num_node();
-    const int new_num_node = product(new_size_node);
+    const Int num_node = get_num_node();
+    const Int new_num_node = volume(new_size_node);
     QFile qfile = qfopen(path, "a");
     qassert(not qfile.null());
-    for (int new_id_node = 0; new_id_node < new_num_node; ++new_id_node) {
-      const int id_node =
+    for (Int new_id_node = 0; new_id_node < new_num_node; ++new_id_node) {
+      const Int id_node =
           get_id_node_from_new_id_node(new_id_node, new_num_node, num_node);
       if (0 == id_node) {
         assign(v, get_data(fs[new_id_node]));
       } else {
         mpi_recv(v.data(), v.data_size(), MPI_BYTE, id_node, mpi_tag,
-                 get_comm(), MPI_STATUS_IGNORE);
+                 get_comm());
       }
       qwrite_data(v, qfile);
     }
@@ -87,7 +87,7 @@ Long serial_write_field(const Field<M>& f, const std::string& path,
 template <class M>
 Long serial_read_field(Field<M>& f, const std::string& path,
                        const Coordinate& new_size_node, const Long offset = 0,
-                       const int whence = SEEK_SET)
+                       const Int whence = SEEK_SET)
 // will read from offset relative to whence
 // assume new_size_node is properly choosen so that concatenate the new fields
 // would be correct. eg. new_size_node = Coordinate(1,1,1,2)
@@ -100,26 +100,26 @@ Long serial_read_field(Field<M>& f, const std::string& path,
   }
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
-  std::vector<Field<M> > fs;
+  std::vector<Field<M>> fs;
   const std::vector<Geometry> new_geos =
       make_dist_io_geos(geo.total_site(), new_size_node);
   fs.resize(new_geos.size());
   for (size_t i = 0; i < fs.size(); ++i) {
     fs[i].init(new_geos[i], multiplicity);
   }
-  const int mpi_tag = 7;
+  const Int mpi_tag = 7;
   if (get_id_node() == 0) {
     qassert(fs.size() > 0);
     Field<M> f;
     f.init(fs[0].geo(), multiplicity);
     Vector<M> v = get_data(f);
-    const int num_node = get_num_node();
-    const int new_num_node = product(new_size_node);
+    const Int num_node = get_num_node();
+    const Int new_num_node = volume(new_size_node);
     QFile qfile = qfopen(path, "r");
     qassert(not qfile.null());
     qfseek(qfile, offset, whence);
-    for (int new_id_node = 0; new_id_node < new_num_node; ++new_id_node) {
-      const int id_node =
+    for (Int new_id_node = 0; new_id_node < new_num_node; ++new_id_node) {
+      const Int id_node =
           get_id_node_from_new_id_node(new_id_node, new_num_node, num_node);
       qread_data(v, qfile);
       if (0 == id_node) {
@@ -133,8 +133,7 @@ Long serial_read_field(Field<M>& f, const std::string& path,
   } else {
     for (size_t i = 0; i < fs.size(); ++i) {
       Vector<M> v = get_data(fs[i]);
-      mpi_recv(v.data(), v.data_size(), MPI_BYTE, 0, mpi_tag, get_comm(),
-               MPI_STATUS_IGNORE);
+      mpi_recv(v.data(), v.data_size(), MPI_BYTE, 0, mpi_tag, get_comm());
     }
   }
   shuffle_field_back(f, fs, new_size_node);
@@ -146,7 +145,7 @@ Long serial_read_field(Field<M>& f, const std::string& path,
 template <class M>
 Long serial_read_field_par(Field<M>& f, const std::string& path,
                            const Coordinate& new_size_node,
-                           const Long offset = 0, const int whence = SEEK_SET)
+                           const Long offset = 0, const Int whence = SEEK_SET)
 // will read from offset relative to whence
 // assume new_size_node is properly choosen so that concatenate the new fields
 // would be correct. eg. new_size_node = Coordinate(1,1,1,2)
@@ -159,7 +158,7 @@ Long serial_read_field_par(Field<M>& f, const std::string& path,
   }
   const Geometry& geo = f.geo();
   const Int multiplicity = f.multiplicity;
-  std::vector<Field<M> > fs;
+  std::vector<Field<M>> fs;
   const std::vector<Geometry> new_geos =
       make_dist_io_geos(geo.total_site(), new_size_node);
   fs.resize(new_geos.size());
@@ -179,7 +178,7 @@ Long serial_read_field_par(Field<M>& f, const std::string& path,
     qfclose(qfile);
   }
   shuffle_field_back(f, fs, new_size_node);
-  sync_node();
+  SYNC_NODE();
   const Long file_size = get_data(f).data_size() * f.geo().geon.num_node;
   timer.flops += file_size;
   return file_size;
@@ -190,12 +189,13 @@ Long serial_write_field(const Field<M>& f, const std::string& path)
 // interface_function
 {
   return serial_write_field(
-      f, path, get_default_serial_new_size_node(f.geo(), dist_write_par_limit()));
+      f, path,
+      get_default_serial_new_size_node(f.geo(), dist_write_par_limit()));
 }
 
 template <class M>
 Long serial_read_field(Field<M>& f, const std::string& path,
-                       const Long offset = 0, const int whence = SEEK_SET)
+                       const Long offset = 0, const Int whence = SEEK_SET)
 // interface_function
 {
   return serial_read_field(
@@ -205,7 +205,7 @@ Long serial_read_field(Field<M>& f, const std::string& path,
 
 template <class M>
 Long serial_read_field_par(Field<M>& f, const std::string& path,
-                           const Long offset = 0, const int whence = SEEK_SET)
+                           const Long offset = 0, const Int whence = SEEK_SET)
 // interface_function
 {
   return serial_read_field_par(

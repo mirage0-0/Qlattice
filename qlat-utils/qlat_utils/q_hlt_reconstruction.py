@@ -1,22 +1,22 @@
 __all__ = [
-        'mk_hlt_params',
-        #
-        'delta_from_g',
-        #
-        'aa_from_g_via_sum',
-        'normalization_constraint_via_sum',
-        'ww_from_g_via_sum',
-        'ww_from_g_wgrad_via_sum',
-        'mk_g_t_arr_via_sum',
-        #
-        'aa_from_g',
-        'normalization_constraint',
-        'ww_from_g',
-        'ww_from_g_wgrad',
-        'mk_g_t_arr',
-        #
-        'get_f_e_weight_log',
-        ]
+    "mk_hlt_params",
+    #
+    "delta_from_g",
+    #
+    "aa_from_g_via_sum",
+    "normalization_constraint_via_sum",
+    "ww_from_g_via_sum",
+    "ww_from_g_wgrad_via_sum",
+    "mk_g_t_arr_via_sum",
+    #
+    "aa_from_g",
+    "normalization_constraint",
+    "ww_from_g",
+    "ww_from_g_wgrad",
+    "mk_g_t_arr",
+    #
+    "get_f_e_weight_log",
+]
 
 import jax
 import jax.numpy as jnp
@@ -27,7 +27,9 @@ import scipy.integrate as integrate
 import qlat_utils as q
 
 if jnp.zeros(2, dtype=jnp.float64).dtype != jnp.float64:
-    raise Exception(f"ERROR: double precision not available in JAX. Please set: 'export JAX_ENABLE_X64=True' to use double precision number here.")
+    raise Exception(
+        "ERROR: double precision not available in JAX. Please set: 'export JAX_ENABLE_X64=True' to use double precision number here."
+    )
 
 ##############
 
@@ -46,12 +48,12 @@ def mk_hlt_params():
     params["e_arr"] = None
     # optional params
     params["e0"] = 0.0
-    params["ee_max"] = np.inf # only used for functions use integration with e
+    params["ee_max"] = np.inf  # only used for functions use integration with e
     params["lambda"] = 1.0
-    params["alpha"] = -0.01 # override by "f_e_weight_log", see `get_f_e_weight_log`
+    params["alpha"] = -0.01  # override by "f_e_weight_log", see ``get_f_e_weight_log``
     params["f_e_weight_log"] = None
     params["tt_size"] = None
-    params["atw_factor"] = 1.0 # only has effects if "tt_size" is not None
+    params["atw_factor"] = 1.0  # only has effects if "tt_size" is not None
     params["minimization_iter_max"] = 1
     params["g_t_arr_init"] = None
     params["does_have_constraint"] = False
@@ -62,8 +64,10 @@ def get_f_e_weight_log(params):
     if f is not None:
         return f
     alpha = params["alpha"]
+    #
     def f(e):
         return alpha * e
+    #
     return f
 
 ##############
@@ -101,7 +105,7 @@ def aa_from_g_via_sum(g_t_arr, params):
     delta = delta_from_g(g_t_arr, t_arr, e_arr)
     if tt_size is not None:
         delta = delta + atw_factor * delta_from_g(g_t_arr, tt_size - t_arr, e_arr)
-    f_e = (delta - delta_target)**2 * e_w
+    f_e = (delta - delta_target) ** 2 * e_w
     return f_e.sum()
 
 def get_cov_term(g_t_arr, cov):
@@ -112,7 +116,10 @@ def get_cov_term(g_t_arr, cov):
             assert cov.shape == (t_size,)
         ee = (cov * g_t_arr * g_t_arr).sum()
     else:
-        assert cov.shape == (t_size, t_size,)
+        assert cov.shape == (
+            t_size,
+            t_size,
+        )
         ee = (cov * g_t_arr[:, None] * g_t_arr).sum()
     return ee
 
@@ -130,7 +137,7 @@ def normalization_constraint_via_sum(g_t_arr, params):
     tt_size = params["tt_size"]
     atw_factor = params["atw_factor"]
     delta_target = f_delta_target(e_arr)
-    f_e_weight_log = get_f_e_weight_log(params)
+    get_f_e_weight_log(params)
     e0 = params["e0"]
     e_w = np.ones_like(e_arr)
     e_w[e_arr < e0] = 0
@@ -157,7 +164,7 @@ def ww_from_g_via_sum(g_t_arr, params):
     delta_target.shape == (n_energies,)
     """
     cov = params["cov"]
-    t_arr = params["t_arr"]
+    params["t_arr"]
     new_g_t_arr, constraint_penalty = normalization_constraint_via_sum(g_t_arr, params)
     g0_t_arr = jnp.zeros(new_g_t_arr.shape, jnp.float64)
     aa = aa_from_g_via_sum(new_g_t_arr, params) / aa_from_g_via_sum(g0_t_arr, params)
@@ -172,6 +179,7 @@ def mk_g_t_arr_optimization_fcn_via_sum(params):
             return ww_from_g_wgrad_via_sum(g_t_arr, params)
         else:
             return ww_from_g_via_sum(g_t_arr, params)
+    #
     return fcn
 
 @q.timer
@@ -198,23 +206,35 @@ def build_hlt_aa_mat(params):
     atw_factor = params["atw_factor"]
     ee_max = params["ee_max"]
     t_size = len(t_arr)
-    aa_mat = np.zeros((t_size, t_size,), dtype=np.float64)
+    aa_mat = np.zeros(
+        (
+            t_size,
+            t_size,
+        ),
+        dtype=np.float64,
+    )
     aa_values = {}
+    #
     def compute_t_sum(t_sum):
         t_sum = int(t_sum)
         if t_sum not in aa_values:
+            #
             def f(e):
                 return np.exp(f_e_weight_log(e) - e * t_sum)
+            #
             v = integrate.quad(f, e0, ee_max)[0]
             aa_values[t_sum] = v
         return aa_values[t_sum]
+    #
     for t1_idx, t1 in enumerate(t_arr):
         for t2_idx, t2 in enumerate(t_arr):
             v = compute_t_sum(t1 + t2)
             if tt_size is not None:
                 v = v + atw_factor * compute_t_sum(t1 + tt_size - t2)
                 v = v + atw_factor * compute_t_sum(tt_size - t1 + t2)
-                v = v + atw_factor * atw_factor * compute_t_sum(tt_size - t1 + tt_size - t2)
+                v = v + atw_factor * atw_factor * compute_t_sum(
+                    tt_size - t1 + tt_size - t2
+                )
             aa_mat[t1_idx, t2_idx] = v
     aa_mat = jnp.array(aa_mat)
     params[tag] = aa_mat
@@ -234,14 +254,18 @@ def build_hlt_f_vec(params):
     t_size = len(t_arr)
     f_vec = np.zeros(t_size, dtype=np.float64)
     f_values = {}
+    #
     def compute_t(t):
         t = int(t)
         if t not in f_values:
+            #
             def f(e):
                 return -2 * f_delta_target(e) * np.exp(f_e_weight_log(e) - e * t)
+            #
             v = integrate.quad(f, e0, ee_max)[0]
             f_values[t] = v
         return f_values[t]
+    #
     for t_idx, t in enumerate(t_arr):
         v = compute_t(t)
         if tt_size is not None:
@@ -272,21 +296,28 @@ def build_hlt_fc_vec(params):
     t_size = len(t_arr)
     fc_vec = np.zeros(t_size, dtype=np.float64)
     f_values = {}
+    #
     def compute_t(t):
         t = int(t)
         if t not in f_values:
+            #
             def f(e):
-                return np.exp(- e * t)
+                return np.exp(-e * t)
+            #
             v = integrate.quad(f, e0, ee_max)[0]
             f_values[t] = v
         return f_values[t]
+    #
     for t_idx, t in enumerate(t_arr):
         v = compute_t(t)
         if tt_size is not None:
             v = v + atw_factor * compute_t(tt_size - t)
         fc_vec[t_idx] = v
     fc_vec = jnp.array(fc_vec)
-    params[tag] = (norm, fc_vec,)
+    params[tag] = (
+        norm,
+        fc_vec,
+    )
     return norm, fc_vec
 
 def build_hlt_aa_const(params):
@@ -297,8 +328,10 @@ def build_hlt_aa_const(params):
     e0 = params["e0"]
     f_delta_target = params["f_delta_target"]
     ee_max = params["ee_max"]
+    #
     def f(e):
-        return np.exp(f_e_weight_log(e)) * f_delta_target(e)**2
+        return np.exp(f_e_weight_log(e)) * f_delta_target(e) ** 2
+    #
     aa_const = integrate.quad(f, e0, ee_max)[0]
     params[tag] = aa_const
     return aa_const
@@ -309,7 +342,7 @@ def aa_from_g(g_t_arr, params):
     delta_target.shape == (n_energies,)
     """
     t_arr = params["t_arr"]
-    t_size = len(t_arr)
+    len(t_arr)
     aa_mat = build_hlt_aa_mat(params)
     f_vec = build_hlt_f_vec(params)
     aa_const = build_hlt_aa_const(params)
@@ -326,7 +359,7 @@ def normalization_constraint(g_t_arr, params):
     does_have_constraint = params["does_have_constraint"]
     if not does_have_constraint:
         return g_t_arr, 0.0
-    t_arr = params["t_arr"]
+    params["t_arr"]
     norm, fc_vec = build_hlt_fc_vec(params)
     g1_t_arr = jnp.ones_like(g_t_arr)
     s_target = norm
@@ -343,7 +376,7 @@ def ww_from_g(g_t_arr, params):
     delta_target.shape == (n_energies,)
     """
     cov = params["cov"]
-    t_arr = params["t_arr"]
+    params["t_arr"]
     new_g_t_arr, constraint_penalty = normalization_constraint(g_t_arr, params)
     g0_t_arr = jnp.zeros(new_g_t_arr.shape, jnp.float64)
     aa = aa_from_g(new_g_t_arr, params) / aa_from_g(g0_t_arr, params)
@@ -358,6 +391,7 @@ def mk_g_t_arr_optimization_fcn(params):
             return ww_from_g_wgrad(g_t_arr, params)
         else:
             return ww_from_g(g_t_arr, params)
+    #
     return fcn
 
 @q.timer

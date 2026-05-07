@@ -24,7 +24,7 @@ aget "https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz"
 
 aget "https://ftp.gnu.org/gnu/autoconf/autoconf-2.72.tar.xz"
 
-aget "https://ftp.gnu.org/gnu/automake/automake-1.16.5.tar.gz"
+aget "https://ftp.gnu.org/gnu/automake/automake-1.18.1.tar.xz"
 
 aget "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz"
 
@@ -46,7 +46,7 @@ aget "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.5/llvm
 
 aget "https://www.cpan.org/src/5.0/perl-5.38.2.tar.gz"
 
-aget "https://github.com/openssl/openssl/releases/download/openssl-3.3.0/openssl-3.3.0.tar.gz"
+aget "https://github.com/openssl/openssl/releases/download/openssl-3.5.5/openssl-3.5.5.tar.gz"
 
 aget "https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tar.xz"
 
@@ -87,7 +87,7 @@ aget "https://files.pythonhosted.org/packages/ef/0d/962a44cd22db0503cec62a169ec9
 aget "https://files.pythonhosted.org/packages/08/34/8499a92a387d24d0092c38089f8195f13c5c76f0f814126af3fe363e5636/mpi4py-4.0.1.tar.gz"
 aget "https://files.pythonhosted.org/packages/e0/47/dd32fa426cc72114383ac549964eecb20ecfd886d1e5ccf5340b55b02f57/mpmath-1.3.0.tar.gz"
 aget "https://files.pythonhosted.org/packages/44/d7/8f5d2be1a5fed3b0b5ccd3e800153c0f4dd84c2a688d25bce0bb0cb1f87f/pep517-0.13.1.tar.gz"
-aget "https://files.pythonhosted.org/packages/8d/e6/2fc95aec377988ff3ca882aa58d4f6ab35ff59a12b1611a9fe3075eb3019/setuptools-70.2.0.tar.gz"
+aget "https://files.pythonhosted.org/packages/d1/53/43d99d7687e8cdef5ab5f9ec5eaf2c0423c2b35133a2b7e7bc276fc32b21/setuptools-75.8.2.tar.gz"
 aget "https://files.pythonhosted.org/packages/4f/a4/00a9ac1b555294710d4a68d2ce8dfdf39d72aa4d769a7395d05218d88a42/setuptools_scm-8.1.0.tar.gz"
 aget "https://files.pythonhosted.org/packages/d2/c1/72b9622fcb32ff98b054f724e213c7f70d6898baa714f4516288456ceaba/pybind11-2.13.6.tar.gz"
 aget "https://files.pythonhosted.org/packages/2e/27/5bb01af8f2860d431b98d0721b96ff2cea979106cae3f2d093ec74f6400c/beniget-0.4.2.post1.tar.gz"

@@ -8,14 +8,14 @@ namespace qlat
 void set_m_z_field_tag(SelectedPoints<RealD>& smf_d,
                        const PointsSelection& psel_d, const Geometry& geo,
                        const Coordinate& xg_x, const Coordinate& xg_y,
-                       const double a, const int tag)
+                       const double a, const Int tag)
 // interface
 // tag = 0 sub
 // tag = 1 nosub
 {
   TIMER_VERBOSE("set_m_z_field_tag(smf_d,psel_d,xg_x,xg_y,a,tag)");
-  const int multiplicity = sizeof(ManyMagneticMoments) / sizeof(RealD);
-  qassert(multiplicity * (int)sizeof(RealD) ==
+  const Int multiplicity = sizeof(ManyMagneticMoments) / sizeof(RealD);
+  Qassert(multiplicity * (int)sizeof(RealD) ==
           (int)sizeof(ManyMagneticMoments));
   smf_d.init(psel_d, multiplicity);
   SelectedPoints<ManyMagneticMoments> smf;
@@ -47,7 +47,7 @@ void set_local_current_from_props(SelectedPoints<WilsonMatrix>& scf,
     Vector<WilsonMatrix> v = scf.get_elems(idx);
     const WilsonMatrix m2rev =
         gamma5 * (WilsonMatrix)matrix_adjoint(m2) * gamma5;
-    for (int m = 0; m < 4; ++m) {
+    for (Int m = 0; m < 4; ++m) {
       v[m] = m2rev * gammas[m] * m1;
     }
   });
@@ -63,21 +63,21 @@ RealD set_psel_d_prob_xy(SelectedPoints<RealD>& psel_d_prob_xy,
 {
   TIMER("set_psel_d_prob_xy(psel_d_prob_xy,...)");
   psel_d_prob_xy = psel_d_prob;
-  qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
-  qassert(0 <= idx_xg_y and idx_xg_y < (Long)psel.size());
+  Qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
+  Qassert(0 <= idx_xg_y and idx_xg_y < (Long)psel.size());
   const RealD prob_xg_x = psel_prob.get_elem(idx_xg_x);
   const RealD prob_xg_y = psel_prob.get_elem(idx_xg_y);
   const Coordinate& xg_x = psel[idx_xg_x];
   const Coordinate& xg_y = psel[idx_xg_y];
   RealD prob_pair = 0.0;
   if (xg_x == xg_y) {
-    qassert(idx_xg_x == idx_xg_y);
-    qassert(prob_xg_x == prob_xg_y);
+    Qassert(idx_xg_x == idx_xg_y);
+    Qassert(prob_xg_x == prob_xg_y);
     prob_pair = prob_xg_x;
     qthread_for(idx, psel_d.size(), {
       const Coordinate xg_z = psel_d[idx];
       if (xg_z == xg_x) {
-        qassert(xg_z == xg_y);
+        Qassert(xg_z == xg_y);
         const RealD prob = psel_d_prob_xy.get_elem(idx);
         psel_d_prob_xy.get_elem(idx) = std::min(1.0, prob / prob_xg_x);
       }
@@ -104,20 +104,20 @@ void set_current_moments_from_current_par(
     const SelectedPoints<RealD>& psel_d_prob_xy, const Geometry& geo)
 {
   TIMER("set_current_moments_from_current_par");
-  qassert(current.multiplicity == 4);
+  Qassert(current.multiplicity == 4);
   const Coordinate total_site = geo.total_site();
-  const int lsize =
+  const Int lsize =
       std::max(total_site[0], std::max(total_site[1], total_site[2]));
   cm.init(lsize);
   qthread_for(xg_op_j, lsize, {
     qfor(idx, psel_d.size(), {
       const Coordinate& xg_op = psel_d[idx];  // z location
-      for (int j = 0; j < 3; ++j) {
+      for (Int j = 0; j < 3; ++j) {
         if (xg_op[j] == xg_op_j) {
           const Vector<WilsonMatrix> v = current.get_elems_const(idx);
           const RealD prob = psel_d_prob_xy.get_elem(idx);
           const ComplexD weight = 1.0 / prob;
-          for (int k = 0; k < 3; ++k) {
+          for (Int k = 0; k < 3; ++k) {
             cm.d[xg_op_j][3 * j + k] += weight * v[k];
           }
         }
@@ -132,9 +132,9 @@ void set_current_moments_from_current_nopar(
     const SelectedPoints<RealD>& psel_d_prob_xy, const Geometry& geo)
 {
   TIMER("set_current_moments_from_current_nopar");
-  qassert(current.multiplicity == 4);
+  Qassert(current.multiplicity == 4);
   const Coordinate total_site = geo.total_site();
-  const int lsize =
+  const Int lsize =
       std::max(total_site[0], std::max(total_site[1], total_site[2]));
   cm.init(lsize);
   qfor(idx, psel_d.size(), {
@@ -142,10 +142,10 @@ void set_current_moments_from_current_nopar(
     const Vector<WilsonMatrix> v = current.get_elems_const(idx);
     const RealD prob = psel_d_prob_xy.get_elem(idx);
     const ComplexD weight = 1.0 / prob;
-    for (int j = 0; j < 3; ++j) {
-      const int xg_op_j = xg_op[j];
+    for (Int j = 0; j < 3; ++j) {
+      const Int xg_op_j = xg_op[j];
       if (xg_op[j] == xg_op_j) {
-        for (int k = 0; k < 3; ++k) {
+        for (Int k = 0; k < 3; ++k) {
           cm.d[xg_op_j][3 * j + k] += weight * v[k];
         }
       }
@@ -167,7 +167,7 @@ void set_current_moments_from_current(
 void glb_sum_current_moments(CurrentMoments<WilsonMatrix>& cm)
 {
   TIMER("glb_sum_current_moments");
-  glb_sum_double_vec(get_data(cm.d));
+  glb_sum(cm.d);
 }
 
 void contract_four_loop(SelectedPoints<Complex>& f_loop_i_rho_sigma_lambda,
@@ -216,8 +216,8 @@ void contract_four_loop(SelectedPoints<Complex>& f_loop_i_rho_sigma_lambda,
       Vector<WilsonMatrix> sm_xy_g = f_sm_xy_g.get_elems(idx);
       // array<WilsonMatrix, 3 * 4> sm_yx_g;
       // array<WilsonMatrix, 3 * 4> sm_xy_g;
-      for (int i = 0; i < 3; ++i) {
-        for (int rho = 0; rho < 4; ++rho) {
+      for (Int i = 0; i < 3; ++i) {
+        for (Int rho = 0; rho < 4; ++rho) {
           sm_yx_g[i * 4 + rho] = sm_yx[i] * gammas[rho];
           sm_xy_g[i * 4 + rho] = sm_xy[i] * gammas[rho];
         }
@@ -226,16 +226,16 @@ void contract_four_loop(SelectedPoints<Complex>& f_loop_i_rho_sigma_lambda,
       Vector<WilsonMatrix> vc_xy_g = f_vc_xy_g.get_elems(idx);
       // array<WilsonMatrix, 4 * 4> vc_yx_g;
       // array<WilsonMatrix, 4 * 4> vc_xy_g;
-      for (int lambda = 0; lambda < 4; ++lambda) {
-        for (int sigma = 0; sigma < 4; ++sigma) {
+      for (Int lambda = 0; lambda < 4; ++lambda) {
+        for (Int sigma = 0; sigma < 4; ++sigma) {
           vc_xy_g[lambda * 4 + sigma] = vc_xy[lambda] * gammas[sigma];
           vc_yx_g[lambda * 4 + sigma] = vc_yx[lambda] * gammas[sigma];
         }
       }
-      for (int i = 0; i < 3; ++i) {
-        for (int rho = 0; rho < 4; ++rho) {
-          for (int sigma = 0; sigma < 4; ++sigma) {
-            for (int lambda = 0; lambda < 4; ++lambda) {
+      for (Int i = 0; i < 3; ++i) {
+        for (Int rho = 0; rho < 4; ++rho) {
+          for (Int sigma = 0; sigma < 4; ++sigma) {
+            for (Int lambda = 0; lambda < 4; ++lambda) {
               v_loop[64 * i + 16 * rho + 4 * sigma + lambda] +=
                   final_coef * (matrix_trace(sm_yx_g[i * 4 + rho],
                                              vc_xy_g[lambda * 4 + sigma]) +
@@ -258,7 +258,7 @@ void contract_four_combine(
 // x and y are global coordinates
 {
   TIMER("contract_four_combine");
-  qassert(f_loop_i_rho_sigma_lambda.multiplicity == 3 * 4 * 4 * 4);
+  Qassert(f_loop_i_rho_sigma_lambda.multiplicity == 3 * 4 * 4 * 4);
   const Coordinate total_site = geo.total_site();
   SelectedPoints<Complex> fsum;
   fsum.init(psel_d, 2);
@@ -276,10 +276,10 @@ void contract_four_combine(
       Complex sum = 0;
       Complex pi_sum = 0;
       Complex pi_proj_sum = 0;
-      for (int i = 0; i < 3; ++i) {
-        for (int rho = 0; rho < 4; ++rho) {
-          for (int sigma = 0; sigma < 4; ++sigma) {
-            for (int lambda = 0; lambda < 4; ++lambda) {
+      for (Int i = 0; i < 3; ++i) {
+        for (Int rho = 0; rho < 4; ++rho) {
+          for (Int sigma = 0; sigma < 4; ++sigma) {
+            for (Int lambda = 0; lambda < 4; ++lambda) {
               const Complex val =
                   coef * v_loop[64 * i + 16 * rho + 4 * sigma + lambda];
               sum += val * get_m_comp(mmm, i, rho, sigma, lambda);
@@ -327,8 +327,8 @@ std::vector<SlTable> contract_four_pair_no_glb_sum(
 // tags can include "ref-far", "ref-center", "ref-close"
 {
   TIMER_VERBOSE("contract_four_pair_no_glb_sum");
-  qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
-  qassert(0 <= idx_xg_y and idx_xg_y < (Long)psel.size());
+  Qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
+  Qassert(0 <= idx_xg_y and idx_xg_y < (Long)psel.size());
   const Coordinate& xg_x = psel[idx_xg_x];
   const Coordinate& xg_y = psel[idx_xg_y];
   const Long total_volume = geo.total_volume();
@@ -340,9 +340,9 @@ std::vector<SlTable> contract_four_pair_no_glb_sum(
   }
   SelectedPoints<ManyMagneticMoments> smf;
   smf.set_view_cast(smf_d);
-  qassert(psel_d.size() == psel_d_prob_xy.n_points);
-  qassert(psel_d.size() == sc_xy.n_points);
-  qassert(psel_d.size() == sc_yx.n_points);
+  Qassert(psel_d.size() == psel_d_prob_xy.n_points);
+  Qassert(psel_d.size() == sc_xy.n_points);
+  Qassert(psel_d.size() == sc_yx.n_points);
   const RealD alpha_inv = 137.035999139;
   const RealD e_charge = std::sqrt(4 * qlat::PI / alpha_inv);
   const Complex coef0 = 1.0E10 * 2.0 * muon_mass * std::pow(e_charge, 6);
@@ -350,7 +350,7 @@ std::vector<SlTable> contract_four_pair_no_glb_sum(
       (inv_type == 0 ? 16.0 + 1.0 : 1.0) / 81.0 * (-3.0) * std::pow(z_v, 4);
   const Complex coef_all = coef * coef0 * coef1 / 3.0 / (RealD)total_volume;
   std::vector<SlTable> ts;
-  for (int i = 0; i < (int)tags.size(); ++i) {
+  for (Int i = 0; i < (int)tags.size(); ++i) {
     SelectedPoints<Complex> f_loop_i_rho_sigma_lambda;
     contract_four_loop(f_loop_i_rho_sigma_lambda, 1.0, xg_x, xg_y, sc_xy, sc_yx,
                        cm_xy, cm_yx, psel_d, psel_d_prob_xy, geo, r_sq_limit,
@@ -387,15 +387,15 @@ std::vector<SlTable> contract_two_plus_two_pair_no_glb_sum(
 // points.
 {
   TIMER_VERBOSE("contract_two_plus_two_pair_no_glb_sum");
-  qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
-  qassert(psel_prob.multiplicity == 1);
-  qassert(psel_prob.n_points == (Long)psel.size());
-  qassert(psel_lps_prob.multiplicity == 1);
-  qassert(psel_lps_prob.n_points == (Long)psel_lps.size());
-  qassert(lps_hvp_x.multiplicity == 16);
-  qassert(lps_hvp_x.n_points == (Long)psel_lps.size());
-  qassert(edl_list_c.multiplicity == 3 * 4);
-  qassert(edl_list_c.n_points == (Long)psel.size());
+  Qassert(0 <= idx_xg_x and idx_xg_x < (Long)psel.size());
+  Qassert(psel_prob.multiplicity == 1);
+  Qassert(psel_prob.n_points == (Long)psel.size());
+  Qassert(psel_lps_prob.multiplicity == 1);
+  Qassert(psel_lps_prob.n_points == (Long)psel_lps.size());
+  Qassert(lps_hvp_x.multiplicity == 16);
+  Qassert(lps_hvp_x.n_points == (Long)psel_lps.size());
+  Qassert(edl_list_c.multiplicity == 3 * 4);
+  Qassert(edl_list_c.n_points == (Long)psel.size());
   const Coordinate& xg_x = psel[idx_xg_x];
   const RealD prob_xg_x = psel_prob.get_elem(idx_xg_x);
   n_points_selected = 0;
@@ -407,7 +407,7 @@ std::vector<SlTable> contract_two_plus_two_pair_no_glb_sum(
   const Complex coef0 = 1.0E10 * 2.0 * muon_mass * std::pow(e_charge, 6);
   const Complex coef1 = 25.0 / 81.0 * 3.0 * std::pow(z_v, 4);
   const Complex coef2 = coef * coef0 * coef1 / 3.0 / (RealD)total_volume;
-  const int sub_tag = 0;  // use subtracted muon line weighting function
+  const Int sub_tag = 0;  // use subtracted muon line weighting function
   const long n_labels = 8;
   const long n_points = psel.size();
   bool has_same_x_z = false;
@@ -418,27 +418,35 @@ std::vector<SlTable> contract_two_plus_two_pair_no_glb_sum(
       break;
     }
   });
-  qassert(has_same_x_z);
-  vector_acc<ManyMagneticMoments> mmm_0_list(n_points);
+  Qassert(has_same_x_z);
+  vector<ManyMagneticMoments> mmm_0_list(n_points);
   qfor(k, n_points, {
     const Coordinate& xg_z = psel[k];
     mmm_0_list[k] = get_muon_line_m_extra_lat(xg_x, xg_x, xg_z, total_site,
                                               muon_mass, sub_tag);
   });
-  qassert(n_labels == (long)contract_two_plus_two_pair_labels().size());
+  Qassert(n_labels == (long)contract_two_plus_two_pair_labels().size());
   std::vector<SlTable> ts(n_labels);
   for (long i = 0; i < n_labels; ++i) {
     ts[i].init(total_site);
   }
   // original
-  vector_acc<Complex> sums_sub(n_points, 0.0);
-  vector_acc<Complex> sums_dsub(n_points, 0.0);
+  vector<Complex> sums_sub(n_points);
+  vector<Complex> sums_dsub(n_points);
   // pion projection based on location same as connected diagram
-  vector_acc<Complex> sums_sub_pi(n_points, 0.0);
-  vector_acc<Complex> sums_dsub_pi(n_points, 0.0);
+  vector<Complex> sums_sub_pi(n_points);
+  vector<Complex> sums_dsub_pi(n_points);
   // pion projection based on loop
-  vector_acc<Complex> sums_sub_pi_pisl(n_points, 0.0);
-  vector_acc<Complex> sums_dsub_pi_pisl(n_points, 0.0);
+  vector<Complex> sums_sub_pi_pisl(n_points);
+  vector<Complex> sums_dsub_pi_pisl(n_points);
+  //
+  set_zero(sums_sub);
+  set_zero(sums_dsub);
+  set_zero(sums_sub_pi);
+  set_zero(sums_dsub_pi);
+  set_zero(sums_sub_pi_pisl);
+  set_zero(sums_dsub_pi_pisl);
+  //
   qfor(idx, (Long)psel_lps.size(), {
     const Coordinate xg_y = psel_lps[idx];
     n_points_selected += 1;
@@ -498,10 +506,10 @@ std::vector<SlTable> contract_two_plus_two_pair_no_glb_sum(
       Complex sub_pi_pisl_sum = 0;
       Complex dsub_pi_pisl_sum = 0;
       Complex pi_proj_pisl_sum = 0;
-      for (int i = 0; i < 3; ++i) {
-        for (int rho = 0; rho < 4; ++rho) {
-          for (int sigma = 0; sigma < 4; ++sigma) {
-            for (int lambda = 0; lambda < 4; ++lambda) {
+      for (Int i = 0; i < 3; ++i) {
+        for (Int rho = 0; rho < 4; ++rho) {
+          for (Int sigma = 0; sigma < 4; ++sigma) {
+            for (Int lambda = 0; lambda < 4; ++lambda) {
               const Complex val =
                   coef_all * edl[i * 4 + lambda] * (-vhvp[sigma * 4 + rho]);
               sub_sum += val * get_m_comp(mmm, i, rho, sigma, lambda);

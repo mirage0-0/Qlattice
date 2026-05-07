@@ -1,12 +1,12 @@
 #include <qlat-utils/mat.h>
 #include <qlat-utils/matrix.h>
-#include <qlat-utils/vector.h>
 #include <qlat-utils/rng-state.h>
+#include <qlat-utils/vector.h>
 
 namespace qlat
 {  //
 
-const SpinMatrixT<RealD>& get_gamma_matrix(const int mu)
+const SpinMatrixT<RealD>& get_gamma_matrix(const Int mu)
 // CPS's convention gamma matrices
 {
   return SpinMatrixConstantsT<>::get_cps_gamma(mu);
@@ -27,8 +27,8 @@ void benchmark_matrix_functions(const Long count)
 {
   TIMER_VERBOSE("benchmark_matrix_functions");
   const Long n_mat = 8;
-  vector_acc<WilsonMatrix> wm(n_mat);
-  vector_acc<SpinMatrix> sm(n_mat);
+  vector<WilsonMatrix> wm(n_mat);
+  vector<SpinMatrix> sm(n_mat);
   for (Long i = 0; i < n_mat; ++i) {
     RngState rs(fname + ssprintf(": %d/%d", i, n_mat));
     set_rand_complex_mat(wm[i], rs);
@@ -49,7 +49,7 @@ void benchmark_matrix_functions(const Long count)
     for (Long i = 0; i < count; ++i) {
       const SpinMatrix& sm1 = sm[(i * 2) % n_mat];
       const WilsonMatrix& wm2 = wm[(i * 2 + 2) % n_mat];
-      WilsonMatrix& wm3 = wm[(i *2 + 1) % n_mat];
+      WilsonMatrix& wm3 = wm[(i * 2 + 1) % n_mat];
       wm3 = sm1 * wm2;
     }
     timer.flops += count * 4320;

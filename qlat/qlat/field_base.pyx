@@ -3,11 +3,37 @@
 from qlat_utils.all cimport *
 from . cimport everything as cc
 from .geometry cimport Geometry
-from .fields_io cimport ShuffledFieldsReader, ShuffledFieldsWriter
-from .field_types cimport FieldRealD, FieldRealF, FieldComplexD, FieldComplexF
-from .selected_field_types cimport SelectedFieldRealD, SelectedFieldRealF, SelectedFieldComplexD, SelectedFieldComplexF
-from .selected_points_types cimport SelectedPointsRealD, SelectedPointsRealF, SelectedPointsComplexD, SelectedPointsComplexF
-from .field_selection cimport PointsSelection, FieldSelection
+from .fields_io cimport (
+        ShuffledFieldsReader,
+        ShuffledFieldsWriter,
+        )
+from .field_selection cimport (
+        PointsSelection,
+        FieldSelection,
+        )
+from .field_types cimport (
+        FieldChar,
+        FieldRealD,
+        FieldRealF,
+        FieldComplexD,
+        FieldComplexF,
+        )
+from .selected_field_types cimport (
+        SelectedFieldChar,
+        SelectedFieldRealD,
+        SelectedFieldRealF,
+        SelectedFieldComplexD,
+        SelectedFieldComplexF,
+        )
+from .selected_points_types cimport (
+        SelectedPointsChar,
+        SelectedPointsRealD,
+        SelectedPointsRealF,
+        SelectedPointsComplexD,
+        SelectedPointsComplexF,
+        SelectedPointsLong,
+        SelectedPointsChar,
+        )
 
 from cpython cimport Py_buffer
 from cpython.buffer cimport PyBUF_FORMAT
@@ -26,6 +52,7 @@ from .field_type_dict import (
         field_ctypes_double,
         field_ctypes_float,
         field_ctypes_long,
+        field_ctypes_char,
         )
 
 ### -------------------------------------------------------------------
@@ -106,7 +133,7 @@ cdef class FieldBase:
             fu.set_rand(rng, 1.0, -1.0)
             sig = (frf[:] * fu[:]).sum()
         else:
-            raise Exception("get_data_sig: {self.ctype}")
+            raise Exception(f"get_data_sig: {self.ctype}")
         return glb_sum(sig)
 
     def mview(self):
@@ -352,6 +379,20 @@ cdef class FieldBase:
         """
         self[idx, m] = val
 
+    @q.timer
+    def set_m(self, FieldBase f1, cc.Int m, cc.Int m1):
+        """
+        Set components `m` from `f1`'s components `m1`.
+        """
+        cdef FieldChar fc = FieldChar()
+        cdef FieldChar f1c = FieldChar()
+        self.swap_cast(fc)
+        f1.swap_cast(f1c)
+        cdef cc.Int sizeof_m = self.ctype.sizeof_m
+        cc.set_field_m(fc.xx, f1c.xx, m, m1, sizeof_m)
+        self.swap_cast(fc)
+        f1.swap_cast(f1c)
+
     def __getnewargs__(self):
         return ()
 
@@ -486,7 +527,7 @@ cdef class SelectedFieldBase:
             fu.set_rand(rng, 1.0, -1.0)
             sig = (frf[:] * fu[:]).sum()
         else:
-            raise Exception("get_data_sig: {self.ctype}")
+            raise Exception(f"get_data_sig: {self.ctype}")
         return glb_sum(sig)
 
     def __iadd__(self, f1):
@@ -730,6 +771,8 @@ cdef class SelectedPointsBase:
         cdef SelectedPointsComplexF fcf
         cdef SelectedPointsRealD fr
         cdef SelectedPointsRealF frf
+        cdef SelectedPointsLong fl
+        cdef SelectedPointsChar fch
         cdef SelectedPointsRealD fu
         if self.ctype in field_ctypes_complex:
             fc = SelectedPointsComplexD()
@@ -755,8 +798,20 @@ cdef class SelectedPointsBase:
             fu = SelectedPointsRealD(frf.psel, frf.multiplicity)
             fu.set_rand(rng, 1.0, -1.0)
             sig = (frf[:] * fu[:]).sum()
+        elif self.ctype in field_ctypes_long:
+            fl = SelectedPointsLong()
+            fl.cast_from(self)
+            fu = SelectedPointsRealD(fl.psel, fl.multiplicity)
+            fu.set_rand(rng, 1.0, -1.0)
+            sig = (fl[:] * fu[:]).sum()
+        elif self.ctype in field_ctypes_char:
+            fch = SelectedPointsChar()
+            fch.cast_from(self)
+            fu = SelectedPointsRealD(fch.psel, fch.multiplicity)
+            fu.set_rand(rng, 1.0, -1.0)
+            sig = (fch[:] * fu[:]).sum()
         else:
-            raise Exception("get_data_sig: {self.ctype}")
+            raise Exception(f"get_data_sig: {self.ctype}")
         sig = glb_sum(sig)
         if self.points_dist_type == "g":
             return sig / self.geo.num_node
@@ -796,7 +851,7 @@ cdef class SelectedPointsBase:
     def save_str(self):
         return self.to_lat_data().save_str()
 
-    def load_str(self, cc.std_string& content):
+    def load_str(self, bytes content):
         cdef LatData ld = LatData()
         ld.load_str(content)
         self.from_lat_data(ld)

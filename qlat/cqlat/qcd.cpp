@@ -18,7 +18,7 @@ EXPORT(gf_avg_plaq, {
     return NULL;
   }
   const GaugeField& gf = py_convert_type<GaugeField>(p_gf);
-  const double ret = gf_avg_plaq(gf);
+  const RealD ret = gf_avg_plaq(gf);
   return py_convert(ret);
 })
 
@@ -29,27 +29,27 @@ EXPORT(gf_avg_link_trace, {
     return NULL;
   }
   const GaugeField& gf = py_convert_type<GaugeField>(p_gf);
-  const double ret = gf_avg_link_trace(gf);
+  const RealD ret = gf_avg_link_trace(gf);
   return py_convert(ret);
 })
 
 EXPORT(gf_avg_wilson_loop_normalized_tr, {
   using namespace qlat;
   PyObject* p_gf = NULL;
-  int l = 0;
-  int t = 0;
+  Int l = 0;
+  Int t = 0;
   if (!PyArg_ParseTuple(args, "Oii", &p_gf, &l, &t)) {
     return NULL;
   }
   const GaugeField& gf = py_convert_type<GaugeField>(p_gf);
-  const double ret = matrix_trace(gf_avg_wilson_loop(gf, l, t)).real() / 3.0;
+  const RealD ret = matrix_trace(gf_avg_wilson_loop(gf, l, t)).real() / 3.0;
   return py_convert(ret);
 })
 
 EXPORT(gf_wilson_line_no_comm, {
   using namespace qlat;
   PyObject* p_wilson_line_field = NULL;
-  int wilson_line_field_m = 0;
+  Int wilson_line_field_m = 0;
   PyObject* p_gf_ext = NULL;
   PyObject* p_path = NULL;
   PyObject* p_path_n = NULL;
@@ -60,10 +60,9 @@ EXPORT(gf_wilson_line_no_comm, {
   Field<ColorMatrix>& wilson_line_field =
       py_convert_type_field<ColorMatrix>(p_wilson_line_field);
   const GaugeField& gf_ext = py_convert_type<GaugeField>(p_gf_ext);
-  const std::vector<int> path = py_convert_data<std::vector<int> >(p_path);
+  const std::vector<int> path = py_convert_data<std::vector<int>>(p_path);
   if (p_path_n != NULL) {
-    const std::vector<int> path_n =
-        py_convert_data<std::vector<int> >(p_path_n);
+    const std::vector<int> path_n = py_convert_data<std::vector<int>>(p_path_n);
     gf_wilson_line_no_comm(wilson_line_field, wilson_line_field_m, gf_ext, path,
                            path_n);
   } else {
@@ -77,12 +76,12 @@ EXPORT(set_g_rand_color_matrix_field, {
   using namespace qlat;
   PyObject* p_field = NULL;
   PyObject* p_rng = NULL;
-  double sigma = 1.0;
-  int n_step = 1;
+  RealD sigma = 1.0;
+  Int n_step = 1;
   if (!PyArg_ParseTuple(args, "OOd|i", &p_field, &p_rng, &sigma, &n_step)) {
     return NULL;
   }
-  Field<ColorMatrix>& field = py_convert_type<Field<ColorMatrix> >(p_field);
+  Field<ColorMatrix>& field = py_convert_type<Field<ColorMatrix>>(p_field);
   const RngState& rng = py_convert_type<RngState>(p_rng);
   set_g_rand_color_matrix_field(field, rng, sigma, n_step);
   Py_RETURN_NONE;
@@ -94,7 +93,7 @@ EXPORT(unitarize_color_matrix_field, {
   if (!PyArg_ParseTuple(args, "O", &p_field)) {
     return NULL;
   }
-  Field<ColorMatrix>& field = py_convert_type<Field<ColorMatrix> >(p_field);
+  Field<ColorMatrix>& field = py_convert_type<Field<ColorMatrix>>(p_field);
   unitarize(field);
   Py_RETURN_NONE;
 })
@@ -129,8 +128,8 @@ EXPORT(load_gauge_field, {
 EXPORT(gf_twist_boundary_at_boundary, {
   using namespace qlat;
   PyObject* p_gf = NULL;
-  double lmom = 0.0;
-  int mu = -1;
+  RealD lmom = 0.0;
+  Int mu = -1;
   if (!PyArg_ParseTuple(args, "Odi", &p_gf, &lmom, &mu)) {
     return NULL;
   }
@@ -224,10 +223,10 @@ EXPORT(apply_gt_sprop, {
   }
   // p_prop <- p_gt * p_prop0
   SelectedField<WilsonMatrix>& prop =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop);
   const GaugeTransform& gt = py_convert_type<GaugeTransform>(p_gt);
   const SelectedField<WilsonMatrix>& prop0 =
-      py_convert_type<SelectedField<WilsonMatrix> >(p_prop0);
+      py_convert_type<SelectedField<WilsonMatrix>>(p_prop0);
   QLAT_PUSH_DIAGNOSTIC_DISABLE_DANGLING_REF;
   const FieldSelection& fsel = py_convert_type<FieldSelection>(p_prop0, "fsel");
   QLAT_DIAGNOSTIC_POP;
@@ -245,12 +244,13 @@ EXPORT(apply_gt_psprop, {
   }
   // p_prop <- p_gt * p_prop0
   SelectedPoints<WilsonMatrix>& prop =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop);
   const GaugeTransform& gt = py_convert_type<GaugeTransform>(p_gt);
   const SelectedPoints<WilsonMatrix>& prop0 =
-      py_convert_type<SelectedPoints<WilsonMatrix> >(p_prop0);
+      py_convert_type<SelectedPoints<WilsonMatrix>>(p_prop0);
   QLAT_PUSH_DIAGNOSTIC_DISABLE_DANGLING_REF;
-  const PointsSelection& psel = py_convert_type<PointsSelection>(p_prop0, "psel");
+  const PointsSelection& psel =
+      py_convert_type<PointsSelection>(p_prop0, "psel");
   QLAT_DIAGNOSTIC_POP;
   prop_apply_gauge_transformation(prop, prop0, gt, psel);
   Py_RETURN_NONE;

@@ -44,9 +44,9 @@ inline bool compute_traj(const std::string& job_tag, const int traj)
 inline bool compute(const std::string& job_tag)
 {
   bool is_failed = false;
-  const std::vector<int> trajs = get_trajs(job_tag);
-  for (int i = 0; i < (int)trajs.size(); ++i) {
-    const int traj = trajs[i];
+  const std::vector<int> traj_list = get_traj_list(job_tag);
+  for (int i = 0; i < (int)traj_list.size(); ++i) {
+    const int traj = traj_list[i];
     is_failed = compute_traj(job_tag, traj) or is_failed;
     if (get_total_time() > 1.0) {
       Timer::display();
@@ -63,19 +63,20 @@ inline bool compute(const std::string& job_tag)
 int main(int argc, char* argv[])
 {
   using namespace qlat;
-  const array<std::string, 1> job_tags =
+  const array<std::string, 1> job_tag_list =
       make_array<std::string>("free-4nt8");
   std::vector<Coordinate> size_node_list;
-  size_node_list.push_back(Coordinate(2,2,2,4));
-  size_node_list.push_back(Coordinate(1,1,1,4));
+  size_node_list.push_back(Coordinate(2, 2, 2, 4));
+  size_node_list.push_back(Coordinate(1, 1, 1, 4));
   begin(&argc, &argv, size_node_list);
   display_geometry_node();
   setup_log_idx();
   setup();
-  for (int k = 0; k < (int)job_tags.size(); ++k) {
-    const std::string& job_tag = job_tags[k];
+  for (int k = 0; k < (int)job_tag_list.size(); ++k) {
+    const std::string& job_tag = job_tag_list[k];
     if (not compute(job_tag)) {
-      displayln_info(ssprintf("program finished successfully for '%s'.", job_tag.c_str()));
+      displayln_info(
+          ssprintf("program finished successfully for '%s'.", job_tag.c_str()));
     }
   }
   displayln_info("CHECK: finished successfully.");

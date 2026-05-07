@@ -82,11 +82,11 @@ Coordinate
    Coordinate.from_index
    Coordinate.to_index
 
-   CoordinateD
-   CoordinateD.to_list
-   CoordinateD.to_tuple
-   Coordinate.to_numpy
-   Coordinate.from_list
+    CoordinateD
+    CoordinateD.to_list
+    CoordinateD.to_tuple
+    CoordinateD.to_numpy
+    CoordinateD.from_list
 
 Cache system
 ------------
@@ -178,6 +178,8 @@ Data analysis
    :toctree: generated
 
    get_chunk_list
+   check_zero
+   qnorm
 
 Spatial distance list
 ^^^^^^^^^^^^^^^^^^^^^
@@ -190,28 +192,18 @@ Spatial distance list
    mk_interp_tuple
    mk_r_sq_interp_idx_coef_list
 
-Jackknife method
-^^^^^^^^^^^^^^^^
+Interpolation
+^^^^^^^^^^^^^
 
 .. autosummary::
    :toctree: generated
 
-   g_jk
-   g_rejk
-   g_mk_jk_val
-   g_jk_avg
-   g_jk_err
-   g_jk_avg_err
-   g_jk_size
-   g_jk_blocking_func
-
-Example for the random Super-Jackknife method: ``examples-py/jackknife-random.py``
-
-.. literalinclude:: ../examples-py/jackknife-random.py
-
-Example for the conventional Super-Jackknife method: ``examples-py/jackknife-super.py``
-
-.. literalinclude:: ../examples-py/jackknife-super.py
+   interp_i_arr
+   interp
+   interp_x
+   get_threshold_idx
+   get_threshold_i_arr
+   get_threshold_x_arr
 
 Plotting
 ^^^^^^^^
@@ -222,6 +214,6 @@ Plotting
    plot_save
    plot_view
 
-Example code to make a plot: ``examples-py/qplot.py``
+Example code to make a plot: ``examples-py/plot.py``
 
-.. literalinclude:: ../examples-py/qplot.py
+.. literalinclude:: ../examples-py/plot.py
